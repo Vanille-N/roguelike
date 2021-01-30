@@ -73,3 +73,21 @@ left N -> à gauche de N cases (touche de clavier gauche est un alias pour left 
 (+ autres directions)
 
 appuyer sur entrée sur une commande vide fait avancer le jeu d'une unité de temps
+Ou alors : raccourcis plutôt que cmdline ?
+e.g.
+u -> use item, déclenche une sélection
+l -> list items
+Left, Right, Up, Down -> move cursor
+n -> next action
+...
+
++ cliquer sur une case pour afficher la liste des entités présentes dessus
+
+Et si le paramètre 'speed' des Agent était la probabilité entre 0 et 1 d'avancer d'une case à chaque tour ?
+
+Idées de skills:
+- blocking (0-5) [Cell] (les virus ne peuvent pas être sur la même case)
+- penetration (1-5) [Virus] (rend inefficace blocking de niveau <)
+- antibody (type) [Cell] (dégâts multipliés par 2 sur les Virus)
+- infectious (type) [Virus] (dégâts multipliés par 2 sur les Cell)
+- immunity (type) [Cell & Virus] (immunise contre le antibody / infectious correspondant)
