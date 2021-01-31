@@ -2,16 +2,14 @@ import Math._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.swing._
-import scala.swing.BorderPanel.Position._
-import javax.swing.BorderFactory._
 import java.awt.{ Color, Font }
 import java.lang.System
 import event._
 
 /****************************************************************************/
 
-case class leftClicked (o:Object) extends Event
-case class moveTo (c:Cell) extends Event
+case class leftClicked (o: Object) extends Event
+case class moveTo (c: Cell) extends Event
 
 /****************************************************************************/
 
@@ -24,24 +22,20 @@ case class moveTo (c:Cell) extends Event
 // hitting the player), which is why a lot of the functions in the actor/
 // item/floor code returns booleans.
 
-class Castle extends Reactor
-{
+class Castle extends Reactor {
     var cols = 25
     val rows = 25
 
     val hero = new Hero
 
-    object Mover extends Runnable
-    {
-        var target : Cell = null
+    object Mover extends Runnable {
+        var target: Cell = null
 
-        def set_target (cell:Cell)
-        {
+        def set_target (cell: Cell) {
             this.synchronized { target = cell }
         }
 
-        def nextMove : Unit =
-        {
+        def nextMove: Unit = {
             val hp = hero.position
             if (target == hp) return
 
@@ -50,10 +44,8 @@ class Castle extends Reactor
             val next = neighbours.minBy(_.l2dist(target))
         }
 
-        def run
-        {
-            while (true)
-            {
+        def run {
+            while (true) {
                 this.synchronized { nextMove }
                 Thread.sleep(100)
             }
@@ -62,8 +54,7 @@ class Castle extends Reactor
 
     // Setting up the playing arena (except the hero, which is
     // placed later due to interference with Mover code).
-    val room = new PlainRoom (this,cols,rows)
-    {
+    val room = new PlainRoom (this, cols, rows) {
         cells(5,10).setFloor(Wall)
         cells(5,11).setFloor(Wall)
         cells(5,12).setFloor(Wall)
@@ -78,29 +69,27 @@ class Castle extends Reactor
 
     // Change hero position (e.g. hero enters new room), where no
     // reaction from other actors is desired.
-    def resetHero (cell:Cell)
-    {
+    def resetHero (cell: Cell) {
         hero.placeOnMap(cell)
         Mover.set_target(cell)
     }
 
     // Set up the elements of the user interface.
-    def newGame : GridBagPanel =
-    {
+    def newGame: GridBagPanel = {
         val grid = new GridPanel(rows,cols)
         room.cells.map(grid.contents += _)
 
-        resetHero(room.cells(9,12))
+        resetHero(room.cells(9, 12))
         new Thread(Mover).start
 
         listenTo(room);
 
         val panel = new GridBagPanel {
-            def constraints(x: Int, y: Int,
+            def constraints (x: Int, y: Int,
                 gridwidth: Int = 1, gridheight: Int = 1,
                 weightx: Double = 0.0, weighty: Double = 0.0,
                 fill: GridBagPanel.Fill.Value = GridBagPanel.Fill.None
-            ) : Constraints = {
+            ): Constraints = {
                 val c = new Constraints
                 c.gridx = x
                 c.gridy = y
@@ -143,10 +132,8 @@ class Castle extends Reactor
 
 /****************************************************************************/
 
-object main extends SimpleSwingApplication
-{
-    val top = new MainFrame
-    {
+object main extends SimpleSwingApplication {
+    val top = new MainFrame {
         title = "Castle"
         contents = (new Castle).newGame
         centerOnScreen()
