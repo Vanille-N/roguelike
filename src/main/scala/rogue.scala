@@ -55,12 +55,12 @@ class Castle extends Reactor {
 
     val cmdline = new TextField {
         columns = 32
-        font = new Font("default", 0, 17)
+        font = new Font("courier", 0, 17)
         background = Color.darkGray
         foreground = Color.white
     }
     val logs = new TextArea {
-        font = new Font("default", 0, 19)
+        font = new Font("courier", 0, 19)
         background = Color.darkGray
         foreground = Color.white
         editable = false

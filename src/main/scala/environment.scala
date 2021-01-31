@@ -59,7 +59,7 @@ class Cell (val room: Room, val y: Int, val x: Int) extends Button {
 
     // visual appearance
     border = createEmptyBorder
-    font = new Font("default", 0, 25)
+    font = new Font("courier", 0, 25)
     preferredSize = new Dimension(20, 20)
     focusPainted = false
 
@@ -80,7 +80,7 @@ class Cell (val room: Room, val y: Int, val x: Int) extends Button {
         case MouseClicked(_, _ ,0, _ , _ ) =>
             { publish(leftClicked(this)) }
         case UIElementResized(_) =>
-            font = new Font("default",Font.BOLD,
+            font = new Font("courier",Font.BOLD,
                 min(size.height, size.width) * 4/5)
     }
 
