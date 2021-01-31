@@ -91,3 +91,22 @@ Idées de skills:
 - antibody (type) [Cell] (dégâts multipliés par 2 sur les Virus)
 - infectious (type) [Virus] (dégâts multipliés par 2 sur les Cell)
 - immunity (type) [Cell & Virus] (immunise contre le antibody / infectious correspondant)
+
+
+Idée de représentation des cases:
+ +---------------+
+ | XX   AA BB CC |
+ |XXXX  AA BB CC |
+ | XX   AA BB CC |
+ |---------------|
+ | DD EE FF   YY |
+ | DD EE FF  YYYY|
+ | DD EE FF   YY |
+ +----------------
+
+Avec
+    X: cercle coloré pour indiquer la présence de 1+ virus
+    Y: ''                                         ''  cellules
+    ABC: mesure numérique de la force combinée de tous les virus de la case
+    DEF: ''                                    '' toutes les cellules de la case
+    + couleur de fond pour signifier les skills possédés par les cellules présentes
