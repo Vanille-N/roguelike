@@ -13,6 +13,7 @@ case class moveTo (c: Cell) extends Event
 
 /****************************************************************************/
 
+class Symbol (val form: Char, val color: Color) {}
 
 /****************************************************************************/
 
@@ -50,6 +51,19 @@ class Castle extends Reactor {
                 Thread.sleep(100)
             }
         }
+    }
+
+    val cmdline = new TextField {
+        columns = 32
+        font = new Font("default", 0, 17)
+        background = Color.darkGray
+        foreground = Color.white
+    }
+    val logs = new TextArea {
+        font = new Font("default", 0, 19)
+        background = Color.darkGray
+        foreground = Color.white
+        editable = false
     }
 
     // Setting up the playing arena (except the hero, which is
@@ -100,21 +114,9 @@ class Castle extends Reactor {
                 c.fill = fill
                 c
             }
-            add(grid,
-                constraints(0, 0, gridheight=3, weightx=1.0, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(new TextField {
-                    columns = 32
-                    font = new Font("default", 0, 17)
-                    background = Color.darkGray
-                    foreground = Color.white
-                },
-                constraints(1, 2, weightx=0.3, fill=GridBagPanel.Fill.Horizontal))
-            add(new ScrollPane(new TextArea {
-                    font = new Font("default", 0, 19)
-                    background = Color.darkGray
-                    foreground = Color.white
-                }),
-                constraints(1, 1, weighty = 1.0, fill=GridBagPanel.Fill.Both))
+            add(grid, constraints(0, 0, gridheight=3, weightx=1.0, weighty=1.0, fill=GridBagPanel.Fill.Both))
+            add(cmdline, constraints(1, 2, weightx=0.3, fill=GridBagPanel.Fill.Horizontal))
+            add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(Button("Close") { sys.exit(0) },
                constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
         }
@@ -124,9 +126,8 @@ class Castle extends Reactor {
     }
 
     // User clicks on dungeon cell or item button
-    reactions +=
-    {
-        case moveTo(c:Cell) => { Mover.set_target(c) }
+    reactions += {
+        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
     }
 }
 
