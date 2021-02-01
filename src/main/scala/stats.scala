@@ -6,9 +6,7 @@ import java.awt.{ Color, Font }
 import java.lang.System
 import event._
 
-class Stat (val amount: Int, val variability: Int) {
-    def maxVal = 100
-}
+class Stat (val amount: Int, val variability: Int) {}
 
 class Stats {
     var speed: Stat = new Stat(50, 0)
@@ -29,7 +27,7 @@ class Skills {
 }
 
 class SkillRecord {
-    var count: Array[Int] = Array(5)
+    var count: Array[Int] = Array(0, 0, 0, 0, 0, 0)
     var level: Int = 0
 
     def addSkill (s: Skill) = {
@@ -38,6 +36,6 @@ class SkillRecord {
     }
     def removeSkill (s: Skill) = {
         count(s.level) -= 1
-        while (count(level) < 1) level -= 1
+        while (level > 0 && count(level) < 1) level -= 1
     }
 }
