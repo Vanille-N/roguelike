@@ -6,90 +6,43 @@ import java.awt.{ Color, Font }
 import java.lang.System
 import event._
 
-object Alignment extends Enumeration {
-    type Alignment = Value
-    val HOSTILE, NEUTRAL, FRIENDLY = Value
-}
-import Alignment._
+import Direction._
 
 abstract class Organism {
     var position: Pos = null
-    def alignment: Alignment
+    def isFriendly: Boolean = false
     def name: String
     def placeOnMap (p: Pos) {
         position = p
-        p.addOrganism(alignment, this)
-    }
-<<<<<<< HEAD
-    var stats: Stats
-    var strength: Int
-=======
-
-    ///////////////////////////////////////////////////////////////
-    // Movement-related code: Castle object will call move(), which
-    // calls react() as a function of the actor's speed; react()
-    // is supposed to contain the actor-specific code.
-    // move and react return true if something "important" happens.
-
-    var speed = 100        // speed relative to player
-    var residualSpeed = 0
-
-    def move: Boolean = {
-        var retval = false
-        residualSpeed += speed
-        while (residualSpeed >= 100)
-            { residualSpeed -= 100; retval = react || retval }
-        return retval
+        p.addOrganism(this)
     }
 
-    def goUp (room : Room) : Boolean = {
-	if (room.cells(this.position.y-1, this.position.x).isFree) {
-		this.position.removeActor
-		this.placeOnMap(room.cells(this.position.y-1, this.position.x))
-		return true
-	}
-	else return false
-    }
-    def goDown (room : Room) : Boolean = {
-	if (room.cells(this.position.y+1, this.position.x).isFree) {
-		this.position.removeActor
-		this.placeOnMap(room.cells(this.position.y+1, this.position.x))
-		return true
-	}
-	else return false
-    }
-    def goRight (room : Room) : Boolean = {
-	if (room.cells(this.position.y, this.position.x+1).isFree) {
-		this.position.removeActor
-		this.placeOnMap(room.cells(this.position.y, this.position.x+1))
-		return true
-	} else { return false }
-    }
-    def goLeft (room : Room) : Boolean = {
-	if (room.cells(this.position.y, this.position.x-1).isFree) {
-		this.position.removeActor
-		this.placeOnMap(room.cells(this.position.y, this.position.x-1))
-		return true
-	} else { return false }
+    def calculateStrength: Int = {
+        10 // bogus
     }
 
-    // by default, do nothing
-    def react: Boolean = { return false }
->>>>>>> d3a005608459075c4cb7f1ccc729bc11c70cddd3
+    var stats: Stats = new Stats
+    var skills: Skills = new Skills
+    var strength: Int = calculateStrength
+
+    def move (room: Room, dir: Direction): Boolean = {
+        val newPosition = position.tryAdd(dir)
+        val idx = if (isFriendly) 1 else 0
+        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level < skills.penetration.level) {
+            position.removeOrganism(this)
+            placeOnMap(newPosition)
+            true
+        } else false
+    }
 }
 
 class Virus extends Organism {
-    def alignment = FRIENDLY
+    override def isFriendly = true
     def name = "virus"
-    var stats = new Stats()
-    var strength = stats.toStrength
 }
 
 abstract class Cell extends Organism {
-    def alignment = HOSTILE
     def name = "cell"
-    var stats = new Stats()
-    var strength = stats.toStrength
 }
 
 class WhiteCell extends Cell {
@@ -98,7 +51,6 @@ class WhiteCell extends Cell {
 
 class RedCell extends Cell {
     override def name = "red cell"
-    override def alignment = NEUTRAL
 }
 
 //
