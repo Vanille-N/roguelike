@@ -17,8 +17,12 @@ abstract class Organism {
         p.addOrganism(this)
     }
 
+    // Adjust the strength according to the health of the Organism
+    var baseStrength: Int = 10
+    var correlationHealthStrength: Double = 1.1
     def calculateStrength: Int = {
-        10 // bogus
+        //10 // bogus
+        (correlationHealthStrength * baseStrength *(1- scala.math.pow(1-correlationHealthStrength, this.stats.health.amount/100))).toInt
     }
 
     var stats: Stats = new Stats
@@ -107,3 +111,4 @@ class RedCell extends Cell {
 //
 //     override def react: Boolean = { return pursuit }
 // }
+// vim: set expandtab tabstop=4 shiftwidth=4 :

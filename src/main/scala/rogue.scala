@@ -80,7 +80,7 @@ class Castle extends Reactor {
         panel.background = Color.darkGray
         room.locs.map(_.update)
 
-        listenTo(room, cmdline, panel.keys);
+        listenTo(panel.keys);
 
         globalPanel = panel
         panel
@@ -93,6 +93,16 @@ class Castle extends Reactor {
             this.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
         } else {
             this.logs.text += "\t> Player cannot go " + dir + "\n"
+        }
+    }
+
+    def trySet (prompt: String, args: Array[String]) = {
+        for (i <- args)
+            this.logs.text += "argument: " + i + "\n"
+        args(0) match {
+            "health" => {  }
+            "base_strength" => {  }
+            _ => {  }
         }
     }
 
@@ -113,14 +123,15 @@ class Castle extends Reactor {
         }
         case EditDone(`cmdline`) => {
             if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
-            this.cmdline.text match {
+            this.cmdline.text.split(" ")(0) match {
                 case "Up" => tryMove("\t", UP)
                 case "Down" => tryMove("\t", DOWN)
                 case "Right" => tryMove("\t", RIGHT)
                 case "Left" => tryMove("\t", LEFT)
                 case "quit" => { sys.exit(0) }
-                case "q" => { sys.exit(0) }
+                case "q" => { globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
+                case "set" => { trySet("setting", cmdline.text.substring(3).split(" ")) }
                 case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
             }
