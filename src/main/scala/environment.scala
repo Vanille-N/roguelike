@@ -28,6 +28,24 @@ object Ground extends Floor {
 // This class represents one dungeon cell with a floor, optionally an actor
 // and an item. Handles the visual appearance and user-interface aspects.
 
+object Direction extends Enumeration {
+    type Direction = Value
+    val UP = Value("up")
+    val DOWN = Value("down")
+    val LEFT = Value("left")
+    val RIGHT = Value("right")
+
+    def toTuple (i: Direction): Tuple2[Int, Int] = {
+        i match {
+            case UP => (0, -1)
+            case DOWN => (0, 1)
+            case LEFT => (-1, 0)
+            case RIGHT => (1, 0)
+        }
+    }
+}
+import Direction._
+
 class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     var floor: Floor = null
     var friendlyOrganisms: Set[Organism] = Set()
