@@ -84,60 +84,38 @@ class Castle extends Reactor {
         panel
     }
 
+    import Direction._
+    def tryMove (prompt: String, dir: Direction) = {
+        if (player.move(dir)) {
+            this.logs.text += prompt + "Player goes " + dir + "\n"
+            this.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
+        } else {
+            this.logs.text += "\t> Player cannot go " + dir + "\n"
+        }
+    }
+
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case moveTo(p: Pos) => { this.logs.text += "clicked at position (" + p.x + "," + p.y + ")\n" }
         case KeyPressed(_, c, _, _) => {
-                    c.toString match {
-                            case "Deux-points" => { cmdline.requestFocusInWindow() }
-                            case"Q" => { sys.exit(0) }
-                            case "K" => {
-                                    if(hero.goUp(room)) {
-                                        this.logs.text += "[" + c.toString + "]\tHero goes up\n"
-                                    } else {
-                                        this.logs.text += "\t> Hero cannot go up\n"
-                                    }
-                                }
-                            case "J" => {
-                                    if(hero.goDown(room)) {
-                                        this.logs.text += "[" + c.toString +"]\tHero goes down\n"
-                                    } else {
-                                        this.logs.text += "\t> Hero cannot go down\n"
-                                    }
-                                }
-                            case "L" => {
-                                    if(hero.goRight(room)) {
-                                        this.logs.text += "[" + c.toString + "]\tHero goes right\n"
-                                    } else {
-                                        this.logs.text += "\t> Hero cannot go right\n"
-                                    }
-                                }
-                            case "H" => {
-                                    if(hero.goLeft(room)) {
-                                        this.logs.text += "[" + c.toString + "]\tHero goes left\n"
-                                    } else {
-                                        this.logs.text += "\t> Hero cannot go left\n"
-                                    }
-                                }
-                            // case _ =>  this.logs.text += "Key : " + c + "\n";
-                            }
-                }
+            val prompt = "[" + c.toString + "]"
+            c.toString match {
+                case "Deux-points" => { cmdline.requestFocusInWindow() }
+                case "Q" => { sys.exit(0) }
+                case "K" => { tryMove(prompt, UP) }
+                case "J" => { tryMove(prompt, DOWN) }
+                case "L" => { tryMove(prompt, RIGHT) }
+                case "H" => { tryMove(prompt, LEFT) }
+            }
+            room.locs.map(_.update)
+        }
         case EditDone(`cmdline`) => {
             if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
-            import Direction._
-            def tryMove (dir: Direction) = {
-                if (player.move(dir)) {
-                    this.logs.text += "\t> Player goes " + dir + "\n"
-                    this.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
-                } else {
-                    this.logs.text += "\t> Player cannot go " + dir + "\n"
-                }
-            }
             this.cmdline.text match {
-                case "Up" => tryMove(UP)
-                case "Down" => tryMove(DOWN)
-                case "Right" => tryMove(RIGHT)
-                case "Left" => tryMove(LEFT)
+                case "Up" => tryMove("\t", UP)
+                case "Down" => tryMove("\t", DOWN)
+                case "Right" => tryMove("\t", RIGHT)
+                case "Left" => tryMove("\t", LEFT)
                 case "quit" => { sys.exit(0) }
                 case "q" => { this.logs.text += "\t>Exiting command mode...\n"; globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
