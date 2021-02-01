@@ -83,35 +83,20 @@ class Castle extends Reactor {
         case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
         case EditDone(`cmdline`) => {
             this.logs.text += "$ " + this.cmdline.text;
+            import Direction._
+            def tryMove (dir: Direction) = {
+                if (player.move(dir)) {
+                    this.logs.text += "\t> Player goes " + dir + "\n"
+                    this.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
+                } else {
+                    this.logs.text += "\t> Player cannot go " + dir + "\n"
+                }
+            }
             this.cmdline.text match {
-                case "Up" => {
-                        if(hero.goUp(room)) {
-                            this.logs.text += "\t> Hero goes up\n"
-                        } else {
-                            this.logs.text += "\t> Hero cannot go up\n"
-                        }
-                    }
-                case "Down" => {
-                        if(hero.goDown(room)) {
-                            this.logs.text += "\t> Hero goes down\n"
-                        } else {
-                            this.logs.text += "\t> Hero cannot go down\n"
-                        }
-                    }
-                case "Right" => {
-                        if(hero.goRight(room)) {
-                            this.logs.text += "\t> Hero goes right\n"
-                        } else {
-                            this.logs.text += "\t> Hero cannot go right\n"
-                        }
-                    }
-                case "Left" => {
-                        if(hero.goLeft(room)) {
-                            this.logs.text += "\t> Hero goes left\n"
-                        } else {
-                            this.logs.text += "\t> Hero cannot go left\n"
-                        }
-                    }
+                case "Up" => tryMove(UP)
+                case "Down" => tryMove(DOWN)
+                case "Right" => tryMove(RIGHT)
+                case "Left" => tryMove(LEFT)
                 case "quit" => { sys.exit(0) }
                 case "q" => { sys.exit(0) }
                 case "clear" => { this.logs.text = "" }
