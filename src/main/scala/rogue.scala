@@ -1,6 +1,7 @@
 import Math._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.Set
 import scala.swing._
 import java.awt.{ Color, Font }
 import java.lang.System
@@ -9,7 +10,7 @@ import event._
 /****************************************************************************/
 
 case class leftClicked (o: Object) extends Event
-case class moveTo (p: Pos) extends Event
+case class displayContents (p: Pos) extends Event
 
 /****************************************************************************/
 
@@ -24,7 +25,7 @@ class Symbol (val form: Char, val color: Color) {}
 // item/floor code returns booleans.
 
 class Castle extends Reactor {
-    var cols = 25
+    val cols = 25
     val rows = 25
 
     var globalPanel : GridBagPanel = null
@@ -41,8 +42,9 @@ class Castle extends Reactor {
         foreground = Color.white
         editable = false
     }
+    var cells: Set[Cell] = Set()
 
-    val room = new PlainRoom(this, cols, rows) {}
+    val room = new PlainRoom(this, cols, rows)
 
     val player = new Player(room.locs(10, 10))
 
@@ -72,8 +74,7 @@ class Castle extends Reactor {
             add(grid, constraints(0, 0, gridheight=3, weightx=1.0, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(cmdline, constraints(1, 2, weightx=0.3, fill=GridBagPanel.Fill.Horizontal))
             add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(Button("Close") { sys.exit(0) },
-               constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
+            add(Button("Close") { sys.exit(0) }, constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
             focusable = true;
         }
         panel.foreground = Color.darkGray
@@ -83,6 +84,15 @@ class Castle extends Reactor {
         listenTo(room, cmdline, panel.keys);
 
         globalPanel = panel
+
+        cells.foreach(c => {
+            println(Tuple4(
+                c.position.x,
+                c.position.y,
+                room.locs(c.position.y, c.position.x).organisms(1).size,
+                room.locs(c.position.y, c.position.x).organisms(0).size,
+            ))
+        })
         panel
     }
 
@@ -98,7 +108,9 @@ class Castle extends Reactor {
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case moveTo(p: Pos) => { this.logs.text += "clicked at position (" + p.x + "," + p.y + ")\n" }
+        case displayContents(p: Pos) => {
+            this.logs.text += p.listContents
+        }
         case KeyPressed(_, c, _, _) => {
             val prompt = "[" + c.toString + "]"
             c.toString match {
@@ -113,13 +125,14 @@ class Castle extends Reactor {
         }
         case EditDone(`cmdline`) => {
             if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
+            val prompt = "\t>"
             this.cmdline.text match {
-                case "Up" => tryMove("\t", UP)
-                case "Down" => tryMove("\t", DOWN)
-                case "Right" => tryMove("\t", RIGHT)
-                case "Left" => tryMove("\t", LEFT)
+                case "Up" => tryMove(prompt, UP)
+                case "Down" => tryMove(prompt, DOWN)
+                case "Right" => tryMove(prompt, RIGHT)
+                case "Left" => tryMove(prompt, LEFT)
                 case "quit" => { sys.exit(0) }
-                case "q" => { sys.exit(0) }
+                case "q" => { globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
                 case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
