@@ -27,6 +27,37 @@ class Castle extends Reactor {
     var cols = 25
     val rows = 25
 
+<<<<<<< HEAD
+=======
+    val hero = new Hero
+
+    var globalPanel : GridBagPanel = null
+
+    object Mover extends Runnable {
+        var target: Cell = null
+
+        def set_target (cell: Cell) {
+            this.synchronized { target = cell }
+        }
+
+        def nextMove: Unit = {
+            val hp = hero.position
+            if (target == hp) return
+
+            // find neighbour cell closest to target
+            val neighbours = room.cells.neighbours(hp)
+            val next = neighbours.minBy(_.l2dist(target))
+        }
+
+        def run {
+            while (true) {
+                this.synchronized { nextMove }
+                Thread.sleep(100)
+            }
+        }
+    }
+
+>>>>>>> 97c45abbed4a589b590133e30ea6b81705d33558
     val cmdline = new TextField {
         columns = 32
         font = new Font("courier", 0, 17)
@@ -49,8 +80,6 @@ class Castle extends Reactor {
         val grid = new GridPanel(rows,cols)
         room.locs.map(grid.contents += _)
 
-        listenTo(room, cmdline);
-
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,
                 gridwidth: Int = 1, gridheight: Int = 1,
@@ -72,16 +101,65 @@ class Castle extends Reactor {
             add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(Button("Close") { sys.exit(0) },
                constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
+            
+            focusable = true;
         }
         panel.foreground = Color.darkGray
         panel.background = Color.darkGray
+<<<<<<< HEAD
         room.locs.map(_.update)
+=======
+
+        listenTo(room, cmdline, panel.keys);
+
+        globalPanel = panel
+
+>>>>>>> 97c45abbed4a589b590133e30ea6b81705d33558
         panel
     }
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
+<<<<<<< HEAD
         case moveTo(c: Pos) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+=======
+        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case KeyPressed(_, c, _, _) => {
+                    c.toString match {
+                            case "Deux-points" => { cmdline.requestFocusInWindow() }
+                            case"Q" => { sys.exit(0) }
+                            case "K" => {
+                                    if(hero.goUp(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes up\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go up\n"
+                                    }
+                                }
+                            case "J" => {
+                                    if(hero.goDown(room)) {
+                                        this.logs.text += "[" + c.toString +"]\tHero goes down\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go down\n"
+                                    }
+                                }
+                            case "L" => {
+                                    if(hero.goRight(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes right\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go right\n"
+                                    }
+                                }
+                            case "H" => {
+                                    if(hero.goLeft(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes left\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go left\n"
+                                    }
+                                }
+                            // case _ =>  this.logs.text += "Key : " + c + "\n";
+                            }
+                }
+>>>>>>> 97c45abbed4a589b590133e30ea6b81705d33558
         case EditDone(`cmdline`) => {
             if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
             import Direction._
@@ -99,7 +177,7 @@ class Castle extends Reactor {
                 case "Right" => tryMove(RIGHT)
                 case "Left" => tryMove(LEFT)
                 case "quit" => { sys.exit(0) }
-                case "q" => { sys.exit(0) }
+                case "q" => { this.logs.text += "\t>Exiting command mode...\n"; globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
                 case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
