@@ -51,6 +51,8 @@ class Castle extends Reactor {
         val grid = new GridPanel(rows,cols)
         room.locs.map(grid.contents += _)
 
+        listenTo(room, cmdline);
+
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,
                 gridwidth: Int = 1, gridheight: Int = 1,
@@ -117,7 +119,7 @@ class Castle extends Reactor {
                 case "Right" => tryMove("\t", RIGHT)
                 case "Left" => tryMove("\t", LEFT)
                 case "quit" => { sys.exit(0) }
-                case "q" => { this.logs.text += "\t>Exiting command mode...\n"; globalPanel.requestFocusInWindow() }
+                case "q" => { sys.exit(0) }
                 case "clear" => { this.logs.text = "" }
                 case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
