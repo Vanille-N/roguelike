@@ -9,7 +9,7 @@ import event._
 /****************************************************************************/
 
 case class leftClicked (o: Object) extends Event
-case class moveTo (c: Cell) extends Event
+case class moveTo (p: Pos) extends Event
 
 /****************************************************************************/
 
@@ -27,32 +27,6 @@ class Castle extends Reactor {
     var cols = 25
     val rows = 25
 
-    val hero = new Hero
-
-    object Mover extends Runnable {
-        var target: Cell = null
-
-        def set_target (cell: Cell) {
-            this.synchronized { target = cell }
-        }
-
-        def nextMove: Unit = {
-            val hp = hero.position
-            if (target == hp) return
-
-            // find neighbour cell closest to target
-            val neighbours = room.cells.neighbours(hp)
-            val next = neighbours.minBy(_.l2dist(target))
-        }
-
-        def run {
-            while (true) {
-                this.synchronized { nextMove }
-                Thread.sleep(100)
-            }
-        }
-    }
-
     val cmdline = new TextField {
         columns = 32
         font = new Font("courier", 0, 17)
@@ -68,33 +42,12 @@ class Castle extends Reactor {
 
     // Setting up the playing arena (except the hero, which is
     // placed later due to interference with Mover code).
-    val room = new PlainRoom (this, cols, rows) {
-        cells(5,10).setFloor(Wall)
-        cells(5,11).setFloor(Wall)
-        cells(5,12).setFloor(Wall)
-        cells(14,10).setFloor(Wall); cells(14,12).setFloor(Wall)
-        cells(15,10).setFloor(Wall); cells(15,12).setFloor(Wall)
-        cells(16,10).setFloor(Wall); cells(16,12).setFloor(Wall)
-
-        (new Fairy).placeOnMap(cells(14,11))
-        (new Gnome { setEnemy(hero) }).placeOnMap(cells(9,16))
-        (new Gnome { setEnemy(hero) }).placeOnMap(cells(15,2))
-    }
-
-    // Change hero position (e.g. hero enters new room), where no
-    // reaction from other actors is desired.
-    def resetHero (cell: Cell) {
-        hero.placeOnMap(cell)
-        Mover.set_target(cell)
-    }
+    val room = new PlainRoom(this, cols, rows) {}
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
         val grid = new GridPanel(rows,cols)
-        room.cells.map(grid.contents += _)
-
-        resetHero(room.cells(9, 12))
-        new Thread(Mover).start
+        room.locs.map(grid.contents += _)
 
         listenTo(room);
 
@@ -127,7 +80,7 @@ class Castle extends Reactor {
 
     // User clicks on dungeon cell or item button
     reactions += {
-        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case moveTo(p: Pos) => { this.logs.text += "clicked at position (" + p.x + "," + p.y + ")\n" }
     }
 }
 
