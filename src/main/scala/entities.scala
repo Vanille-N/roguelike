@@ -34,6 +34,10 @@ abstract class Organism {
             true
         } else false
     }
+
+    override def toString: String = {
+        name + "[STR:" + strength + "; HP:" + stats.health.amount + "; ATK:" + stats.strength.amount + "]"
+    }
 }
 
 class Virus extends Organism {

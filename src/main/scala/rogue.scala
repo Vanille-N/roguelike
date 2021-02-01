@@ -85,14 +85,6 @@ class Castle extends Reactor {
 
         globalPanel = panel
 
-        cells.foreach(c => {
-            println(Tuple4(
-                c.position.x,
-                c.position.y,
-                room.locs(c.position.y, c.position.x).organisms(1).size,
-                room.locs(c.position.y, c.position.x).organisms(0).size,
-            ))
-        })
         panel
     }
 

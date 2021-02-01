@@ -52,13 +52,13 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
 
     def setFloor (f: Floor) = { floor = f; update }
-    def removeOrganism (o: Organism) = {
+    def addOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)
         strength(idx) += o.strength
         blocking(idx).addSkill(o.skills.blocking)
     }
-    def addOrganism (o: Organism) = {
+    def removeOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).remove(o)
         strength(idx) -= o.strength
@@ -104,8 +104,21 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
 
     def listContents: String = {
         var s = "At position (" + y + "," + x + ")\n"
-        s += "    " + organisms(1).size + " virus\n"
-        s += "    " + organisms(0).size + " cells\n"
+        if (organisms(1).size > 0) {
+            s += "    " + organisms(1).size + " virus\n"
+            organisms(1).foreach(o => {
+                s += "      " + o + "\n"
+            })
+        }
+        if (organisms(0).size > 0) {
+            s += "    " + organisms(0).size + " cells\n"
+            organisms(0).foreach(o => {
+                s += "      " + o + "\n"
+            })
+        }
+        if (organisms(0).size + organisms(1).size == 0) {
+            s += "    empty\n"
+        }
         s
     }
 }
