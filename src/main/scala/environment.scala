@@ -8,8 +8,6 @@ import java.awt.{ Color, Font }
 import java.lang.System
 import event._
 
-import Alignment._
-
 abstract class Floor {
     def color: Color
 }
@@ -48,27 +46,24 @@ import Direction._
 
 class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     var floor: Floor = null
-    var friendlyOrganisms: Set[Organism] = Set()
-    var hostileOrganisms: Set[Organism] = Set()
-    var neutralOrganisms: Set[Organism] = Set()
-    var friendlyStrength: Int = 0
-    var hostileStrength: Int = 0
-    var neutralStrength: Int = 0
+    var isFocused: Boolean = false
+    var organisms: Array[Set[Organism]] = Array(Set(), Set())
+    var strength: Array[Int] = Array(0, 0)
+    var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
 
     def setFloor (f: Floor) = { floor = f; update }
-    def removeOrgasism (alignment: Alignment, x: Organism) = {
-        alignment match {
-            case FRIENDLY => { friendlyOrganisms.remove(x); friendlyStrength -= x.strength }
-            case HOSTILE => { hostileOrganisms.remove(x); hostileStrength -= x.strength }
-            case NEUTRAL => { neutralOrganisms.remove(x); neutralStrength -= x.strength }
-        }
+    def removeOrganism (x: Organism) = {
+        val idx = if (x.isFriendly) 1 else 0
+        organisms(idx).add(x)
+        strength(idx) += x.strength
+        blocking(idx).addSkill(x.skills.blocking)
     }
-    def addOrganism (alignment: Alignment, x: Organism) = {
-        alignment match {
-            case FRIENDLY => { friendlyOrganisms.add(x); friendlyStrength += x.strength }
-            case HOSTILE => { hostileOrganisms.add(x); hostileStrength += x.strength }
-            case NEUTRAL => { neutralOrganisms.add(x); neutralStrength += x.strength }
-        }
+    def addOrganism (x: Organism) = {
+        val idx = if (x.isFriendly) 1 else 0
+        organisms(idx).remove(x)
+        strength(idx) += -x.strength
+        blocking(idx).removeSkill(x.skills.blocking)
+    }
     }
 
     // visual appearance
