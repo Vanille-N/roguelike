@@ -64,6 +64,14 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         strength(idx) += -x.strength
         blocking(idx).removeSkill(x.skills.blocking)
     }
+
+    def tryAdd (i: Direction): Pos = {
+        val dpos = Direction.toTuple(i)
+        val newX = this.x + dpos._1
+        val newY = this.y + dpos._2
+        if (room.cols > newX && room.rows > newY && 0 <= newX && 0 <= newY) {
+            room.locs(newY, newX)
+        } else null
     }
 
     // visual appearance
@@ -79,6 +87,8 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         }
 
         text = ""; background = floor.color
+        if (isFocused) background = Color.white
+        // println(x, y, isFocused)
     }
 
     // user interface
