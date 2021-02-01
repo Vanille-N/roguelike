@@ -49,7 +49,7 @@ class Castle extends Reactor {
         val grid = new GridPanel(rows,cols)
         room.locs.map(grid.contents += _)
 
-        listenTo(room);
+        listenTo(room, cmdline);
 
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,
@@ -78,10 +78,49 @@ class Castle extends Reactor {
         panel
     }
 
-    // User clicks on dungeon cell or item button
+    // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case moveTo(p: Pos) => { this.logs.text += "clicked at position (" + p.x + "," + p.y + ")\n" }
+        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case EditDone(`cmdline`) => {
+            this.logs.text += "$ " + this.cmdline.text;
+            this.cmdline.text match {
+                case "Up" => {
+                        if(hero.goUp(room)) {
+                            this.logs.text += "\t> Hero goes up\n"
+                        } else {
+                            this.logs.text += "\t> Hero cannot go up\n"
+                        }
+                    }
+                case "Down" => {
+                        if(hero.goDown(room)) {
+                            this.logs.text += "\t> Hero goes down\n"
+                        } else {
+                            this.logs.text += "\t> Hero cannot go down\n"
+                        }
+                    }
+                case "Right" => {
+                        if(hero.goRight(room)) {
+                            this.logs.text += "\t> Hero goes right\n"
+                        } else {
+                            this.logs.text += "\t> Hero cannot go right\n"
+                        }
+                    }
+                case "Left" => {
+                        if(hero.goLeft(room)) {
+                            this.logs.text += "\t> Hero goes left\n"
+                        } else {
+                            this.logs.text += "\t> Hero cannot go left\n"
+                        }
+                    }
+                case "quit" => { sys.exit(0) }
+                case "q" => { sys.exit(0) }
+                case "clear" => { this.logs.text = "" }
+                case _ => { this.logs.text += "\t> command not found ;/\n" }
+            }
+            this.cmdline.text = "";
+            }
     }
+
 }
 
 /****************************************************************************/

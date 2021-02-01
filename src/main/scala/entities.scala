@@ -20,8 +20,62 @@ abstract class Organism {
         position = p
         p.addOrganism(alignment, this)
     }
+<<<<<<< HEAD
     var stats: Stats
     var strength: Int
+=======
+
+    ///////////////////////////////////////////////////////////////
+    // Movement-related code: Castle object will call move(), which
+    // calls react() as a function of the actor's speed; react()
+    // is supposed to contain the actor-specific code.
+    // move and react return true if something "important" happens.
+
+    var speed = 100        // speed relative to player
+    var residualSpeed = 0
+
+    def move: Boolean = {
+        var retval = false
+        residualSpeed += speed
+        while (residualSpeed >= 100)
+            { residualSpeed -= 100; retval = react || retval }
+        return retval
+    }
+
+    def goUp (room : Room) : Boolean = {
+	if (room.cells(this.position.y-1, this.position.x).isFree) {
+		this.position.removeActor
+		this.placeOnMap(room.cells(this.position.y-1, this.position.x))
+		return true
+	}
+	else return false
+    }
+    def goDown (room : Room) : Boolean = {
+	if (room.cells(this.position.y+1, this.position.x).isFree) {
+		this.position.removeActor
+		this.placeOnMap(room.cells(this.position.y+1, this.position.x))
+		return true
+	}
+	else return false
+    }
+    def goRight (room : Room) : Boolean = {
+	if (room.cells(this.position.y, this.position.x+1).isFree) {
+		this.position.removeActor
+		this.placeOnMap(room.cells(this.position.y, this.position.x+1))
+		return true
+	} else { return false }
+    }
+    def goLeft (room : Room) : Boolean = {
+	if (room.cells(this.position.y, this.position.x-1).isFree) {
+		this.position.removeActor
+		this.placeOnMap(room.cells(this.position.y, this.position.x-1))
+		return true
+	} else { return false }
+    }
+
+    // by default, do nothing
+    def react: Boolean = { return false }
+>>>>>>> d3a005608459075c4cb7f1ccc729bc11c70cddd3
 }
 
 class Virus extends Organism {
