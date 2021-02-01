@@ -39,6 +39,11 @@ abstract class Organism {
 class Virus extends Organism {
     override def isFriendly = true
     def name = "virus"
+
+    stats.speed = new Stat(30, 2)
+    stats.health = new Stat(20, 2)
+    stats.strength = new Stat(30, 1)
+    stats.resistance = new Stat(15, 1)
 }
 
 abstract class Cell extends Organism {
@@ -47,63 +52,33 @@ abstract class Cell extends Organism {
 
 class WhiteCell extends Cell {
     override def name = "white cell"
+
+    stats.speed = new Stat(10, 2)
+    stats.health = new Stat(10, 5)
+    stats.strength = new Stat(10, 2)
+    stats.resistance = new Stat(10, 1)
+
+    skills.penetration = new Skill(1)
+    skills.power = new Skill(1)
 }
 
 class RedCell extends Cell {
     override def name = "red cell"
+
+    stats.speed = new Stat(5, 2)
+    stats.health = new Stat(50, 20)
+    stats.strength = new Stat(0, 0)
+    stats.resistance = new Stat(5, 1)
 }
 
-//
-// class Hero extends Actor {
-//     val symbol = new Symbol('H',Color.white)
-//     override val name = "you"
-//     var hasWeapon = false
-//     override def isHero: Boolean = { return true }
-//
-//     life = 5
-// }
-//
-// abstract class AgressiveActor extends Actor {
-//     var enemy: Actor = null
-//
-//     def setEnemy (a: Actor) = { enemy = a }
-//
-//     // go after the enemy and attack if the enemy is next to the actor
-//     def pursuit: Boolean = {
-//         if (enemy == null) return false
-//         if (enemy.life == 0) { enemy = null; return false }
-//
-//         val next = position.room.cells.neighbours(position).
-//                     minBy(_.l2dist(enemy.position))
-//
-//         if (next.actor == null) {
-//             next.floor.enter(this,next)
-//             return false
-//         }
-//
-//         if (next.actor == enemy) {
-//             enemy.hit
-//             return true
-//         }
-//
-//         return false
-//     }
-// }
-//
-// class Fairy extends Actor {
-//     val symbol = new Symbol('F', Color.green)
-//     override val name = "fairy"
-//
-//     override def hear: Unit = {
-//         position.removeActor
-//     }
-// }
-//
-// class Gnome extends AgressiveActor {
-//     val symbol = new Symbol('G',Color.magenta)
-//     override val name = "gnome"
-//     life = 3
-//     speed = 70
-//
-//     override def react: Boolean = { return pursuit }
-// }
+class WallCell extends Cell {
+    override def name = "wall cell"
+
+    stats.speed = new Stat(0, 0)
+    stats.health = new Stat(100, 0)
+    stats.strength = new Stat(0, 0)
+    stats.resistance = new Stat(100, 0)
+
+    skills.immunity = new Skill(5)
+    skills.blocking = new Skill(5)
+}
