@@ -102,9 +102,9 @@ class Castle extends Reactor {
         for (i <- args)
             this.logs.text += "argument: " + i + "\n"
         args(0) match {
-            "health" => {  }
-            "base_strength" => {  }
-            _ => {  }
+            case "health" => {  }
+            case "base_strength" => {  }
+            case _ => {  }
         }
     }
 
