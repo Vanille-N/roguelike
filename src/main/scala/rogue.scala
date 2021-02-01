@@ -40,9 +40,9 @@ class Castle extends Reactor {
         editable = false
     }
 
-    // Setting up the playing arena (except the hero, which is
-    // placed later due to interference with Mover code).
     val room = new PlainRoom(this, cols, rows) {}
+
+    val player = new Player(room.locs(10, 10))
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
@@ -75,14 +75,15 @@ class Castle extends Reactor {
         }
         panel.foreground = Color.darkGray
         panel.background = Color.darkGray
+        room.locs.map(_.update)
         panel
     }
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case moveTo(c: Pos) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
         case EditDone(`cmdline`) => {
-            this.logs.text += "$ " + this.cmdline.text;
+            if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
             import Direction._
             def tryMove (dir: Direction) = {
                 if (player.move(dir)) {
@@ -100,10 +101,12 @@ class Castle extends Reactor {
                 case "quit" => { sys.exit(0) }
                 case "q" => { sys.exit(0) }
                 case "clear" => { this.logs.text = "" }
+                case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
             }
             this.cmdline.text = "";
-            }
+            room.locs.map(_.update)
+        }
     }
 
 }
