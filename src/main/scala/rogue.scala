@@ -29,6 +29,8 @@ class Castle extends Reactor {
 
     val hero = new Hero
 
+    var globalPanel : GridBagPanel = null
+
     object Mover extends Runnable {
         var target: Cell = null
 
@@ -96,8 +98,6 @@ class Castle extends Reactor {
         resetHero(room.cells(9, 12))
         new Thread(Mover).start
 
-        listenTo(room, cmdline);
-
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,
                 gridwidth: Int = 1, gridheight: Int = 1,
@@ -119,15 +119,57 @@ class Castle extends Reactor {
             add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(Button("Close") { sys.exit(0) },
                constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
+            
+            focusable = true;
         }
         panel.foreground = Color.darkGray
         panel.background = Color.darkGray
+
+        listenTo(room, cmdline, panel.keys);
+
+        globalPanel = panel
+
         panel
     }
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case moveTo(c: Cell) => { this.logs.text += "clicked at position (" + c.x + "," + c.y + ")\n" }
+        case KeyPressed(_, c, _, _) => {
+                    c.toString match {
+                            case "Deux-points" => { cmdline.requestFocusInWindow() }
+                            case"Q" => { sys.exit(0) }
+                            case "K" => {
+                                    if(hero.goUp(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes up\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go up\n"
+                                    }
+                                }
+                            case "J" => {
+                                    if(hero.goDown(room)) {
+                                        this.logs.text += "[" + c.toString +"]\tHero goes down\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go down\n"
+                                    }
+                                }
+                            case "L" => {
+                                    if(hero.goRight(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes right\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go right\n"
+                                    }
+                                }
+                            case "H" => {
+                                    if(hero.goLeft(room)) {
+                                        this.logs.text += "[" + c.toString + "]\tHero goes left\n"
+                                    } else {
+                                        this.logs.text += "\t> Hero cannot go left\n"
+                                    }
+                                }
+                            // case _ =>  this.logs.text += "Key : " + c + "\n";
+                            }
+                }
         case EditDone(`cmdline`) => {
             this.logs.text += "$ " + this.cmdline.text;
             this.cmdline.text match {
@@ -160,7 +202,7 @@ class Castle extends Reactor {
                         }
                     }
                 case "quit" => { sys.exit(0) }
-                case "q" => { sys.exit(0) }
+                case "q" => { this.logs.text += "\t>Exiting command mode...\n"; globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
             }
