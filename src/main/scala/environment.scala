@@ -52,17 +52,17 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
 
     def setFloor (f: Floor) = { floor = f; update }
-    def removeOrganism (x: Organism) = {
-        val idx = if (x.isFriendly) 1 else 0
-        organisms(idx).add(x)
-        strength(idx) += x.strength
-        blocking(idx).addSkill(x.skills.blocking)
+    def removeOrganism (o: Organism) = {
+        val idx = if (o.isFriendly) 1 else 0
+        organisms(idx).add(o)
+        strength(idx) += o.strength
+        blocking(idx).addSkill(o.skills.blocking)
     }
-    def addOrganism (x: Organism) = {
-        val idx = if (x.isFriendly) 1 else 0
-        organisms(idx).remove(x)
-        strength(idx) += -x.strength
-        blocking(idx).removeSkill(x.skills.blocking)
+    def addOrganism (o: Organism) = {
+        val idx = if (o.isFriendly) 1 else 0
+        organisms(idx).remove(o)
+        strength(idx) -= o.strength
+        blocking(idx).removeSkill(o.skills.blocking)
     }
 
     def tryAdd (i: Direction): Pos = {
@@ -102,6 +102,12 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
                 min(size.height, size.width) * 4/5)
     }
 
+    def listContents: String = {
+        var s = "At position (" + y + "," + x + ")\n"
+        s += "    " + organisms(1).size + " virus\n"
+        s += "    " + organisms(0).size + " cells\n"
+        s
+    }
 }
 
 // Handle a grid of dungeon cells, facilitating some aggregate functions
@@ -125,12 +131,15 @@ extends Reactor with Publisher {
     locs.map(listenTo(_))
 
     reactions += {
-        case leftClicked(c: Pos) => { publish(moveTo(c)) }
+        case leftClicked(c: Pos) => { publish(displayContents(c)) }
     }
 
-    def makeWall (c: Pos, d: Pos) {
-        for (x <- c.x to d.x; y <- c.y to d.y)
-            { locs(y,x).setFloor(Wall) }
+    def makeWall (p: Pos, q: Pos) {
+        for (x <- p.x to q.x; y <- p.y to q.y) {
+            val c = new WallCell
+            c.placeOnMap(locs(y, x))
+            castle.cells.add(c)
+        }
     }
 }
 
