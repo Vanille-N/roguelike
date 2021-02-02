@@ -71,7 +71,8 @@ abstract class Organism {
     override def toString: String = {
         val s = skills.toString
         name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
-        "      [ HP:" + stats.health + " | ATK:" + stats.power + " | DEF:" + stats.resistance + " | SPD:" + stats.speed + " ]"
+        "      [ HP:" + stats.health + " | ATK:" + stats.power + " | DEF:" + stats.resistance + " | SPD:" + stats.speed + " | DEC:" + stats.decisiveness + " ]"
+    }
     }
 }
 

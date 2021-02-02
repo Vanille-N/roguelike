@@ -64,6 +64,11 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     def distance (other: Pos): Int = {
         (this.x - other.x).abs + (this.y - other.y).abs
     }
+
+    override def toString: String = {
+        "(" + x + "," + y + ")"
+    }
+
     // visual appearance
     border = createEmptyBorder
     preferredSize = new Dimension(20, 20)
