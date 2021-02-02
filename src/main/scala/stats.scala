@@ -4,15 +4,39 @@ import scala.collection.mutable.HashMap
 import scala.swing._
 import java.awt.{ Color, Font }
 import java.lang.System
+import java.util.Random
 import event._
 
-class Stat (val amount: Int, val variability: Int) {}
+class Stat (val amount: Int, val variability: Int) {
+    def instantiate: Int = {
+        var x = amount
+        val r = new Random
+        x += (variability * r.nextGaussian).round.toInt
+        x.min(100).max(0)
+    }
+}
 
 class Stats {
+    var speed: Int = 0
+    var health: Int = 0
+    var power: Int = 0
+    var resistance: Int = 0
+}
+
+class StatsGenerator {
     var speed: Stat = new Stat(50, 0)
     var health: Stat = new Stat(50, 0)
-    var strength: Stat = new Stat(50, 0)
+    var power: Stat = new Stat(50, 0)
     var resistance: Stat = new Stat(50, 0)
+
+    def instantiate: Stats = {
+        var s = new Stats
+        s.speed = speed.instantiate
+        s.health = health.instantiate
+        s.power = power.instantiate
+        s.resistance = resistance.instantiate
+        s
+    }
 }
 
 class Skill (val level: Int) {
