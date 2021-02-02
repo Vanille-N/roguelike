@@ -8,19 +8,6 @@ import java.awt.{ Color, Font }
 import java.lang.System
 import event._
 
-abstract class Floor {
-    def color: Color
-}
-
-// Wall and Ground are a single object to avoid instantiating one Floor
-// object for each cell.
-
-object Wall extends Floor { val color = Color.red }
-
-object Ground extends Floor {
-    val color = Color.black
-}
-
 /****************************************************************************/
 
 // This class represents one dungeon cell with a floor, optionally an actor
@@ -45,13 +32,11 @@ object Direction extends Enumeration {
 import Direction._
 
 class Pos (val room: Room, val y: Int, val x: Int) extends Button {
-    var floor: Floor = null
     var isFocused: Boolean = false
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
 
-    def setFloor (f: Floor) = { floor = f; update }
     def addOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)
@@ -81,11 +66,6 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     focusPainted = false
 
     def update {
-        def copySymbol (symbol: Symbol) {
-            foreground = symbol.color
-            text = symbol.form.toString
-        }
-
         text = ""; background = floor.color
         if (isFocused) background = Color.white
         // println(x, y, isFocused)
@@ -140,18 +120,22 @@ class Room (val castle: Castle, val cols: Int, val rows: Int)
 extends Reactor with Publisher {
     var locs = new Grid(this, rows, cols)
 
-    locs.map(_.setFloor(Ground))
     locs.map(listenTo(_))
 
     reactions += {
         case leftClicked(c: Pos) => { publish(displayContents(c)) }
     }
 
-    def makeWall (p: Pos, q: Pos) {
+    def addOrganism (o: Organism, p: Pos) = {
+        o.updateStrength
+        o.placeOnMap(p)
+        castle.organisms.add(o)
+    }
+
+    def makeWall (p: Pos, q: Pos) = {
         for (x <- p.x to q.x; y <- p.y to q.y) {
-            val c = new WallCell
-            c.placeOnMap(locs(y, x))
-            castle.cells.add(c)
+            val o = new WallCell()
+            addOrganism(o, locs(x, y))
         }
     }
 }
@@ -162,4 +146,12 @@ extends Room (castle,cols,rows) {
     makeWall(locs(0, 0), locs(rows-1, 0))
     makeWall(locs(rows-1, 0), locs(rows-1, cols-1))
     makeWall(locs(0, cols-1), locs(rows-1, cols-1))
+
+    addOrganism(new RedCell(), locs(5, 5))
+    addOrganism(new RedCell(), locs(5, 9))
+    addOrganism(new WhiteCell(), locs(15, 15))
+    addOrganism(new WhiteCell(), locs(15, 15))
+    addOrganism(new WhiteCell(), locs(5, 5))
+    addOrganism(new Virus(), locs(7, 2))
+    addOrganism(new Virus(), locs(18, 3))
 }

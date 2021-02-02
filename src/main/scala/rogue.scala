@@ -3,7 +3,7 @@ import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
 import scala.swing._
-import java.awt.{ Color, Font }
+import java.awt.Font
 import java.lang.System
 import event._
 
@@ -11,10 +11,6 @@ import event._
 
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
-
-/****************************************************************************/
-
-class Symbol (val form: Char, val color: Color) {}
 
 /****************************************************************************/
 
