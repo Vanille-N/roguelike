@@ -19,6 +19,7 @@ object Direction extends Enumeration {
     val DOWN = Value("down")
     val LEFT = Value("left")
     val RIGHT = Value("right")
+    val STAY = Value("stay")
 
     def toTuple (i: Direction): Tuple2[Int, Int] = {
         i match {
@@ -26,6 +27,7 @@ object Direction extends Enumeration {
             case DOWN => (0, 1)
             case LEFT => (-1, 0)
             case RIGHT => (1, 0)
+            case STAY => (0, 0)
         }
     }
 }
@@ -59,6 +61,9 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         } else null
     }
 
+    def distance (other: Pos): Int = {
+        (this.x - other.x).abs + (this.y - other.y).abs
+    }
     // visual appearance
     border = createEmptyBorder
     preferredSize = new Dimension(20, 20)
