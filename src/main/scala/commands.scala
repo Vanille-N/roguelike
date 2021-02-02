@@ -116,7 +116,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                     val src = Source.fromFile("help/help." + i)
                     src.foreach { s => castle.logs.text += s }
                     src.close
-                } catch { case e: FileNotFoundException => castle.logs.text += "Internal Error: help unavailable for `" + i + "`" }
+                } catch { case e: java.io.FileNotFoundException => castle.logs.text += "Internal Error: help unavailable for `" + i + "`" }
             }
         }
     }
@@ -144,6 +144,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "step" =>  { castle.step }
                 case "N" =>     { castle.step }
                 case "list" =>  { list }
+                case "L" =>     { list }
                 case "show" =>  { show (s.split(" ").tail) }
                 case "set" =>   { trySet (s.split(" ").tail) }
                 // Misc
