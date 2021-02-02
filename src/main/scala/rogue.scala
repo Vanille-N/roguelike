@@ -3,14 +3,19 @@ import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
 import scala.swing._
-import java.awt.Font
+import java.awt.{ Color, Font }
 import java.lang.System
 import event._
+import Direction._
 
 /****************************************************************************/
 
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
+
+/****************************************************************************/
+
+class Symbol (val form: Char, val color: Color) {}
 
 /****************************************************************************/
 
@@ -29,20 +34,22 @@ class Castle extends Reactor {
     val cmdline = new TextField {
         columns = 32
         font = new Font("courier", 0, 17)
-        background = Scheme.darkGray
-        foreground = Scheme.white
+        background = Color.darkGray
+        foreground = Color.white
     }
     val logs = new TextArea {
-        font = new Font("courier", 0, 15)
-        background = Scheme.darkGray
-        foreground = Scheme.white
+        font = new Font("courier", 0, 19)
+        background = Color.darkGray
+        foreground = Color.white
         editable = false
     }
-    var organisms: Set[Organism] = Set()
+    var cells: Set[Cell] = Set()
 
     val room = new PlainRoom(this, cols, rows)
 
     val player = new Player(room.locs(10, 10))
+
+    val command = new Command(this, room, player)
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
@@ -67,14 +74,14 @@ class Castle extends Reactor {
                 c.fill = fill
                 c
             }
-            add(grid, constraints(0, 0, gridheight=3, weightx=0.6, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(cmdline, constraints(1, 2, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
-            add(new ScrollPane(logs) { preferredSize = new Dimension(30, 50) }, constraints(1, 1, weightx=0.3, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(Button("Close") { sys.exit(0) }, constraints(1, 0, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
+            add(grid, constraints(0, 0, gridheight=3, weightx=1.0, weighty=1.0, fill=GridBagPanel.Fill.Both))
+            add(cmdline, constraints(1, 2, weightx=0.3, fill=GridBagPanel.Fill.Horizontal))
+            add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
+            add(Button("Close") { sys.exit(0) }, constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
             focusable = true;
         }
-        panel.foreground = Scheme.darkGray
-        panel.background = Scheme.darkGray
+        panel.foreground = Color.darkGray
+        panel.background = Color.darkGray
         room.locs.map(_.update)
 
         listenTo(panel.keys);
@@ -90,65 +97,22 @@ class Castle extends Reactor {
         room.locs.map(_.update)
     }
 
-    import Direction._
-    def tryMove (prompt: String, dir: Direction) = {
-        if (player.move(dir)) {
-            this.logs.text += prompt + "Player goes " + dir
-            this.logs.text += "    -> " + player.position.x + ", " + player.position.y + "\n"
-        } else {
-            this.logs.text += "\t> Player cannot go " + dir + "\n"
-        }
-    }
-
-    def trySet (prompt: String, args: Array[String]) = {
-        for (i <- args)
-            this.logs.text += "argument: " + i + "\n"
-        args(0) match {
-            case "health" => {  }
-            case "base_strength" => {  }
-            case _ => {  }
-        }
-    }
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case displayContents(p: Pos) => {
             this.logs.text += p.listContents
+            this.cmdline.text += " " + p.x + " " + p.y
         }
         case KeyPressed(_, c, _, _) => {
-            val prompt = "[" + c.toString + "]"
             c.toString match {
                 case "Deux-points" => { cmdline.requestFocusInWindow() }
-                case "Q" => { sys.exit(0) }
-                case "K" => { tryMove(prompt, UP) }
-                case "J" => { tryMove(prompt, DOWN) }
-                case "L" => { tryMove(prompt, RIGHT) }
-                case "H" => { tryMove(prompt, LEFT) }
                 case "N" => { step }
                 // "?" => query(pos)
                 case _ => {}
             }
-            room.locs.map(_.update)
         }
-        case EditDone(`cmdline`) => {
-            if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
-            val prompt = "\t>"
-            this.cmdline.text.split(" ")(0) match {
-                case "Up" => tryMove(prompt, UP)
-                case "Down" => tryMove(prompt, DOWN)
-                case "Right" => tryMove(prompt, RIGHT)
-                case "Left" => tryMove(prompt, LEFT)
-                case "quit" => { sys.exit(0) }
-                case "q" => { globalPanel.requestFocusInWindow() }
-                case "clear" => { this.logs.text = "" }
-                case "set" => { trySet("setting", cmdline.text.substring(3).split(" ")) }
-                case "step" => { step }
-                case "" => {}
-                case _ => { this.logs.text += "\t> command not found ;/\n" }
-            }
-            this.cmdline.text = "";
-            room.locs.map(_.update)
-        }
+        case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
     }
 
 }
@@ -162,3 +126,4 @@ object main extends SimpleSwingApplication {
         centerOnScreen()
     }
 }
+// vim: set expandtab tabstop=4 shiftwidth=4 :
