@@ -73,6 +73,19 @@ abstract class Organism {
         name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
         "      [ HP:" + stats.health + " | ATK:" + stats.power + " | DEF:" + stats.resistance + " | SPD:" + stats.speed + " | DEC:" + stats.decisiveness + " ]"
     }
+
+    def focus: Pos
+    def behavior: Behavior
+
+    def step (room: Room) {
+        // println(name, this.position, this.focus, this.behavior)
+        val options = PathFinder.next(this.position, this.focus, this.behavior)
+        var i = 0
+        // println(options)
+        while (i < options.size && !this.maybeMove(room, options(i))) {
+            // println(i)
+            i += 1
+        }
     }
 }
 

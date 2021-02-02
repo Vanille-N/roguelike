@@ -84,6 +84,12 @@ class Castle extends Reactor {
         panel
     }
 
+    def step {
+        this.logs.text += "advance by 1 step\n"
+        organisms.foreach(o => o.step(room))
+        room.locs.map(_.update)
+    }
+
     import Direction._
     def tryMove (prompt: String, dir: Direction) = {
         if (player.move(dir)) {
@@ -118,6 +124,7 @@ class Castle extends Reactor {
                 case "J" => { tryMove(prompt, DOWN) }
                 case "L" => { tryMove(prompt, RIGHT) }
                 case "H" => { tryMove(prompt, LEFT) }
+                case "N" => { step }
                 // "?" => query(pos)
                 case _ => {}
             }
@@ -135,6 +142,7 @@ class Castle extends Reactor {
                 case "q" => { globalPanel.requestFocusInWindow() }
                 case "clear" => { this.logs.text = "" }
                 case "set" => { trySet("setting", cmdline.text.substring(3).split(" ")) }
+                case "step" => { step }
                 case "" => {}
                 case _ => { this.logs.text += "\t> command not found ;/\n" }
             }
