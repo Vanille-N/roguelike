@@ -49,23 +49,28 @@ abstract class Organism {
         strength - oldStrength
     }
 
-    def move (room: Room, dir: Direction): Boolean = {
-        if (dir == STAY) return true
+    def moveIsAllowed (room: Room, dir: Direction): Pos = {
+        if (dir == STAY) return position
         val newPosition = position.tryAdd(dir)
+        if (newPosition == null) return null
         val idx = if (isFriendly) 1 else 0
         if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level <= skills.penetration.level
          && room.locs(newPosition.y, newPosition.x).blocking(idx).level < 5) {
-            position.removeOrganism(this)
-            placeOnMap(newPosition)
-            true
-        } else false
+            newPosition
+        } else null
     }
 
-    def maybeMove (room: Room, dir: Direction): Boolean = {
+    def moveTo (pos: Pos) {
+        if (pos != null) {
+            position.removeOrganism(this)
+            placeOnMap(pos)
+        }
+    }
+
+    def maybeMove (room: Room, dir: Direction): Pos = {
         val r = new Random
-        if (r.nextInt(99) > stats.decisiveness) return false
-        if (dir != STAY && r.nextInt(99) > stats.speed) return false
-        move(room, dir)
+        if (r.nextInt(100) > stats.decisiveness) return null
+        moveIsAllowed(room, dir)
     }
 
     override def toString: String = {
@@ -78,14 +83,15 @@ abstract class Organism {
     def behavior: Behavior
 
     def step (room: Room) {
-        // println(name, this.position, this.focus, this.behavior)
         val options = PathFinder.next(this.position, this.focus, this.behavior)
+        var mv: Pos = null
         var i = 0
-        // println(options)
-        while (i < options.size && !this.maybeMove(room, options(i))) {
-            // println(i)
+        while (i < options.size && mv == null) {
+            mv = maybeMove(room, options(i))
             i += 1
         }
+        val r = new Random
+        if (r.nextInt(100) > stats.speed) moveTo(mv)
     }
 }
 
