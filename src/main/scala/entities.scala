@@ -4,6 +4,7 @@ import scala.collection.mutable.HashMap
 import scala.swing._
 import java.awt.Font
 import java.lang.System
+import java.util.Random
 import event._
 
 import Direction._
@@ -49,13 +50,22 @@ abstract class Organism {
     }
 
     def move (room: Room, dir: Direction): Boolean = {
+        if (dir == STAY) return true
         val newPosition = position.tryAdd(dir)
         val idx = if (isFriendly) 1 else 0
-        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level < skills.penetration.level) {
+        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level <= skills.penetration.level
+         && room.locs(newPosition.y, newPosition.x).blocking(idx).level < 5) {
             position.removeOrganism(this)
             placeOnMap(newPosition)
             true
         } else false
+    }
+
+    def maybeMove (room: Room, dir: Direction): Boolean = {
+        val r = new Random
+        if (r.nextInt(99) > stats.decisiveness) return false
+        if (dir != STAY && r.nextInt(99) > stats.speed) return false
+        move(room, dir)
     }
 
     override def toString: String = {
