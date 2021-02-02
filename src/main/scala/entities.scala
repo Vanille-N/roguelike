@@ -7,6 +7,7 @@ import java.lang.System
 import event._
 
 import Direction._
+import Behavior._
 
 abstract class Organism {
     var position: Pos = null
@@ -72,10 +73,21 @@ class Virus extends Organism {
     stats.health = new Stat(20, 2).instantiate
     stats.power = new Stat(30, 1).instantiate
     stats.resistance = new Stat(15, 1).instantiate
+    stats.decisiveness = new Stat(70, 5).instantiate
+
+    def focus: Pos = {
+        this.position.room.castle.player.position
+    }
+    def behavior: Behavior = SEEK
 }
 
 abstract class Cell extends Organism {
     def name = "cell"
+
+    def focus: Pos = {
+        this.position.room.castle.player.position
+    }
+    def behavior: Behavior = FLEE
 }
 
 class WhiteCell extends Cell {
@@ -85,9 +97,15 @@ class WhiteCell extends Cell {
     stats.health = new Stat(10, 5).instantiate
     stats.power = new Stat(10, 2).instantiate
     stats.resistance = new Stat(10, 1).instantiate
+    stats.decisiveness = new Stat(40, 10).instantiate
 
     skills.penetration = new Skill(1)
     skills.power = new Skill(1)
+
+    override def focus: Pos = {
+        this.position.room.castle.player.position
+    }
+    override def behavior: Behavior = SEEK
 }
 
 class RedCell extends Cell {
@@ -97,6 +115,7 @@ class RedCell extends Cell {
     stats.health = new Stat(50, 20).instantiate
     stats.power = new Stat(0, 0).instantiate
     stats.resistance = new Stat(5, 1).instantiate
+    stats.decisiveness = new Stat(30, 5).instantiate
 }
 
 class WallCell extends Cell {
@@ -106,7 +125,13 @@ class WallCell extends Cell {
     stats.health = new Stat(100, 0).instantiate
     stats.power = new Stat(0, 0).instantiate
     stats.resistance = new Stat(100, 0).instantiate
+    stats.decisiveness = new Stat(100, 0).instantiate
 
     skills.immunity = new Skill(5)
     skills.blocking = new Skill(5)
+
+    override def focus: Pos = {
+        this.position
+    }
+    override def behavior = SEEK
 }

@@ -21,6 +21,7 @@ class Stats {
     var health: Int = 0
     var power: Int = 0
     var resistance: Int = 0
+    var decisiveness: Int = 0
 }
 
 class StatsGenerator {
@@ -28,6 +29,7 @@ class StatsGenerator {
     var health: Stat = new Stat(50, 0)
     var power: Stat = new Stat(50, 0)
     var resistance: Stat = new Stat(50, 0)
+    var decisiveness: Stat = new Stat(50, 0)
 
     def instantiate: Stats = {
         var s = new Stats
@@ -35,6 +37,7 @@ class StatsGenerator {
         s.health = health.instantiate
         s.power = power.instantiate
         s.resistance = resistance.instantiate
+        s.decisiveness = decisiveness.instantiate
         s
     }
 }
