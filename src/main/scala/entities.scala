@@ -12,22 +12,40 @@ abstract class Organism {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
+
     def placeOnMap (p: Pos) {
         position = p
         p.addOrganism(this)
     }
 
-    // Adjust the strength according to the health of the Organism
-    var baseStrength: Int = 10
-    var correlationHealthStrength: Double = 1.1
-    def calculateStrength: Int = {
-        //10 // bogus
-        (correlationHealthStrength * baseStrength *(1- scala.math.pow(1-correlationHealthStrength, this.stats.health.amount/100))).toInt
-    }
-
     var stats: Stats = new Stats
     var skills: Skills = new Skills
-    var strength: Int = calculateStrength
+    var strength: Int = 0
+
+    // Adjust the strength according to the health of the Organism
+    def updateStrength: Int = {
+        val oldStrength = strength
+        val healthCoeff = 20
+        val powerCoeff= 30
+        val speedCoeff = 5
+        val resistanceCoeff = 10
+        val blockingBonus = 6
+        val penetrationBonus = 5
+        val powerBonus = 9
+        val immunityBonus = 10
+        strength = ((
+            stats.health * healthCoeff
+            + stats.power * powerCoeff
+            + stats.speed * speedCoeff
+            + stats.resistance * resistanceCoeff
+        ) / (healthCoeff + powerCoeff + speedCoeff + resistanceCoeff)
+        + powerBonus * skills.power.level
+        + blockingBonus * skills.blocking.level
+        + immunityBonus * skills.immunity.level
+        + penetrationBonus * skills.penetration.level
+        ).toInt
+        strength - oldStrength
+    }
 
     def move (room: Room, dir: Direction): Boolean = {
         val newPosition = position.tryAdd(dir)
