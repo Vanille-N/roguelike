@@ -4,7 +4,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
 import scala.swing._
 import javax.swing.BorderFactory._
-import java.awt.{ Color, Font }
+import java.awt.Font
 import java.lang.System
 import event._
 

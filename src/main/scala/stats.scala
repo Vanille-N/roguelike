@@ -48,6 +48,14 @@ class Skills {
     var penetration: Skill = new Skill(0)
     var immunity: Skill = new Skill(0)
     var power: Skill = new Skill(0)
+    override def toString: String = {
+        var s = ""
+        if (blocking.level > 0) s += "BLK:" + blocking.level
+        if (penetration.level > 0) s += (if (s == "") "" else " ") + "PEN:" + penetration.level
+        if (immunity.level > 0) s += (if (s == "") "" else " ") + "IMM:" + immunity.level
+        if (power.level > 0) s += (if (s == "") "" else " ") + "POW:" + power.level
+        s
+    }
 }
 
 class SkillRecord {

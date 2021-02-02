@@ -4,7 +4,7 @@ import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
 import scala.swing._
 import javax.swing.BorderFactory._
-import java.awt.{ Color, Font }
+import java.awt.Font
 import java.lang.System
 import event._
 
@@ -61,13 +61,19 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
 
     // visual appearance
     border = createEmptyBorder
-    font = new Font("courier", 0, 25)
     preferredSize = new Dimension(20, 20)
+    font = new Font("default", 0, 20)
     focusPainted = false
 
     def update {
-        text = ""; background = floor.color
-        if (isFocused) background = Color.white
+        if (strength(1) + strength(0) > 0) {
+            text = "<html><center>" + strength(1) + "<br>" + strength(0) + "</center></html>"
+        } else text = ""
+        // println(text)
+        background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
+        if (isFocused) background = Scheme.white
+        var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
+        foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
         // println(x, y, isFocused)
     }
 
@@ -78,26 +84,25 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         case MouseClicked(_, _ ,0, _ , _ ) =>
             { publish(leftClicked(this)) }
         case UIElementResized(_) =>
-            font = new Font("courier",Font.BOLD,
-                min(size.height, size.width) * 4/5)
+            font = new Font("default", Font.BOLD, size.width / max(strength(0).toString.length, strength(1).toString.length).max(2))
     }
 
     def listContents: String = {
         var s = "At position (" + y + "," + x + ")\n"
         if (organisms(1).size > 0) {
-            s += "    " + organisms(1).size + " virus\n"
+            s += "  " + organisms(1).size + " virus\n"
             organisms(1).foreach(o => {
-                s += "      " + o + "\n"
+                s += "    " + o + "\n"
             })
         }
         if (organisms(0).size > 0) {
-            s += "    " + organisms(0).size + " cells\n"
+            s += "  " + organisms(0).size + " cells\n"
             organisms(0).foreach(o => {
-                s += "      " + o + "\n"
+                s += "    " + o + "\n"
             })
         }
         if (organisms(0).size + organisms(1).size == 0) {
-            s += "    empty\n"
+            s += "  empty\n"
         }
         s
     }

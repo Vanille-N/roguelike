@@ -29,16 +29,16 @@ class Castle extends Reactor {
     val cmdline = new TextField {
         columns = 32
         font = new Font("courier", 0, 17)
-        background = Color.darkGray
-        foreground = Color.white
+        background = Scheme.darkGray
+        foreground = Scheme.white
     }
     val logs = new TextArea {
-        font = new Font("courier", 0, 19)
-        background = Color.darkGray
-        foreground = Color.white
+        font = new Font("courier", 0, 15)
+        background = Scheme.darkGray
+        foreground = Scheme.white
         editable = false
     }
-    var cells: Set[Cell] = Set()
+    var organisms: Set[Organism] = Set()
 
     val room = new PlainRoom(this, cols, rows)
 
@@ -67,14 +67,14 @@ class Castle extends Reactor {
                 c.fill = fill
                 c
             }
-            add(grid, constraints(0, 0, gridheight=3, weightx=1.0, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(cmdline, constraints(1, 2, weightx=0.3, fill=GridBagPanel.Fill.Horizontal))
-            add(new ScrollPane(logs), constraints(1, 1, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(Button("Close") { sys.exit(0) }, constraints(1, 0, fill=GridBagPanel.Fill.Horizontal))
+            add(grid, constraints(0, 0, gridheight=3, weightx=0.6, weighty=1.0, fill=GridBagPanel.Fill.Both))
+            add(cmdline, constraints(1, 2, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
+            add(new ScrollPane(logs) { preferredSize = new Dimension(30, 50) }, constraints(1, 1, weightx=0.3, weighty=1.0, fill=GridBagPanel.Fill.Both))
+            add(Button("Close") { sys.exit(0) }, constraints(1, 0, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
             focusable = true;
         }
-        panel.foreground = Color.darkGray
-        panel.background = Color.darkGray
+        panel.foreground = Scheme.darkGray
+        panel.background = Scheme.darkGray
         room.locs.map(_.update)
 
         listenTo(panel.keys);
@@ -87,8 +87,8 @@ class Castle extends Reactor {
     import Direction._
     def tryMove (prompt: String, dir: Direction) = {
         if (player.move(dir)) {
-            this.logs.text += prompt + "Player goes " + dir + "\n"
-            this.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
+            this.logs.text += prompt + "Player goes " + dir
+            this.logs.text += "    -> " + player.position.x + ", " + player.position.y + "\n"
         } else {
             this.logs.text += "\t> Player cannot go " + dir + "\n"
         }
@@ -118,6 +118,8 @@ class Castle extends Reactor {
                 case "J" => { tryMove(prompt, DOWN) }
                 case "L" => { tryMove(prompt, RIGHT) }
                 case "H" => { tryMove(prompt, LEFT) }
+                // "?" => query(pos)
+                case _ => {}
             }
             room.locs.map(_.update)
         }
