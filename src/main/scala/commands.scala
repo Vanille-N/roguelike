@@ -1,4 +1,5 @@
 import Direction._
+import scala.io.Source
 
 class Command (val castle:Castle, val room: Room, val player: Player) {
     // Status :=
@@ -40,6 +41,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         var i: Int = 0
         for ( o <- castle.organisms.toList ) {
             castle.logs.text += "\n" + i + "-\t" + o
+            i += 1
         }
     }
 
@@ -97,8 +99,26 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         }
     }
 
-    def show (arg: Array[String]) : Unit = {
-        if(arg.length == 1) { castle.logs.text += "\n" + getOrganismById(arg(0).toInt) }
+    def show (arg: Array[String]) : Unit = { if(arg.length == 1) { castle.logs.text += "\n" + getOrganismById(arg(0).toInt) } }
+
+    def help (args: Array[String]): Unit = {
+        if(args.length == 0) {
+            try {
+                castle.logs.text += "\n"
+                val src = Source.fromFile("help/help")
+                src.foreach { s => castle.logs.text += s }
+                src.close
+            } finally { castle.logs.text += "Internal Error: help unavailable" }
+        } else {
+            for (i <- args) {
+                try {
+                    castle.logs.text += "\n"
+                    val src = Source.fromFile("help/help." + i)
+                    src.foreach { s => castle.logs.text += s }
+                    src.close
+                } catch { case e: FileNotFoundException => castle.logs.text += "Internal Error: help unavailable for `" + i + "`" }
+            }
+        }
     }
 
     def commandRequest (s: String): Unit = {
@@ -127,8 +147,8 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "show" =>  { show (s.split(" ").tail) }
                 case "set" =>   { trySet (s.split(" ").tail) }
                 // Misc
-                case "help" =>  {}
-                case "?" =>     {}
+                case "help" =>  { help (s.split(" ").tail) }
+                case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}
                 case _ =>       { castle.logs.text += "\t> command not found ;/\n" }
             }
