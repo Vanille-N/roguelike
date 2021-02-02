@@ -27,3 +27,27 @@ class Player (var position: Pos) {
         } else false
     }
 }
+
+object Behavior extends Enumeration {
+    type Behavior = Value
+    val SEEK = Value("seek")
+    val FLEE = Value("flee")
+}
+import Behavior._
+
+object PathFinder {
+    def next (curr: Pos, focus: Pos, behavior: Behavior): Buffer[Direction] = {
+        val possible = Array(STAY, LEFT, RIGHT, DOWN, UP)
+        var distances: Buffer[Tuple2[Int, Direction]] = Buffer()
+        for (i <- 0 to 4) {
+            val newPosition = curr.tryAdd(possible(i))
+            if (newPosition != null) distances += Tuple2(newPosition.distance(focus), possible(i))
+        }
+        behavior match {
+            case SEEK => distances = distances.sortBy(_._1)
+            case FLEE => distances = distances.sortBy(- _._1)
+        }
+        // println(distances)
+        distances.map(_._2)
+    }
+}
