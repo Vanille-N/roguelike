@@ -2,7 +2,7 @@ import Math._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.HashMap
 import scala.swing._
-import java.awt.{ Color, Font }
+import java.awt.Font
 import java.lang.System
 import event._
 
@@ -58,7 +58,9 @@ abstract class Organism {
     }
 
     override def toString: String = {
-        name + "[STR:" + strength + "; HP:" + stats.health.amount + "; ATK:" + stats.strength.amount + "]"
+        val s = skills.toString
+        name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
+        "      [ HP:" + stats.health + " | ATK:" + stats.power + " | DEF:" + stats.resistance + " | SPD:" + stats.speed + " ]"
     }
 }
 
@@ -66,10 +68,10 @@ class Virus extends Organism {
     override def isFriendly = true
     def name = "virus"
 
-    stats.speed = new Stat(30, 2)
-    stats.health = new Stat(20, 2)
-    stats.strength = new Stat(30, 1)
-    stats.resistance = new Stat(15, 1)
+    stats.speed = new Stat(30, 2).instantiate
+    stats.health = new Stat(20, 2).instantiate
+    stats.power = new Stat(30, 1).instantiate
+    stats.resistance = new Stat(15, 1).instantiate
 }
 
 abstract class Cell extends Organism {
@@ -79,10 +81,10 @@ abstract class Cell extends Organism {
 class WhiteCell extends Cell {
     override def name = "white cell"
 
-    stats.speed = new Stat(10, 2)
-    stats.health = new Stat(10, 5)
-    stats.strength = new Stat(10, 2)
-    stats.resistance = new Stat(10, 1)
+    stats.speed = new Stat(10, 2).instantiate
+    stats.health = new Stat(10, 5).instantiate
+    stats.power = new Stat(10, 2).instantiate
+    stats.resistance = new Stat(10, 1).instantiate
 
     skills.penetration = new Skill(1)
     skills.power = new Skill(1)
@@ -91,19 +93,19 @@ class WhiteCell extends Cell {
 class RedCell extends Cell {
     override def name = "red cell"
 
-    stats.speed = new Stat(5, 2)
-    stats.health = new Stat(50, 20)
-    stats.strength = new Stat(0, 0)
-    stats.resistance = new Stat(5, 1)
+    stats.speed = new Stat(5, 2).instantiate
+    stats.health = new Stat(50, 20).instantiate
+    stats.power = new Stat(0, 0).instantiate
+    stats.resistance = new Stat(5, 1).instantiate
 }
 
 class WallCell extends Cell {
     override def name = "wall cell"
 
-    stats.speed = new Stat(0, 0)
-    stats.health = new Stat(100, 0)
-    stats.strength = new Stat(0, 0)
-    stats.resistance = new Stat(100, 0)
+    stats.speed = new Stat(0, 0).instantiate
+    stats.health = new Stat(100, 0).instantiate
+    stats.power = new Stat(0, 0).instantiate
+    stats.resistance = new Stat(100, 0).instantiate
 
     skills.immunity = new Skill(5)
     skills.blocking = new Skill(5)
