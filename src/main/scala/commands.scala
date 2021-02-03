@@ -182,6 +182,13 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "N" =>     { castle.step }
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
+                case "Space" =>{
+                    if(castle.isPlaying) {
+                        stop
+                    } else {
+                        play (Array[String]("1"))
+                    }
+                }
                 case "Espace" =>{
                     if(castle.isPlaying) {
                         stop
