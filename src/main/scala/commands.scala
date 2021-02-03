@@ -1,3 +1,7 @@
+import java.util.concurrent.TimeUnit
+import akka.actor._
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
 import Direction._
 import scala.io.Source
 
@@ -11,8 +15,13 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
 
     var prompt: String = "\t>"
 
-    // Stores the next functions to execute
+    // Stores args for the next function to be executed
     var next = new Array[String](10)
+
+    // handle the auto-play
+    def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
+    var runner: Cancellable = null
+
 
     def tryMove (dir: Direction): Unit = {
         if (player.move(dir)) {
@@ -121,6 +130,29 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         }
     }
 
+    def step (arg: Array[String]) : Unit = {
+        castle.logs.text += "\n"
+        if(arg.length == 0) { castle.step }
+        else {
+            for(i <- 1 to (arg(0).toInt)) { castle.step }
+        }
+    }
+
+    def play (arg: Array[String]) : Unit = {
+        castle.logs.text += "\n"
+        if(castle.isPlaying) {return ()}
+        castle.isPlaying = true
+        if(arg.length == 0) { runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { castle.step } }
+        else {
+            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(arg(0).toInt,TimeUnit.SECONDS)) { castle.step }
+        }
+    }
+
+    def stop : Unit = {
+        if(castle.isPlaying) {runner.cancel(); castle.isPlaying = false}
+        else { () }
+    }
+
     def commandRequest (s: String): Unit = {
         if (status == 0 ) {
             main_command = s
@@ -136,18 +168,28 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "Left" =>  { tryMove(LEFT) }
                 case "H" =>     { tryMove(LEFT) }
                 // Exiting / functionnalities
-                case "quit" =>  { sys.exit(0) }
-                case "Q" =>     { sys.exit(0) }
+                case "quit" =>  { stop; sys.exit(0) }
+                case "Q" =>     { stop; sys.exit(0) }
                 case "q" =>     { castle.logs.text += "\n"; castle.globalPanel.requestFocusInWindow() }
                 case "clear" => { castle.logs.text = "" }
                 // Game interaction
-                case "step" =>  { castle.step }
+                case "step" =>  { step (s.split(" ").tail) }
                 case "N" =>     { castle.step }
+                case "play" =>  { play (s.split(" ").tail) }
+                case "stop" =>  { stop }
+                case "Espace" =>{
+                    if(castle.isPlaying) {
+                        stop
+                    } else {
+                        play (Array[String]("1"))
+                    }
+                }
+                // Misc
                 case "list" =>  { list }
-                case "L" =>     { list }
+                case "O" =>     { list }
                 case "show" =>  { show (s.split(" ").tail) }
                 case "set" =>   { trySet (s.split(" ").tail) }
-                // Misc
+                // Misc'
                 case "help" =>  { help (s.split(" ").tail) }
                 case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}

@@ -21,10 +21,12 @@ If there is no conflicts, one may use an uppercase reperesentant of a key as com
   | (quit    | Q)     -> exit the game                    |
   | (clear   | C)     -> clear the command line           |
   | (step    | N)     -> step by step advance of the game |
-  | (list    | L)     -> list the organisms               |
+  | (list    | O)     -> list the organisms               |
   | (show n  | _)     -> show the organism n              |
   | (set ... | _)    -> set an organism stats             |
   | (help    | ?)    -> print this msg                    |
+  | (play [n]| ' ')  -> make a step each [n=1] second(s)  |
+  | (stop    | ' ')  -> stop autoplaying                  |
   `-------------------------------------------------------'
 
 

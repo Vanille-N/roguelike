@@ -51,6 +51,8 @@ class Castle extends Reactor {
 
     var command = new Command (this, room, player)
 
+    var isPlaying: Boolean = false
+
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
         val grid = new GridPanel(rows,cols)
