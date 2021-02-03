@@ -110,6 +110,7 @@ class Castle extends Reactor {
         case KeyPressed(_, c, _, _) =>  {
             c.toString match {
             case "Deux-points" => { cmdline.requestFocusInWindow() }
+            case "Semicolon"   => { cmdline.requestFocusInWindow() }
             // "?" => query(pos)
             case _ => { command.commandRequest(c.toString) }
             }

@@ -62,11 +62,11 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                     val new_value = args(2).toInt
                     val target_organism = getOrganismById(target_id)
                     args(0) match {
-                        case "speed" =>      { target_organism.stats.speed = new_value }
-                        case "health" =>     { target_organism.stats.health = new_value }
-                        case "power" =>      { target_organism.stats.power = new_value }
-                        case "resistance" => { target_organism.stats.resistance = new_value }
-                        case "decisiveness" => { target_organism.stats.decisiveness = new_value }
+                        case "spd" =>      { target_organism.stats.speed = new_value }
+                        case "hp" =>     { target_organism.stats.health = new_value }
+                        case "pow" =>      { target_organism.stats.power = new_value }
+                        case "def" => { target_organism.stats.resistance = new_value }
+                        case "dec" => { target_organism.stats.decisiveness = new_value }
                         case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
                     }
                     castle.logs.text += "\n" + target_organism
@@ -177,6 +177,13 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "N" =>     { castle.step }
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
+                case "Space" =>{
+                    if(castle.isPlaying) {
+                        stop
+                    } else {
+                        play (Array[String]("1"))
+                    }
+                }
                 case "Espace" =>{
                     if(castle.isPlaying) {
                         stop

@@ -37,5 +37,11 @@ One can either use
   to set the `stat` field of the organism `id` to (`val` :Int)
 OR `set stat` to use an interactive interface.
 
+where `stats` is:
+  | hp  -> health
+  | pow -> power
+  | def -> resistance
+  | dec ->decisiveness
+
 
 
