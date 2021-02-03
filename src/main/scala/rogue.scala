@@ -87,6 +87,7 @@ class Castle extends Reactor {
     def step {
         this.logs.text += "advance by 1 step\n"
         organisms.foreach(o => o.step(room))
+        room.locs.map(_.battle)
         room.locs.map(_.update)
     }
 
@@ -94,7 +95,7 @@ class Castle extends Reactor {
     def tryMove (prompt: String, dir: Direction) = {
         if (player.move(dir)) {
             this.logs.text += prompt + "Player goes " + dir
-            this.logs.text += "    -> " + player.position.x + ", " + player.position.y + "\n"
+            this.logs.text += "    -> " + player.position + "\n"
         } else {
             this.logs.text += "\t> Player cannot go " + dir + "\n"
         }
@@ -118,7 +119,7 @@ class Castle extends Reactor {
         case KeyPressed(_, c, _, _) => {
             val prompt = "[" + c.toString + "]"
             c.toString match {
-                case "Deux-points" => { cmdline.requestFocusInWindow() }
+                case "Deux-points" => { cmdline.requestFocusInWindow() } // not working
                 case "Q" => { sys.exit(0) }
                 case "K" => { tryMove(prompt, UP) }
                 case "J" => { tryMove(prompt, DOWN) }

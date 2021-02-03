@@ -1,7 +1,9 @@
 import Math._
 import scala.collection.mutable.Buffer
+import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
+import scala.util.Random
 import scala.swing._
 import javax.swing.BorderFactory._
 import java.awt.Font
@@ -65,8 +67,11 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         } else null
     }
 
-    def distance (other: Pos): Int = {
+    def distanceL1 (other: Pos): Int = {
         (this.x - other.x).abs + (this.y - other.y).abs
+    }
+    def distanceL2 (other: Pos): Double = {
+        sqrt(pow(this.x - other.x, 2) + pow(this.y - other.y, 2))
     }
 
     override def toString: String = {
@@ -83,12 +88,10 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         if (strength(1) + strength(0) > 0) {
             text = "<html><center>" + strength(1) + "<br>" + strength(0) + "</center></html>"
         } else text = ""
-        // println(text)
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
         foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
-        // println(x, y, isFocused)
     }
 
     def battle {
@@ -153,7 +156,6 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     }
 }
 
-// Handle a grid of dungeon cells, facilitating some aggregate functions
 class Grid (room: Room, rows: Int, cols: Int) {
     val elem = IndexedSeq.tabulate(rows, cols) {(i, j) => new Pos(room, i, j)}
     def map[U] (f: Pos => U) = elem.map(_.map(f(_)))
@@ -162,9 +164,6 @@ class Grid (room: Room, rows: Int, cols: Int) {
 }
 
 /****************************************************************************/
-
-// We only ever instantiate one single room, so some of the code here
-// is overkill.
 
 class Room (val castle: Castle, val cols: Int, val rows: Int)
 extends Reactor with Publisher {

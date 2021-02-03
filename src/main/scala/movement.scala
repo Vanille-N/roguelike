@@ -38,10 +38,10 @@ import Behavior._
 object PathFinder {
     def next (curr: Pos, focus: Pos, behavior: Behavior): Buffer[Direction] = {
         val possible = Array(STAY, LEFT, RIGHT, DOWN, UP)
-        var distances: Buffer[Tuple2[Int, Direction]] = Buffer()
+        var distances: Buffer[Tuple2[Double, Direction]] = Buffer()
         for (i <- 0 to 4) {
             val newPosition = curr.tryAdd(possible(i))
-            if (newPosition != null) distances += Tuple2(newPosition.distance(focus), possible(i))
+            if (newPosition != null) distances += Tuple2(newPosition.distanceL2(focus), possible(i))
         }
         behavior match {
             case SEEK => distances = distances.sortBy(_._1)
