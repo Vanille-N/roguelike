@@ -73,6 +73,13 @@ abstract class Organism {
         moveIsAllowed(room, dir)
     }
 
+    def attackedBy (ennemy: Organism) {
+        if (this.skills.immunity.level <= ennemy.skills.power.level) {
+            val r = new Random()
+            this.stats.health -= (r.nextInt(5) + 5) * ennemy.stats.power / this.stats.resistance
+        }
+    }
+
     override def toString: String = {
         val s = skills.toString
         name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +

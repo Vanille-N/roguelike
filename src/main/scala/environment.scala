@@ -51,6 +51,10 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         strength(idx) -= o.strength
         blocking(idx).removeSkill(o.skills.blocking)
     }
+    def kill (o: Organism) = {
+        removeOrganism(o)
+        room.castle.organisms.remove(o)
+    }
 
     def tryAdd (i: Direction): Pos = {
         val dpos = Direction.toTuple(i)
