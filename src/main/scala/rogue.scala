@@ -96,9 +96,9 @@ class Castle extends Reactor {
     def step {
         this.logs.text += "advance by 1 step\n"
         organisms.foreach(o => o.step(room))
+        room.locs.map(_.battle)
         room.locs.map(_.update)
     }
-
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {

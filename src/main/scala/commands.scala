@@ -2,6 +2,8 @@ import java.util.concurrent.TimeUnit
 import akka.actor._
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.ExecutionContext.Implicits.global
+import java.io.FileNotFoundException
+import java.io.IOException
 import Direction._
 import scala.io.Source
 
@@ -62,11 +64,11 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                     val new_value = args(2).toInt
                     val target_organism = getOrganismById(target_id)
                     args(0) match {
-                        case "spd" =>      { target_organism.stats.speed = new_value }
-                        case "hp" =>     { target_organism.stats.health = new_value }
-                        case "pow" =>      { target_organism.stats.power = new_value }
-                        case "def" => { target_organism.stats.resistance = new_value }
-                        case "dec" => { target_organism.stats.decisiveness = new_value }
+                        case "SPD" =>      { target_organism.stats.speed = new_value }
+                        case "HP" =>     { target_organism.stats.health = new_value }
+                        case "POW" =>      { target_organism.stats.power = new_value }
+                        case "DEF" => { target_organism.stats.resistance = new_value }
+                        case "DEC" => { target_organism.stats.decisiveness = new_value }
                         case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
                     }
                     castle.logs.text += "\n" + target_organism
@@ -91,12 +93,12 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 val target_organism = getOrganismById(target_id)
                 //castle.logs.text += "\n\n\n" + target_organism
                 next(1) match {
-                        case "spd" => { target_organism.stats.speed = new_value }
-                        case "hp" =>  { target_organism.stats.health = new_value }
-                        case "pow" => { target_organism.stats.power = new_value }
-                        case "def" => { target_organism.stats.resistance = new_value }
-                        case "dec" => { target_organism.stats.decisiveness = new_value }
-                        case _ =>            { castle.logs.text += "\nError: unbound value " + next(1) + " ;:(" }
+                        case "SPD" =>      { target_organism.stats.speed = new_value }
+                        case "HP" =>     { target_organism.stats.health = new_value }
+                        case "POW" =>      { target_organism.stats.power = new_value }
+                        case "DEF" => { target_organism.stats.resistance = new_value }
+                        case "DEC" => { target_organism.stats.decisiveness = new_value }
+                        case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
                 }
                 castle.logs.text += "\n\n\n" + target_organism
                 status = 0
@@ -117,7 +119,10 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 val src = Source.fromFile("help/help")
                 src.foreach { s => castle.logs.text += s }
                 src.close
-            } finally { castle.logs.text += "Internal Error: help unavailable" }
+            } catch {
+                case e: FileNotFoundException => println("Error: Help file not found")
+                case e: IOException => println("Error: Failed to open help file")
+            }
         } else {
             for (i <- args) {
                 try {
