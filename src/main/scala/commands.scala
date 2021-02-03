@@ -91,12 +91,12 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 val target_organism = getOrganismById(target_id)
                 //castle.logs.text += "\n\n\n" + target_organism
                 next(1) match {
-                        case "speed" =>      { target_organism.stats.speed = new_value }
-                        case "health" =>     { target_organism.stats.health = new_value }
-                        case "power" =>      { target_organism.stats.power = new_value }
-                        case "resistance" => { target_organism.stats.resistance = new_value }
-                        case "decisiveness" => { target_organism.stats.decisiveness = new_value }
-                        case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
+                        case "spd" => { target_organism.stats.speed = new_value }
+                        case "hp" =>  { target_organism.stats.health = new_value }
+                        case "pow" => { target_organism.stats.power = new_value }
+                        case "def" => { target_organism.stats.resistance = new_value }
+                        case "dec" => { target_organism.stats.decisiveness = new_value }
+                        case _ =>            { castle.logs.text += "\nError: unbound value " + next(1) + " ;:(" }
                 }
                 castle.logs.text += "\n\n\n" + target_organism
                 status = 0
