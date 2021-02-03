@@ -91,6 +91,37 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         // println(x, y, isFocused)
     }
 
+    def battle {
+        // For now, battles are nondeterministic.
+        // Each organism in turn (in a random order) picks an ennemy that is still alive and tries to attack it.
+        // This attack may fail due to skills.
+        var orgs: Buffer[Organism] = Buffer()
+        var split: Array[Buffer[Organism]] = Array(Buffer(), Buffer())
+        organisms(0).foreach(x => { orgs.append(x); split(0).append(x) })
+        organisms(1).foreach(x => { orgs.append(x); split(1).append(x) })
+        val r = new Random()
+        r.shuffle(orgs)
+        r.shuffle(split(0))
+        r.shuffle(split(1))
+        orgs.foreach(x => {
+            val idx = if (x.isFriendly) 1 else 0
+            if (split(1 - idx).size > 0) {
+                val target = split(1 - idx)(0)
+                target.attackedBy(x)
+                println(target, "is attacked by", x)
+                if (target.stats.health <= 0) {
+                    println(target, "was killed")
+                    split(1 - idx).trimStart(1)
+                    kill(target)
+                } else {
+                    strength(1 - idx) += target.updateStrength
+                    split(1 - idx).trimStart(1)
+                    split(1 - idx).append(target)
+                }
+            }
+        })
+    }
+
     // user interface
     listenTo(mouse.clicks)
 
