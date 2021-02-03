@@ -137,16 +137,19 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
 
     def listContents: String = {
         var s = "At position (" + y + "," + x + ")\n"
+        var i = 0
         if (organisms(1).size > 0) {
-            s += "  " + organisms(1).size + " virus\n"
+            s += "  " +organisms(1).size + " virus\n"
             organisms(1).foreach(o => {
-                s += "    " + o + "\n"
+                s += "    " + i + "- " +  o + "\n"
+                i += 1
             })
         }
         if (organisms(0).size > 0) {
             s += "  " + organisms(0).size + " cells\n"
             organisms(0).foreach(o => {
-                s += "    " + o + "\n"
+                s += "    " + i + "- " +  o + "\n"
+                i += 1
             })
         }
         if (organisms(0).size + organisms(1).size == 0) {

@@ -6,11 +6,16 @@ import scala.swing._
 import java.awt.Font
 import java.lang.System
 import event._
+import Direction._
 
 /****************************************************************************/
 
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
+
+/****************************************************************************/
+
+class Symbol (val form: Char, val color: Color) {}
 
 /****************************************************************************/
 
@@ -43,6 +48,10 @@ class Castle extends Reactor {
     val room = new PlainRoom(this, cols, rows)
 
     val player = new Player(room.locs(10, 10))
+
+    var command = new Command (this, room, player)
+
+    var isPlaying: Boolean = false
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
@@ -91,65 +100,21 @@ class Castle extends Reactor {
         room.locs.map(_.update)
     }
 
-    import Direction._
-    def tryMove (prompt: String, dir: Direction) = {
-        if (player.move(dir)) {
-            this.logs.text += prompt + "Player goes " + dir
-            this.logs.text += "    -> " + player.position + "\n"
-        } else {
-            this.logs.text += "\t> Player cannot go " + dir + "\n"
-        }
-    }
-
-    def trySet (prompt: String, args: Array[String]) = {
-        for (i <- args)
-            this.logs.text += "argument: " + i + "\n"
-        args(0) match {
-            case "health" => {  }
-            case "base_strength" => {  }
-            case _ => {  }
-        }
-    }
-
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case displayContents(p: Pos) => {
             this.logs.text += p.listContents
+            this.cmdline.text += " " + p.x + " " + p.y
         }
-        case KeyPressed(_, c, _, _) => {
-            val prompt = "[" + c.toString + "]"
+        case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
+        case KeyPressed(_, c, _, _) =>  {
             c.toString match {
-                case "Deux-points" => { cmdline.requestFocusInWindow() } // not working
-                case "Q" => { sys.exit(0) }
-                case "K" => { tryMove(prompt, UP) }
-                case "J" => { tryMove(prompt, DOWN) }
-                case "L" => { tryMove(prompt, RIGHT) }
-                case "H" => { tryMove(prompt, LEFT) }
-                case "N" => { step }
-                // "?" => query(pos)
-                case _ => {}
+            case "Deux-points" => { cmdline.requestFocusInWindow() }
+            // "?" => query(pos)
+            case _ => { command.commandRequest(c.toString) }
             }
-            room.locs.map(_.update)
         }
-        case EditDone(`cmdline`) => {
-            if (this.cmdline.text != "") this.logs.text += "$ " + this.cmdline.text;
-            val prompt = "\t>"
-            this.cmdline.text.split(" ")(0) match {
-                case "Up" => tryMove(prompt, UP)
-                case "Down" => tryMove(prompt, DOWN)
-                case "Right" => tryMove(prompt, RIGHT)
-                case "Left" => tryMove(prompt, LEFT)
-                case "quit" => { sys.exit(0) }
-                case "q" => { globalPanel.requestFocusInWindow() }
-                case "clear" => { this.logs.text = "" }
-                case "set" => { trySet("setting", cmdline.text.substring(3).split(" ")) }
-                case "step" => { step }
-                case "" => {}
-                case _ => { this.logs.text += "\t> command not found ;/\n" }
-            }
-            this.cmdline.text = "";
-            room.locs.map(_.update)
-        }
+        case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
     }
 
 }
@@ -163,3 +128,4 @@ object main extends SimpleSwingApplication {
         centerOnScreen()
     }
 }
+// vim: set expandtab tabstop=4 shiftwidth=4 :
