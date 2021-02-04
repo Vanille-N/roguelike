@@ -59,7 +59,8 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def trySet (args: Array[String]) : Unit = {
         status match {
             case 0 => {
-                if(args.length == 3) { // The command is already complete: non-interactive mode
+                args.length match {
+                case 3 => { // The command is already complete: non-interactive mode
                     val target_id = args(1).toInt
                     val new_value = args(2).toInt
                     val target_organism = getOrganismById(target_id)
@@ -72,41 +73,44 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                         case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
                     }
                     castle.logs.text += "\n" + target_organism
-                } else { // The command is incomplete => ask id; ask value (whatever the initial command was).
+                }
+                case 1 => { // The command is incomplete => ask id; ask value (whatever the initial command was).
                     status = 1 // The next call will be passed to the second step
                     next(0) = "set"
                     next(1) = args(0)
                     castle.logs.text += "\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)"
                 }
+                case _ => { castle.logs.text += "\nInternal error: `set` missing argument" }
             }
-            case 1 => {
-                if(args(0) == "l") { list }
-                else {
-                    status = 2
-                    next(2) = args(0)
-                    castle.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
-                }
             }
-            case 2 => {
-                val target_id = next(2).toInt
-                val new_value = args(0).toInt
-                val target_organism = getOrganismById(target_id)
-                //castle.logs.text += "\n\n\n" + target_organism
-                next(1) match {
-                        case "SPD" =>      { target_organism.stats.speed = new_value }
-                        case "HP" =>     { target_organism.stats.health = new_value }
-                        case "POW" =>      { target_organism.stats.power = new_value }
-                        case "DEF" => { target_organism.stats.resistance = new_value }
-                        case "DEC" => { target_organism.stats.decisiveness = new_value }
-                        case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
-                }
-                castle.logs.text += "\n\n\n" + target_organism
-                status = 0
+        case 1 => {
+            if(args(0) == "l") { list }
+            else {
+                status = 2
+                next(2) = args(0)
+                castle.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
             }
-            case _ => {
-                castle.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
-                status = 0
+        }
+        case 2 => {
+            val target_id = next(2).toInt
+            val new_value = args(0).toInt
+            val target_organism = getOrganismById(target_id)
+            //castle.logs.text += "\n\n\n" + target_organism
+            next(1) match {
+                    case "SPD" =>      { target_organism.stats.speed = new_value }
+                    case "HP" =>     { target_organism.stats.health = new_value }
+                    case "POW" =>      { target_organism.stats.power = new_value }
+                    case "DEF" => { target_organism.stats.resistance = new_value }
+                    case "DEC" => { target_organism.stats.decisiveness = new_value }
+                    case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
             }
+            castle.logs.text += "\n\n\n" + target_organism
+            status = 0
+        }
+        case _ => {
+            castle.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
+            status = 0
+        }
         }
     }
 

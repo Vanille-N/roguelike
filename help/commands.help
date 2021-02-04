@@ -1,0 +1,13 @@
+Available commands :
+  | set stat_field [organism_id new_value]
+  | list
+  | play
+  | stop
+  | show organism_id
+  | step
+  | Up
+  | Down
+  | Right
+  | Left
+  | help [...]
+  | clear
