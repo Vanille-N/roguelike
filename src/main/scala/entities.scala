@@ -5,6 +5,7 @@ import scala.swing._
 import java.awt.Font
 import java.lang.System
 import java.util.Random
+import scala.util.control._
 import event._
 
 import Direction._
@@ -91,15 +92,21 @@ abstract class Organism (
     def behavior: Behavior
 
     def step (room: Room) {
-        val options = PathFinder.next(this.position, this.focus, this.behavior)
-        var mv: Pos = null
-        var i = 0
-        while (i < options.size && mv == null) {
-            mv = maybeMove(room, options(i))
-            i += 1
-        }
+        var remainingSpeed = stats.speed.get
         val r = new Random
-        if (r.nextInt(100) > stats.speed.get) moveTo(mv)
+        val loop = new Breaks
+        loop.breakable {
+            val options = PathFinder.next(this.position, this.focus, this.behavior)
+            var mv: Pos = null
+            var k = 0
+            while (k < options.size && mv == null) {
+                mv = maybeMove(room, options(k))
+                k += 1
+            }
+            remainingSpeed -= r.nextInt(100)
+            if (remainingSpeed > 0) loop.break
+            moveTo(mv)
+        }
     }
 }
 

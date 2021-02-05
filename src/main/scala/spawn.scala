@@ -41,7 +41,7 @@ class CellSpawner (
 
 class DefaultVirusSpawner extends VirusSpawner(
     stats = new StatSetGen(
-        speed = new StatGen(30, 2),
+        speed = new StatGen(70, 2),
         health = new StatGen(20, 2),
         power = new StatGen(30, 1),
         resistance = new StatGen(15, 1),
@@ -66,7 +66,7 @@ class DefaultWallCellSpawner extends CellSpawner(
 
 class DefaultRedCellSpawner extends CellSpawner(
     stats = new StatSetGen(
-        speed = new StatGen(5, 2),
+        speed = new StatGen(50, 2),
         health = new StatGen(50, 20),
         power = new StatGen(0, 0),
         resistance = new StatGen(5, 1),
@@ -77,7 +77,7 @@ class DefaultRedCellSpawner extends CellSpawner(
 
 class DefaultWhiteCellSpawner extends CellSpawner(
     stats = new StatSetGen(
-        speed = new StatGen(10, 2),
+        speed = new StatGen(40, 2),
         health = new StatGen(10, 5),
         power = new StatGen(10, 2),
         resistance = new StatGen(10, 1),

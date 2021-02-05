@@ -12,7 +12,7 @@ class StatGen (var amount: Int, var variability: Int) {
         var x = amount
         val r = new Random
         x += (variability * r.nextGaussian).round.toInt
-        new Stat(x.min(100).max(0))
+        new Stat(x.max(0))
     }
 }
 
@@ -83,10 +83,10 @@ class SkillSet (
 ) {
     override def toString: String = {
         var s = ""
-        if (blocking.level > 0) s += "BLK:" + blocking.level
-        if (penetration.level > 0) s += (if (s == "") "" else " ") + "PEN:" + penetration.level
-        if (immunity.level > 0) s += (if (s == "") "" else " ") + "IMM:" + immunity.level
-        if (power.level > 0) s += (if (s == "") "" else " ") + "POW:" + power.level
+        if (blocking.get > 0) s += "BLK:" + blocking.get
+        if (penetration.get > 0) s += (if (s == "") "" else " ") + "PEN:" + penetration.get
+        if (immunity.get > 0) s += (if (s == "") "" else " ") + "IMM:" + immunity.get
+        if (power.get > 0) s += (if (s == "") "" else " ") + "POW:" + power.get
         s
     }
 }
