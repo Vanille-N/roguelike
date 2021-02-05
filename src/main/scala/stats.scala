@@ -7,50 +7,80 @@ import java.lang.System
 import java.util.Random
 import event._
 
-class Stat (val amount: Int, val variability: Int) {
-    def instantiate: Int = {
+class StatGen (var amount: Int, var variability: Int) {
+    def instantiate: Stat = {
         var x = amount
         val r = new Random
         x += (variability * r.nextGaussian).round.toInt
-        x.min(100).max(0)
+        new Stat(x.min(100).max(0))
     }
 }
 
-class Stats {
-    var speed: Int = 0
-    var health: Int = 0
-    var power: Int = 0
-    var resistance: Int = 0
-    var decisiveness: Int = 0
+class Stat (var amount: Int) {
+    def set (new_amount: Int) { amount = new_amount }
+    def get: Int = { amount }
+    def update (change: Int) { amount += change }
 }
 
-class StatsGenerator {
-    var speed: Stat = new Stat(50, 0)
-    var health: Stat = new Stat(50, 0)
-    var power: Stat = new Stat(50, 0)
-    var resistance: Stat = new Stat(50, 0)
-    var decisiveness: Stat = new Stat(50, 0)
+class StatSet (
+    val speed: Stat,
+    val health: Stat,
+    val power: Stat,
+    val resistance: Stat,
+    val decisiveness: Stat,
+) {}
 
-    def instantiate: Stats = {
-        var s = new Stats
-        s.speed = speed.instantiate
-        s.health = health.instantiate
-        s.power = power.instantiate
-        s.resistance = resistance.instantiate
-        s.decisiveness = decisiveness.instantiate
-        s
+class StatSetGen (
+    val speed: StatGen,
+    val health: StatGen,
+    val power: StatGen,
+    val resistance: StatGen,
+    val decisiveness: StatGen,
+) {
+    def instantiate: StatSet = {
+        new StatSet (
+            speed=speed.instantiate,
+            health=health.instantiate,
+            power=power.instantiate,
+            resistance=resistance.instantiate,
+            decisiveness=decisiveness.instantiate,
+        )
     }
 }
 
-class Skill (val level: Int) {
-    def maxVal = 5
+class SkillGen (var level: Int) {
+    def instantiate: Skill = {
+        new Skill(level)
+    }
 }
 
-class Skills {
-    var blocking: Skill = new Skill(0)
-    var penetration: Skill = new Skill(0)
-    var immunity: Skill = new Skill(0)
-    var power: Skill = new Skill(0)
+class Skill (var level: Int) {
+    def set (new_level: Int) { level = new_level }
+    def get: Int = { level }
+}
+
+class SkillSetGen (
+    val blocking: SkillGen,
+    val penetration: SkillGen,
+    val immunity: SkillGen,
+    val power: SkillGen,
+) {
+    def instantiate: SkillSet = {
+        new SkillSet(
+            blocking=blocking.instantiate,
+            penetration=penetration.instantiate,
+            immunity=immunity.instantiate,
+            power=power.instantiate,
+        )
+    }
+}
+
+class SkillSet (
+    val blocking: Skill,
+    val penetration: Skill,
+    val immunity: Skill,
+    val power: Skill,
+) {
     override def toString: String = {
         var s = ""
         if (blocking.level > 0) s += "BLK:" + blocking.level

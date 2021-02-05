@@ -10,7 +10,10 @@ import event._
 import Direction._
 import Behavior._
 
-abstract class Organism {
+abstract class Organism (
+    val stats: StatSet,
+    val skills: SkillSet,
+) {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
@@ -20,8 +23,6 @@ abstract class Organism {
         p.addOrganism(this)
     }
 
-    var stats: Stats = new Stats
-    var skills: Skills = new Skills
     var strength: Int = 0
 
     // Adjust the strength according to the health of the Organism
@@ -36,15 +37,15 @@ abstract class Organism {
         val powerBonus = 9
         val immunityBonus = 10
         strength = ((
-            stats.health * healthCoeff
-            + stats.power * powerCoeff
-            + stats.speed * speedCoeff
-            + stats.resistance * resistanceCoeff
+            stats.health.get * healthCoeff
+            + stats.power.get * powerCoeff
+            + stats.speed.get * speedCoeff
+            + stats.resistance.get * resistanceCoeff
         ) / (healthCoeff + powerCoeff + speedCoeff + resistanceCoeff)
-        + powerBonus * skills.power.level
-        + blockingBonus * skills.blocking.level
-        + immunityBonus * skills.immunity.level
-        + penetrationBonus * skills.penetration.level
+        + powerBonus * skills.power.get
+        + blockingBonus * skills.blocking.get
+        + immunityBonus * skills.immunity.get
+        + penetrationBonus * skills.penetration.get
         ).toInt
         strength - oldStrength
     }
@@ -54,7 +55,7 @@ abstract class Organism {
         val newPosition = position.tryAdd(dir)
         if (newPosition == null) return null
         val idx = if (isFriendly) 1 else 0
-        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level <= skills.penetration.level
+        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level <= skills.penetration.get
          && room.locs(newPosition.y, newPosition.x).blocking(idx).level < 5) {
             newPosition
         } else null
@@ -69,21 +70,21 @@ abstract class Organism {
 
     def maybeMove (room: Room, dir: Direction): Pos = {
         val r = new Random
-        if (r.nextInt(100) > stats.decisiveness) return null
+        if (r.nextInt(100) > stats.decisiveness.get) return null
         moveIsAllowed(room, dir)
     }
 
     def attackedBy (ennemy: Organism) {
-        if (this.skills.immunity.level <= ennemy.skills.power.level) {
+        if (this.skills.immunity.get <= ennemy.skills.power.get) {
             val r = new Random()
-            this.stats.health -= (r.nextInt(5) + 5) * ennemy.stats.power / this.stats.resistance
+            this.stats.health.update(-(r.nextInt(5) + 5) * ennemy.stats.power.get / this.stats.resistance.get)
         }
     }
 
     override def toString: String = {
         val s = skills.toString
         name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
-        "      [ HP:" + stats.health + " | ATK:" + stats.power + " | DEF:" + stats.resistance + " | SPD:" + stats.speed + " | DEC:" + stats.decisiveness + " ]"
+        "      [ HP:" + stats.health.get + " | ATK:" + stats.power.get + " | DEF:" + stats.resistance.get + " | SPD:" + stats.speed.get + " | DEC:" + stats.decisiveness.get + " ]"
     }
 
     def focus: Pos
@@ -98,7 +99,7 @@ abstract class Organism {
             i += 1
         }
         val r = new Random
-        if (r.nextInt(100) > stats.speed) moveTo(mv)
+        if (r.nextInt(100) > stats.speed.get) moveTo(mv)
     }
 }
 

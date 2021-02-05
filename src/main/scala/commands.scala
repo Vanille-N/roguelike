@@ -65,11 +65,11 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                     val new_value = args(2).toInt
                     val target_organism = getOrganismById(target_id)
                     args(0) match {
-                        case "SPD" =>      { target_organism.stats.speed = new_value }
-                        case "HP" =>     { target_organism.stats.health = new_value }
-                        case "POW" =>      { target_organism.stats.power = new_value }
-                        case "DEF" => { target_organism.stats.resistance = new_value }
-                        case "DEC" => { target_organism.stats.decisiveness = new_value }
+                        case "SPD" =>      { target_organism.stats.speed.set(new_value) }
+                        case "HP" =>     { target_organism.stats.health.set(new_value) }
+                        case "POW" =>      { target_organism.stats.power.set(new_value) }
+                        case "DEF" => { target_organism.stats.resistance.set(new_value) }
+                        case "DEC" => { target_organism.stats.decisiveness.set(new_value) }
                         case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
                     }
                     castle.logs.text += "\n" + target_organism
@@ -97,11 +97,11 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
             val target_organism = getOrganismById(target_id)
             //castle.logs.text += "\n\n\n" + target_organism
             next(1) match {
-                    case "SPD" =>      { target_organism.stats.speed = new_value }
-                    case "HP" =>     { target_organism.stats.health = new_value }
-                    case "POW" =>      { target_organism.stats.power = new_value }
-                    case "DEF" => { target_organism.stats.resistance = new_value }
-                    case "DEC" => { target_organism.stats.decisiveness = new_value }
+                    case "SPD" =>      { target_organism.stats.speed.set(new_value) }
+                    case "HP" =>     { target_organism.stats.health.set(new_value) }
+                    case "POW" =>      { target_organism.stats.power.set(new_value) }
+                    case "DEF" => { target_organism.stats.resistance.set(new_value) }
+                    case "DEC" => { target_organism.stats.decisiveness.set(new_value) }
                     case _ =>            { castle.logs.text += "\nError: unbound value " + args(0) + " ;:(" }
             }
             castle.logs.text += "\n\n\n" + target_organism

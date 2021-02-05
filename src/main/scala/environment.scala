@@ -113,7 +113,7 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
             if (split(1 - idx).size > 0) {
                 val target = split(1 - idx)(0)
                 target.attackedBy(x)
-                if (target.stats.health <= 0) {
+                if (target.stats.health.get <= 0) {
                     split(1 - idx).trimStart(1)
                     kill(target)
                 } else {
@@ -173,7 +173,7 @@ class Grid (room: Room, rows: Int, cols: Int) {
 class Room (val castle: Castle, val cols: Int, val rows: Int)
 extends Reactor with Publisher {
     var locs = new Grid(this, rows, cols)
-    
+
     locs.map(listenTo(_))
 
     reactions += {
