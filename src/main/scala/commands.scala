@@ -28,7 +28,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def tryMove (dir: Direction): Unit = {
         if (player.move(dir)) {
             castle.logs.text += prompt + "Player goes " + dir + "\n"
-            castle.logs.text += "-> " + player.position.x + ", " + player.position.y + "\n"
+            castle.logs.text += "-> " + player.position.i + ", " + player.position.j + "\n"
         } else {
             castle.logs.text += "\t> Player cannot go " + dir + "\n"
         }

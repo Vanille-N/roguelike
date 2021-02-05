@@ -45,7 +45,7 @@ class Castle extends Reactor {
     }
     var organisms: Set[Organism] = Set()
 
-    val room = new PlainRoom(this, cols, rows)
+    val room = new PlainRoom(this, rows, cols)
 
     val player = new Player(room.locs(10, 10))
 
@@ -55,7 +55,7 @@ class Castle extends Reactor {
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
-        val grid = new GridPanel(rows,cols)
+        val grid = new GridPanel(rows, cols)
         room.locs.map(grid.contents += _)
 
         listenTo(room, cmdline);
@@ -104,14 +104,15 @@ class Castle extends Reactor {
     reactions += {
         case displayContents(p: Pos) => {
             this.logs.text += p.listContents
-            this.cmdline.text += " " + p.x + " " + p.y
+            if (this.cmdline.text != "") {
+                this.cmdline.text += " " + p.i + " " + p.j
+            }
         }
         case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  {
             c.toString match {
             case "Deux-points" => { cmdline.requestFocusInWindow() }
             case "Semicolon"   => { cmdline.requestFocusInWindow() }
-            // "?" => query(pos)
             case _ => { command.commandRequest(c.toString) }
             }
         }

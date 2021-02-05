@@ -55,8 +55,8 @@ abstract class Organism (
         val newPosition = position.tryAdd(dir)
         if (newPosition == null) return null
         val idx = if (isFriendly) 1 else 0
-        if (room.locs(newPosition.y, newPosition.x).blocking(1 - idx).level <= skills.penetration.get
-         && room.locs(newPosition.y, newPosition.x).blocking(idx).level < 5) {
+        if (room.locs(newPosition.i, newPosition.j).blocking(1 - idx).level <= skills.penetration.get
+         && room.locs(newPosition.i, newPosition.j).blocking(idx).level < 5) {
             newPosition
         } else null
     }

@@ -23,8 +23,8 @@ object Direction extends Enumeration {
     val RIGHT = Value("right")
     val STAY = Value("stay")
 
-    def toTuple (i: Direction): Tuple2[Int, Int] = {
-        i match {
+    def toTuple (d: Direction): Tuple2[Int, Int] = {
+        d match {
             case UP => (0, -1)
             case DOWN => (0, 1)
             case LEFT => (-1, 0)
@@ -35,7 +35,7 @@ object Direction extends Enumeration {
 }
 import Direction._
 
-class Pos (val room: Room, val y: Int, val x: Int) extends Button {
+class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var isFocused: Boolean = false
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
     var strength: Array[Int] = Array(0, 0)
@@ -62,22 +62,22 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
 
     def tryAdd (i: Direction): Pos = {
         val dpos = Direction.toTuple(i)
-        val newX = this.x + dpos._1
-        val newY = this.y + dpos._2
-        if (room.cols > newX && room.rows > newY && 0 <= newX && 0 <= newY) {
-            room.locs(newY, newX)
+        val newJ = this.j + dpos._1
+        val newI = this.i + dpos._2
+        if (room.cols > newJ && room.rows > newI && 0 <= newJ && 0 <= newI) {
+            room.locs(newI, newJ)
         } else null
     }
 
     def distanceL1 (other: Pos): Int = {
-        (this.x - other.x).abs + (this.y - other.y).abs
+        (this.i - other.i).abs + (this.j - other.j).abs
     }
     def distanceL2 (other: Pos): Double = {
-        sqrt(pow(this.x - other.x, 2) + pow(this.y - other.y, 2))
+        sqrt(pow(this.i - other.i, 2) + pow(this.j - other.j, 2))
     }
 
     override def toString: String = {
-        "(" + x + "," + y + ")"
+        "(" + i + "," + j + ")"
     }
 
     // visual appearance
@@ -138,20 +138,20 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     }
 
     def listContents: String = {
-        var s = "At position (" + y + "," + x + ")\n"
-        var i = 0
+        var s = "At position (" + i + "," + j + ")\n"
+        var k = 0
         if (organisms(1).size > 0) {
-            s += "  " +organisms(1).size + " virus\n"
+            s += "  " + organisms(1).size + " virus\n"
             organisms(1).foreach(o => {
-                s += "    " + i + "- " +  o + "\n"
-                i += 1
+                s += "    " + k + "- " +  o + "\n"
+                k += 1
             })
         }
         if (organisms(0).size > 0) {
             s += "  " + organisms(0).size + " cells\n"
             organisms(0).foreach(o => {
-                s += "    " + i + "- " +  o + "\n"
-                i += 1
+                s += "    " + k + "- " +  o + "\n"
+                k += 1
             })
         }
         if (organisms(0).size + organisms(1).size == 0) {
@@ -189,14 +189,14 @@ extends Reactor with Publisher {
     def wallSpawner = new DefaultWallCellSpawner()
 
     def makeWall (p: Pos, q: Pos) = {
-        for (x <- p.x to q.x; y <- p.y to q.y) {
-            wallSpawner.spawn(locs(x, y))
+        for (i <- p.i to q.i; j <- p.j to q.j) {
+            wallSpawner.spawn(locs(i, j))
         }
     }
 }
 
-class PlainRoom (castle: Castle, cols: Int, rows: Int)
-extends Room (castle,cols,rows) {
+class PlainRoom (castle: Castle, rows: Int, cols: Int)
+extends Room (castle, rows, cols) {
     makeWall(locs(0, 0), locs(0, cols-1))
     makeWall(locs(0, 0), locs(rows-1, 0))
     makeWall(locs(rows-1, 0), locs(rows-1, cols-1))

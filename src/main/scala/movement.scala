@@ -11,7 +11,6 @@ import event._
 import Direction._
 
 class Player (var position: Pos) {
-
     def placeOnMap (p: Pos) {
         position = p
         p.isFocused = true
