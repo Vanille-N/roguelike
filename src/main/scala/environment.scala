@@ -111,9 +111,7 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
             if (split(1 - idx).size > 0) {
                 val target = split(1 - idx)(0)
                 target.attackedBy(x)
-                println(target, "is attacked by", x)
                 if (target.stats.health <= 0) {
-                    println(target, "was killed")
                     split(1 - idx).trimStart(1)
                     kill(target)
                 } else {
@@ -132,7 +130,9 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
         case MouseClicked(_, _ ,0, _ , _ ) =>
             { publish(leftClicked(this)) }
         case UIElementResized(_) =>
-            font = new Font("default", Font.BOLD, size.width / max(strength(0).toString.length, strength(1).toString.length).max(2))
+            font = new Font("default", Font.BOLD,
+                (size.width / strength(0).toString.length.max(strength(1).toString.length).max(3)).min(
+                size.height / 2))
     }
 
     def listContents: String = {
