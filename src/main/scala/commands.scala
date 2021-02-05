@@ -221,4 +221,3 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         castle.cmdline.text = ""
     }
 }
-// vim: set expandtab tabstop=4 shiftwidth=4 :

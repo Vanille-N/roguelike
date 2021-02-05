@@ -186,10 +186,11 @@ extends Reactor with Publisher {
         castle.organisms.add(o)
     }
 
+    def wallSpawner = new DefaultWallCellSpawner()
+
     def makeWall (p: Pos, q: Pos) = {
         for (x <- p.x to q.x; y <- p.y to q.y) {
-            // val o = new WallCell()
-            // addOrganism(o, locs(x, y))
+            wallSpawner.spawn(locs(x, y))
         }
     }
 }
@@ -201,11 +202,16 @@ extends Room (castle,cols,rows) {
     makeWall(locs(rows-1, 0), locs(rows-1, cols-1))
     makeWall(locs(0, cols-1), locs(rows-1, cols-1))
 
-    // addOrganism(new RedCell(), locs(5, 5))
-    // addOrganism(new RedCell(), locs(5, 9))
-    // addOrganism(new WhiteCell(), locs(15, 15))
-    // addOrganism(new WhiteCell(), locs(15, 15))
-    // addOrganism(new WhiteCell(), locs(5, 5))
-    // addOrganism(new Virus(), locs(7, 2))
-    // addOrganism(new Virus(), locs(18, 3))
+    val redCellSpawner = new DefaultRedCellSpawner()
+    redCellSpawner.spawn(locs(5, 5))
+    redCellSpawner.spawn(locs(5, 9))
+
+    val whiteCellSpawner = new DefaultWhiteCellSpawner()
+    whiteCellSpawner.spawn(locs(15, 15))
+    whiteCellSpawner.spawn(locs(15, 15))
+    whiteCellSpawner.spawn(locs(5, 5))
+
+    val virusSpawner = new DefaultVirusSpawner()
+    virusSpawner.spawn(locs(7, 2))
+    virusSpawner.spawn(locs(18, 3))
 }

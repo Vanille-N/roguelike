@@ -110,25 +110,19 @@ class Virus (
     override def isFriendly = true
     var name = "virus"
 
-    // stats.speed = new Stat(30, 2).instantiate
-    // stats.health = new Stat(20, 2).instantiate
-    // stats.power = new Stat(30, 1).instantiate
-    // stats.resistance = new Stat(15, 1).instantiate
-    // stats.decisiveness = new Stat(70, 5).instantiate
-
     def focus: Pos = {
         this.position.room.castle.player.position
     }
-    def behavior: Behavior = SEEK
+    val behavior: Behavior = SEEK
 }
 
 class Cell (
     stats: StatSet,
     skills: SkillSet,
     val name: String,
+    val behavior: Behavior = FLEE
 ) extends Organism (stats, skills) {
     def focus: Pos = {
         this.position.room.castle.player.position
     }
-    def behavior: Behavior = FLEE
 }

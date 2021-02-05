@@ -60,10 +60,10 @@ class Skill (var level: Int) {
 }
 
 class SkillSetGen (
-    val blocking: SkillGen,
-    val penetration: SkillGen,
-    val immunity: SkillGen,
-    val power: SkillGen,
+    val blocking: SkillGen = new SkillGen(0),
+    val penetration: SkillGen = new SkillGen(0),
+    val immunity: SkillGen = new SkillGen(0),
+    val power: SkillGen = new SkillGen(0),
 ) {
     def instantiate: SkillSet = {
         new SkillSet(
