@@ -165,7 +165,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def commandRequest (s: String): Unit = {
         if (status == 0 ) {
             main_command = s
-            if (s != "") castle.logs.text += "\n$ " + s
+            if (s != "" && castle.cmdline.text != "") castle.logs.text += "\n$ " + s
             s.split(" ")(0) match  {
                 // Movements
                 case "Up" =>    { tryMove(UP) }
@@ -209,7 +209,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "help" =>  { help (s.split(" ").tail) }
                 case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}
-                case _ =>       { castle.logs.text += "\t> command not found ;/\n" }
+                case _ =>       { if(castle.cmdline.text != "" ) {castle.logs.text += "\t> command not found ;/\n"} }
             }
         } else {
             castle.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s

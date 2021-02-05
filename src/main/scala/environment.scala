@@ -41,6 +41,8 @@ class Pos (val room: Room, val y: Int, val x: Int) extends Button {
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
 
+    this.focusable = false
+
     def addOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)
@@ -171,7 +173,7 @@ class Grid (room: Room, rows: Int, cols: Int) {
 class Room (val castle: Castle, val cols: Int, val rows: Int)
 extends Reactor with Publisher {
     var locs = new Grid(this, rows, cols)
-
+    
     locs.map(listenTo(_))
 
     reactions += {
