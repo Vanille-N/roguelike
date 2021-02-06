@@ -38,10 +38,10 @@ abstract class Organism (
         val powerBonus = 9
         val immunityBonus = 10
         strength = ((
-            stats.health.get * healthCoeff
-            + stats.power.get * powerCoeff
-            + stats.speed.get * speedCoeff
-            + stats.resistance.get * resistanceCoeff
+            stats.health.current * healthCoeff
+            + stats.power.current * powerCoeff
+            + stats.speed.current * speedCoeff
+            + stats.resistance.current * resistanceCoeff
         ) / (healthCoeff + powerCoeff + speedCoeff + resistanceCoeff)
         + powerBonus * skills.power.get
         + blockingBonus * skills.blocking.get
@@ -71,41 +71,55 @@ abstract class Organism (
 
     def maybeMove (room: Room, dir: Direction): Pos = {
         val r = new Random
-        if (r.nextInt(100) > stats.decisiveness.get) return null
+        if (r.nextInt(100) > stats.decisiveness.current) return null
         moveIsAllowed(room, dir)
     }
 
     def attackedBy (ennemy: Organism) {
+        println(this, "attacked by", ennemy)
         if (this.skills.immunity.get <= ennemy.skills.power.get) {
             val r = new Random()
-            this.stats.health.update(-(r.nextInt(5) + 5) * ennemy.stats.power.get / this.stats.resistance.get)
+            this.stats.health.residual -=
+                (r.nextInt(5) + 5) * ennemy.stats.power.residual / this.stats.resistance.residual
+            this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
+            ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
+            ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
         }
     }
 
     override def toString: String = {
         val s = skills.toString
         name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
-        "      [ HP:" + stats.health.get + " | ATK:" + stats.power.get + " | DEF:" + stats.resistance.get + " | SPD:" + stats.speed.get + " | DEC:" + stats.decisiveness.get + " ]"
+        "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]"
     }
 
     def focus: Pos
     def behavior: Behavior
 
-    def step (room: Room) {
-        var remainingSpeed = stats.speed.get
+    def step (room: Room): Boolean = { // boolean indicates if the organism can still move
         val r = new Random
-        val loop = new Breaks
-        loop.breakable {
-            val options = PathFinder.next(this.position, this.focus, this.behavior)
-            var mv: Pos = null
-            var k = 0
-            while (k < options.size && mv == null) {
-                mv = maybeMove(room, options(k))
-                k += 1
-            }
-            remainingSpeed -= r.nextInt(100)
-            if (remainingSpeed > 0) loop.break
-            moveTo(mv)
+        val options = PathFinder.next(this.position, this.focus, this.behavior)
+        var mv: Pos = null
+        var k = 0
+        while (k < options.size && mv == null) {
+            mv = maybeMove(room, options(k))
+            k += 1
+        }
+        stats.speed.residual -= r.nextInt(100)
+        if (stats.speed.residual <= 0) return false // can't move anymore
+        if (mv != null) moveTo(mv)
+        true
+    }
+
+    def sync {
+        // residual health becomes actual health, other stats are restored
+        stats.health.current = stats.health.residual
+        stats.syncCurrent
+        if (stats.health.current <= 0) {
+            position.kill(this)
+        } else {
+            val idx = if (isFriendly) 1 else 0
+            position.strength(idx) += this.updateStrength
         }
     }
 }
