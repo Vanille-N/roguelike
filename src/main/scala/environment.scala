@@ -113,14 +113,6 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             if (split(1 - idx).size > 0) {
                 val target = split(1 - idx)(0)
                 target.attackedBy(x)
-                if (target.stats.health.get <= 0) {
-                    split(1 - idx).trimStart(1)
-                    kill(target)
-                } else {
-                    strength(1 - idx) += target.updateStrength
-                    split(1 - idx).trimStart(1)
-                    split(1 - idx).append(target)
-                }
             }
         })
     }
