@@ -16,10 +16,26 @@ class StatGen (var amount: Int, var variability: Int) {
     }
 }
 
-class Stat (var amount: Int) {
-    def set (new_amount: Int) { amount = new_amount }
-    def get: Int = { amount }
-    def update (change: Int) { amount += change }
+class Stat (var base: Int) {
+    // base is the stat without any (de)buffs
+    // current is the actual value, updated at each end of turn
+    // residual is the value updated in real time
+    var current: Int = base
+    var residual: Int = current
+
+    // general model:
+    // - cell is initialized with base
+    // - permanent (de)buffs update base
+    // - temporary (de)buffs update current
+    // - at each turn
+    //   - residual is set to current
+    //   - actions affect residual
+    //   - when the turn ends current is set to residual
+    // In addition to interaction with boost items, this allows in particular
+    // - movement spread over several turns because it only affects speed.residual
+    // - cells die only at the end of the turn because being attacked affects health.residual
+    def syncBase { current = base; residual = current }
+    def syncCurrent { residual = current }
 }
 
 class StatSet (
@@ -28,7 +44,22 @@ class StatSet (
     val power: Stat,
     val resistance: Stat,
     val decisiveness: Stat,
-) {}
+) {
+    def syncBase {
+        speed.syncBase
+        health.syncBase
+        power.syncBase
+        resistance.syncBase
+        decisiveness.syncBase
+    }
+    def syncCurrent {
+        speed.syncCurrent
+        health.syncCurrent
+        power.syncCurrent
+        resistance.syncCurrent
+        decisiveness.syncCurrent
+    }
+}
 
 class StatSetGen (
     val speed: StatGen,
