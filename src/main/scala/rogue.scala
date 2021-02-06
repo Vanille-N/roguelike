@@ -94,9 +94,16 @@ class Castle extends Reactor {
     }
 
     def step {
-        this.logs.text += "advance by 1 step\n"
-        organisms.foreach(o => o.step(room))
-        room.locs.map(_.battle)
+        println("next turn")
+        organisms.foreach(o => o.stats.syncCurrent)
+        var active = true
+        while (active) {
+            println("Still some active cells")
+            active = false
+            organisms.foreach(o => active = active || o.step(room))
+            room.locs.map(_.battle)
+        }
+        organisms.foreach(o => o.sync)
         room.locs.map(_.update)
     }
 
