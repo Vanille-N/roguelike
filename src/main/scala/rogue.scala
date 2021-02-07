@@ -101,7 +101,7 @@ class Castle extends Reactor {
         while (active) {
             println("Still some active cells")
             active = false
-            organisms.foreach(o => active = active || o.step(room))
+            organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
         }
         val r = new Random
