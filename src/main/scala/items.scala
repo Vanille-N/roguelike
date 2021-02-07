@@ -4,11 +4,11 @@ import Math._
 
 object StatType extends Enumeration {
     type StatType = Value
-    val HP   = Value("health")
-    val SPD  = Value("speed")
-    val POW  = Value("power")
-    val DEF  = Value("resistance")
-    val DEC  = Value("decisiveness")
+    val HP   = Value("health.residual")
+    val SPD  = Value("speed.residual")
+    val POW  = Value("power.residual")
+    val DEF  = Value("resistance.residual")
+    val DEC  = Value("decisiveness.residual")
     val ALL  = Value("every field")
     val ANY  = Value("any field")
     val NONE = Value("free to use")
@@ -48,21 +48,21 @@ abstract class Item {
     def isUsable (o: Organism): Boolean = {
         updateCost
         cost_type match {
-            case HP   => { return (o.stats.health.get - cost > 0)       }
-            case SPD  => { return (o.stats.speed.get - cost > 0)        }
-            case POW  => { return (o.stats.power.get - cost > 0)        }
-            case DEF  => { return (o.stats.resistance.get - cost > 0)   }
-            case DEC  => { return (o.stats.decisiveness.get - cost > 0) }
-            case ALL  => { return ( (o.stats.health.get - cost > 0)
-                        && (o.stats.speed.get - cost > 0)
-                        && (o.stats.power.get - cost > 0)
-                        && (o.stats.resistance.get - cost > 0)
-                        && (o.stats.decisiveness.get - cost > 0) ) }
-            case ANY  => { return ( (o.stats.health.get - cost > 0)
-                        || (o.stats.speed.get - cost > 0)
-                        || (o.stats.power.get - cost > 0)
-                        || (o.stats.resistance.get - cost > 0)
-                        || (o.stats.decisiveness.get - cost > 0) ) }
+            case HP   => { return (o.stats.health.residual - cost > 0)       }
+            case SPD  => { return (o.stats.speed.residual - cost > 0)        }
+            case POW  => { return (o.stats.power.residual - cost > 0)        }
+            case DEF  => { return (o.stats.resistance.residual - cost > 0)   }
+            case DEC  => { return (o.stats.decisiveness.residual - cost > 0) }
+            case ALL  => { return ( (o.stats.health.residual - cost > 0)
+                        && (o.stats.speed.residual - cost > 0)
+                        && (o.stats.power.residual - cost > 0)
+                        && (o.stats.resistance.residual - cost > 0)
+                        && (o.stats.decisiveness.residual - cost > 0) ) }
+            case ANY  => { return ( (o.stats.health.residual - cost > 0)
+                        || (o.stats.speed.residual - cost > 0)
+                        || (o.stats.power.residual - cost > 0)
+                        || (o.stats.resistance.residual - cost > 0)
+                        || (o.stats.decisiveness.residual - cost > 0) ) }
             case NONE => { return true }
         }
     }
@@ -70,23 +70,23 @@ abstract class Item {
     def unpayCost (o: Organism): Unit ={
         updateCost
         cost_type match {
-            case HP   => { o.stats.health.set(o.stats.health.get + cost)             }
-            case SPD  => { o.stats.speed.set(o.stats.speed.get + cost)               }
-            case POW  => { o.stats.power.set(o.stats.power.get + cost)               }
-            case DEF  => { o.stats.resistance.set(o.stats.resistance.get + cost)     }
-            case DEC  => { o.stats.decisiveness.set(o.stats.decisiveness.get + cost) }
-            case ALL  => { o.stats.health.set(o.stats.health.get + cost)
-                        o.stats.speed.set(o.stats.speed.get + cost)
-                        o.stats.power.set(o.stats.power.get + cost)
-                        o.stats.resistance.set(o.stats.resistance.get + cost)
-                        o.stats.decisiveness.set(o.stats.decisiveness.get + cost) }
+            case HP   => { o.stats.health.residual = (o.stats.health.residual + cost)             }
+            case SPD  => { o.stats.speed.residual = (o.stats.speed.residual + cost)               }
+            case POW  => { o.stats.power.residual = (o.stats.power.residual + cost)               }
+            case DEF  => { o.stats.resistance.residual = (o.stats.resistance.residual + cost)     }
+            case DEC  => { o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost) }
+            case ALL  => { o.stats.health.residual = (o.stats.health.residual + cost)
+                        o.stats.speed.residual = (o.stats.speed.residual + cost)
+                        o.stats.power.residual = (o.stats.power.residual + cost)
+                        o.stats.resistance.residual = (o.stats.resistance.residual + cost)
+                        o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost) }
             case ANY  => {
                 r.nextInt(4) match {
-                    case 0 => o.stats.health.set(o.stats.health.get + cost)
-                    case 1 => o.stats.speed.set(o.stats.speed.get + cost)
-                    case 2 => o.stats.power.set(o.stats.power.get + cost)
-                    case 3 => o.stats.resistance.set(o.stats.resistance.get + cost)
-                    case 4 => o.stats.decisiveness.set(o.stats.decisiveness.get + cost)
+                    case 0 => o.stats.health.residual = (o.stats.health.residual + cost)
+                    case 1 => o.stats.speed.residual = (o.stats.speed.residual + cost)
+                    case 2 => o.stats.power.residual = (o.stats.power.residual + cost)
+                    case 3 => o.stats.resistance.residual = (o.stats.resistance.residual + cost)
+                    case 4 => o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost)
                 }
             }
             case NONE => {}
@@ -95,23 +95,23 @@ abstract class Item {
     def payCost (o: Organism): Unit ={
         updateCost
         cost_type match {
-            case HP   => { o.stats.health.set(o.stats.health.get - cost)             }
-            case SPD  => { o.stats.speed.set(o.stats.speed.get - cost)               }
-            case POW  => { o.stats.power.set(o.stats.power.get - cost)               }
-            case DEF  => { o.stats.resistance.set(o.stats.resistance.get - cost)     }
-            case DEC  => { o.stats.decisiveness.set(o.stats.decisiveness.get - cost) }
-            case ALL  => { o.stats.health.set(o.stats.health.get - cost)
-                        o.stats.speed.set(o.stats.speed.get - cost)
-                        o.stats.power.set(o.stats.power.get - cost)
-                        o.stats.resistance.set(o.stats.resistance.get - cost)
-                        o.stats.decisiveness.set(o.stats.decisiveness.get - cost) }
+            case HP   => { o.stats.health.residual = (o.stats.health.residual - cost)             }
+            case SPD  => { o.stats.speed.residual = (o.stats.speed.residual - cost)               }
+            case POW  => { o.stats.power.residual = (o.stats.power.residual - cost)               }
+            case DEF  => { o.stats.resistance.residual = (o.stats.resistance.residual - cost)     }
+            case DEC  => { o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost) }
+            case ALL  => { o.stats.health.residual = (o.stats.health.residual - cost)
+                        o.stats.speed.residual = (o.stats.speed.residual - cost)
+                        o.stats.power.residual = (o.stats.power.residual - cost)
+                        o.stats.resistance.residual = (o.stats.resistance.residual - cost)
+                        o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost) }
             case ANY  => {
                 r.nextInt(4) match {
-                    case 0 => o.stats.health.set(o.stats.health.get - cost)
-                    case 1 => o.stats.speed.set(o.stats.speed.get - cost)
-                    case 2 => o.stats.power.set(o.stats.power.get - cost)
-                    case 3 => o.stats.resistance.set(o.stats.resistance.get - cost)
-                    case 4 => o.stats.decisiveness.set(o.stats.decisiveness.get - cost)
+                    case 0 => o.stats.health.residual = (o.stats.health.residual - cost)
+                    case 1 => o.stats.speed.residual = (o.stats.speed.residual - cost)
+                    case 2 => o.stats.power.residual = (o.stats.power.residual - cost)
+                    case 3 => o.stats.resistance.residual = (o.stats.resistance.residual - cost)
+                    case 4 => o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost)
                 }
             }
             case NONE => {}
@@ -127,25 +127,25 @@ abstract class Item {
         payCost(o)
         damageUpdate
         targetStat match {
-            case HP   => { t.stats.health.set(t.stats.health.get - damage)             }
-            case SPD  => { t.stats.speed.set(t.stats.speed.get - damage)               }
-            case POW  => { t.stats.power.set(t.stats.power.get - damage)               }
-            case DEF  => { t.stats.resistance.set(t.stats.resistance.get - damage)     }
-            case DEC  => { t.stats.decisiveness.set(t.stats.decisiveness.get - damage) }
+            case HP   => { t.stats.health.residual = (t.stats.health.residual - damage)             }
+            case SPD  => { t.stats.speed.residual = (t.stats.speed.residual - damage)               }
+            case POW  => { t.stats.power.residual = (t.stats.power.residual - damage)               }
+            case DEF  => { t.stats.resistance.residual = (t.stats.resistance.residual - damage)     }
+            case DEC  => { t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage) }
             case ALL  => {
-                t.stats.health.set(t.stats.health.get - damage)
-                t.stats.speed.set(t.stats.speed.get - damage)
-                t.stats.power.set(t.stats.power.get - damage)
-                t.stats.resistance.set(t.stats.resistance.get - damage)
-                t.stats.decisiveness.set(t.stats.decisiveness.get - damage)
+                t.stats.health.residual = (t.stats.health.residual - damage)
+                t.stats.speed.residual = (t.stats.speed.residual - damage)
+                t.stats.power.residual = (t.stats.power.residual - damage)
+                t.stats.resistance.residual = (t.stats.resistance.residual - damage)
+                t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage)
             }
             case ANY  => {
                 r.nextInt(4) match {
-                    case 0 => t.stats.health.set(t.stats.health.get - damage)
-                    case 1 => t.stats.speed.set(t.stats.speed.get - damage)
-                    case 2 => t.stats.power.set(t.stats.power.get - damage)
-                    case 3 => t.stats.resistance.set(t.stats.resistance.get - damage)
-                    case 4 => t.stats.decisiveness.set(t.stats.decisiveness.get - damage)
+                    case 0 => t.stats.health.residual = (t.stats.health.residual - damage)
+                    case 1 => t.stats.speed.residual = (t.stats.speed.residual - damage)
+                    case 2 => t.stats.power.residual = (t.stats.power.residual - damage)
+                    case 3 => t.stats.resistance.residual = (t.stats.resistance.residual - damage)
+                    case 4 => t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage)
                 }
             }
             case NONE => {}
@@ -172,7 +172,7 @@ abstract class Item {
 
     // Game evolution
     def step: Unit = {
-        if(owner != null && isUsable(owner) && r.nextInt(max_lvl) > level && r.nextInt(100) > owner.stats.decisiveness.get) {
+        if(owner != null && isUsable(owner) && r.nextInt(max_lvl) > level && r.nextInt(100) > owner.stats.decisiveness.residual) {
             use(owner, owner)
         }
     }
@@ -214,7 +214,7 @@ abstract class SpatialActionItem extends Item {
             damageUpdate
             for (l <- LocsPicking) {
                 for (orga <- l.organisms.toList) {
-                    for (o <- orga.toList) { if(o != owner) { o.stats.health.set(o.stats.health.get - damage) } }
+                    for (o <- orga.toList) { if(o != owner) { o.stats.health.residual = (o.stats.health.residual - damage) } }
                 }
             }
         }
@@ -260,7 +260,7 @@ class Knife (val cstle: Castle, val pos_init: Pos, val dir1: Int, val dir2: Int)
     override def step: Unit = {
         for (l <- LocsPicking) {
             for (orga <- l.organisms.toList) {
-                for (o <- orga.toList) { o.stats.health.set(0) }
+                for (o <- orga.toList) { o.stats.health.residual = (0) }
             }
         }
         super.step
@@ -307,7 +307,7 @@ class Javel (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
 
     override def action (o: Organism, t: Organism): Unit = {
         for(org <- castle.organisms) {
-            org.stats.health.set(0)
+            org.stats.health.residual = 0
         }
         drop
     }
@@ -328,7 +328,7 @@ class Heat (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
 
 
 /* --- * LocalActionItem * --- */
-// Améliore les cellules, renforce les virus (ils peuvent se faire passer pour des gentils maintenant => immUnité) ;; newhealth = health_factor * level + health
+// Améliore les cellules, renforce les virus (ils peuvent se faire passer pour des gentils maintenant => immUnité) ;; newhealth.residual = health.residual_factor * level + health.residual
 class MembraneReplacement (val cstle: Castle, val pos_init: Pos) extends Item {
     setCastle(cstle)
     setRoom(castle.room)
@@ -352,7 +352,7 @@ class Spike (val cstle: Castle, val pos_init: Pos) extends Item {
     damage_factor = 20
 }
 
-// Cell: spd++, hp--; virus: non utilisable ;; newspeed = speed_factor * level ++ base_speed
+// Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
 class CytoplasmLeak (val cstle: Castle, val pos_init: Pos) extends Item {
     setCastle(cstle)
     setRoom(castle.room)
