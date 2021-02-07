@@ -40,6 +40,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
+    var virusSpawner: PhysicalSpawner = null
+    var cellSpawner: PhysicalSpawner = null
 
     this.focusable = false
 
@@ -78,6 +80,13 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
     override def toString: String = {
         "(" + i + "," + j + ")"
+    }
+
+    def setFriendlySpawner (s: PhysicalSpawner) { virusSpawner = s; s.position = this }
+    def setHostileSpawner (s: PhysicalSpawner) { cellSpawner = s; s.position = this }
+    def trySpawn {
+        if (virusSpawner != null) virusSpawner.step
+        if (cellSpawner != null) cellSpawner.step
     }
 
     // visual appearance
