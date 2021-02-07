@@ -5,6 +5,7 @@ import scala.collection.mutable.Set
 import scala.swing._
 import java.awt.Font
 import java.lang.System
+import java.util.Random
 import event._
 import Direction._
 
@@ -84,7 +85,7 @@ class Castle extends Reactor {
         }
         panel.foreground = Scheme.darkGray
         panel.background = Scheme.darkGray
-        room.locs.map(_.update)
+        room.locs.map(_.updateVisuals)
 
         listenTo(panel.keys);
 
@@ -103,8 +104,13 @@ class Castle extends Reactor {
             organisms.foreach(o => active = active || o.step(room))
             room.locs.map(_.battle)
         }
-        organisms.foreach(o => o.sync)
-        room.locs.map(_.update)
+        val r = new Random
+        organisms.foreach(o => {
+            if (o.isFriendly && r.nextInt(100) < 10) o.stats.health.residual -= 1
+            o.sync
+        })
+        room.locs.map(_.trySpawn)
+        room.locs.map(_.updateVisuals)
     }
 
     // User clicks on dungeon cell or item button ou type a command
