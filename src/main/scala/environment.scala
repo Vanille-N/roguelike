@@ -111,17 +111,40 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         // This attack may fail due to skills.
         var orgs: Buffer[Organism] = Buffer()
         var split: Array[Buffer[Organism]] = Array(Buffer(), Buffer())
-        organisms(0).foreach(x => { orgs.append(x); split(0).append(x) })
-        organisms(1).foreach(x => { orgs.append(x); split(1).append(x) })
+        for (i <- 0 to 1) {
+            organisms(i).foreach(x => {
+                if (x.stats.health.residual > 0) {
+                    orgs.append(x); split(i).append(x)
+                }
+            })
+        }
         val r = new Random()
         r.shuffle(orgs)
         r.shuffle(split(0))
         r.shuffle(split(1))
         orgs.foreach(x => {
-            val idx = if (x.isFriendly) 1 else 0
-            if (split(1 - idx).size > 0) {
-                val target = split(1 - idx)(0)
+            val idx = if (x.isFriendly) 0 else 1
+            if (split(idx).size > 0) {
+                // chose target
+                val target = split(idx)(0)
                 target.attackedBy(x)
+                if (target.stats.health.residual <= 0) {
+                    // target is dead, remove from attackable
+                    if (split(idx).size > 1) {
+                        val n = split(idx).size
+                        split(idx)(0) = split(idx)(n - 1)
+                    }
+                    split(idx).trimEnd(1)
+                } else {
+                    // target is still alive, pick next target randomly
+                    if (split(idx).size > 1) {
+                        val n = split(idx).size
+                        val swap = r.nextInt(n - 1)
+                        val tmp = split(idx)(n - 1)
+                        split(idx)(n - 1) = split(idx)(0)
+                        split(idx)(0) = tmp
+                    }
+                }
             }
         })
     }
