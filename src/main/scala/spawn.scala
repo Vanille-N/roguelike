@@ -90,3 +90,11 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     name = "red cell",
     behavior = Behavior.SEEK
 ) {}
+
+class PhysicalSpawner (val model: Spawner, var threshold: Int) {
+    val rng = new Random
+    var position: Pos = null
+    def step = {
+        if (position != null && rng.nextInt(100) < threshold) model.spawn(position)
+    }
+}
