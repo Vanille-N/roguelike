@@ -225,17 +225,18 @@ extends Room (castle, rows, cols) {
     makeWall(locs(0, 0), locs(rows-1, 0))
     makeWall(locs(rows-1, 0), locs(rows-1, cols-1))
     makeWall(locs(0, cols-1), locs(rows-1, cols-1))
+    makeWall(locs(rows/2, cols/3), locs(cols/2, 2*cols/3))
 
     val redCellSpawner = new DefaultRedCellSpawner()
-    redCellSpawner.spawn(locs(5, 5))
-    redCellSpawner.spawn(locs(5, 9))
+    locs(5, 5).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 20))
+    locs(5, 9).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 30))
 
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
-    whiteCellSpawner.spawn(locs(15, 15))
-    whiteCellSpawner.spawn(locs(15, 15))
-    whiteCellSpawner.spawn(locs(5, 5))
+    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
+    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
+    locs(5, 5).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
 
     val virusSpawner = new DefaultVirusSpawner()
-    virusSpawner.spawn(locs(7, 2))
-    virusSpawner.spawn(locs(18, 3))
+    locs(7, 2).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 10))
+    locs(18, 3).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 10))
 }
