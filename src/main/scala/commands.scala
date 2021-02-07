@@ -32,7 +32,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         } else {
             castle.logs.text += "\t> Player cannot go " + dir + "\n"
         }
-        room.locs.map(_.update)
+        room.locs.map(_.updateVisuals)
     }
 
     def getOrganismById (id: Int): Organism = {

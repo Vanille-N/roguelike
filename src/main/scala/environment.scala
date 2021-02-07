@@ -95,10 +95,14 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     font = new Font("default", 0, 20)
     focusPainted = false
 
-    def update {
-        if (strength(1) + strength(0) > 0) {
-            text = "<html><center>" + strength(1) + "<br>" + strength(0) + "</center></html>"
-        } else text = ""
+    def updateVisuals {
+        // text
+        var t0 = if (strength(0) + strength(1) > 0) strength(0).toString else " "
+        var t1 = if (strength(0) + strength(1) > 0) strength(1).toString else " "
+        if (cellSpawner != null) t0 += "+"
+        if (virusSpawner != null) t1 += "+"
+        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
+        // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)

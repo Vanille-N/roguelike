@@ -76,14 +76,16 @@ abstract class Organism (
     }
 
     def attackedBy (ennemy: Organism) {
-        println(this, "attacked by", ennemy)
-        if (this.skills.immunity.get <= ennemy.skills.power.get) {
-            val r = new Random()
-            this.stats.health.residual -=
-                (r.nextInt(5) + 5) * ennemy.stats.power.residual / this.stats.resistance.residual
-            this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
-            ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
-            ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
+        if (ennemy.stats.power.residual > 0) {
+            println(this, "attacked by", ennemy)
+            if (this.skills.immunity.get <= ennemy.skills.power.get) {
+                val r = new Random()
+                this.stats.health.residual -=
+                    (r.nextInt(5) + 5) * ennemy.stats.power.residual / this.stats.resistance.residual
+                this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
+                ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
+                ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
+            }
         }
     }
 
