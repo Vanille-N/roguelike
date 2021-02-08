@@ -68,7 +68,7 @@ abstract class Organism (
     }
 
     def maybeMove (room: Room, dir: Direction): Pos = {
-        if (Rng.choice(stats.decisiveness.current / 100)) return null
+        if (Rng.choice(stats.decisiveness.current / 100.0)) return null
         moveIsAllowed(room, dir)
     }
 
@@ -96,15 +96,14 @@ abstract class Organism (
 
     def step (room: Room): Boolean = { // boolean indicates if the organism can still move
         val options = PathFinder.next(this.position, this.focus, this.behavior)
-        var mv: Pos = null
-        var k = 0
-        while (k < options.size && mv == null) {
-            mv = maybeMove(room, options(k))
-            k += 1
-        }
+        val allowed = options.map(moveIsAllowed(room, _)).filter(x => x != null)
+        val mv = Rng.priorityChoice(allowed, stats.decisiveness.current / 100.0)
         stats.speed.residual -= Rng.uniform(0, 100)
         if (stats.speed.residual <= 0) return false // can't move anymore
-        if (mv != null) moveTo(mv)
+        mv match {
+            case None => ()
+            case Some(p) => moveTo(p)
+        }
         true
     }
 
