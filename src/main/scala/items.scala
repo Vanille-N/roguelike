@@ -1,5 +1,4 @@
 import scala.collection.mutable.ListBuffer
-import java.util.Random
 import Math._
 
 object StatType extends Enumeration {
@@ -17,7 +16,6 @@ object StatType extends Enumeration {
 import StatType._
 
 abstract class Item {
-    val r = new Random()
     var room: Room = null
     var castle: Castle = null
 
@@ -81,7 +79,7 @@ abstract class Item {
                         o.stats.resistance.residual = (o.stats.resistance.residual + cost)
                         o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost) }
             case ANY  => {
-                r.nextInt(4) match {
+                Rng.uniform(0, 4) match {
                     case 0 => o.stats.health.residual = (o.stats.health.residual + cost)
                     case 1 => o.stats.speed.residual = (o.stats.speed.residual + cost)
                     case 2 => o.stats.power.residual = (o.stats.power.residual + cost)
@@ -106,7 +104,7 @@ abstract class Item {
                         o.stats.resistance.residual = (o.stats.resistance.residual - cost)
                         o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost) }
             case ANY  => {
-                r.nextInt(4) match {
+                Rng.uniform(0, 4) match {
                     case 0 => o.stats.health.residual = (o.stats.health.residual - cost)
                     case 1 => o.stats.speed.residual = (o.stats.speed.residual - cost)
                     case 2 => o.stats.power.residual = (o.stats.power.residual - cost)
@@ -140,7 +138,7 @@ abstract class Item {
                 t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage)
             }
             case ANY  => {
-                r.nextInt(4) match {
+                Rng.uniform(0, 4) match {
                     case 0 => t.stats.health.residual = (t.stats.health.residual - damage)
                     case 1 => t.stats.speed.residual = (t.stats.speed.residual - damage)
                     case 2 => t.stats.power.residual = (t.stats.power.residual - damage)
@@ -152,7 +150,7 @@ abstract class Item {
         }
         drop
     }
-    
+
     def superAction (o: Organism): Unit = {}
 
     def use(o: Organism, t: Organism) = { if(isUsable(o)) { action(o, t) } }
@@ -172,7 +170,9 @@ abstract class Item {
 
     // Game evolution
     def step: Unit = {
-        if(owner != null && isUsable(owner) && r.nextInt(max_lvl) > level && r.nextInt(100) > owner.stats.decisiveness.residual) {
+        if (owner != null && isUsable(owner)
+        && Rng.choice(level / max_lvl)
+        && Rng.choice(owner.stats.decisiveness.residual / 100)) {
             use(owner, owner)
         }
     }
@@ -279,7 +279,7 @@ class BodyMovement (val cstle: Castle, val pos_init: Pos) extends GlobalActionIt
     setCastle(cstle)
     setRoom(castle.room)
     setPos(pos_init)
-    
+
     cost_type = HP
     cost_factor = 10
     damage_factor = 5
@@ -318,7 +318,7 @@ class Heat (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
     setCastle(cstle)
     setRoom(castle.room)
     setPos(pos_init)
-    
+
     cost_type = HP
     cost_factor = 10
     damage_factor = -5
@@ -333,7 +333,7 @@ class MembraneReplacement (val cstle: Castle, val pos_init: Pos) extends Item {
     setCastle(cstle)
     setRoom(castle.room)
     setPos(pos_init)
-    
+
     cost_type = SPD
     cost_factor = 10
     targetStat = HP
@@ -345,7 +345,7 @@ class Spike (val cstle: Castle, val pos_init: Pos) extends Item {
     setCastle(cstle)
     setRoom(castle.room)
     setPos(pos_init)
-    
+
     cost_type = SPD
     cost_factor = 3
     targetStat = POW
@@ -357,7 +357,7 @@ class CytoplasmLeak (val cstle: Castle, val pos_init: Pos) extends Item {
     setCastle(cstle)
     setRoom(castle.room)
     setPos(pos_init)
-    
+
     cost_type = HP
     cost_factor = 20
     targetStat = SPD

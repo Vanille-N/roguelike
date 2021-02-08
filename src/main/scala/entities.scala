@@ -4,10 +4,8 @@ import scala.collection.mutable.HashMap
 import scala.swing._
 import java.awt.Font
 import java.lang.System
-import java.util.Random
 import scala.util.control._
 import event._
-
 import Direction._
 import Behavior._
 
@@ -70,8 +68,7 @@ abstract class Organism (
     }
 
     def maybeMove (room: Room, dir: Direction): Pos = {
-        val r = new Random
-        if (r.nextInt(100) > stats.decisiveness.current) return null
+        if (Rng.choice(stats.decisiveness.current / 100)) return null
         moveIsAllowed(room, dir)
     }
 
@@ -79,9 +76,8 @@ abstract class Organism (
         if (ennemy.stats.power.residual > 0) {
             println(this, "attacked by", ennemy)
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
-                val r = new Random()
                 this.stats.health.residual -=
-                    (r.nextInt(5) + 5) * ennemy.stats.power.residual / this.stats.resistance.residual
+                    Rng.uniform(5, 10) * ennemy.stats.power.residual / this.stats.resistance.residual
                 this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
                 ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
                 ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
@@ -99,7 +95,6 @@ abstract class Organism (
     def behavior: Behavior
 
     def step (room: Room): Boolean = { // boolean indicates if the organism can still move
-        val r = new Random
         val options = PathFinder.next(this.position, this.focus, this.behavior)
         var mv: Pos = null
         var k = 0
@@ -107,7 +102,7 @@ abstract class Organism (
             mv = maybeMove(room, options(k))
             k += 1
         }
-        stats.speed.residual -= r.nextInt(100)
+        stats.speed.residual -= Rng.uniform(0, 100)
         if (stats.speed.residual <= 0) return false // can't move anymore
         if (mv != null) moveTo(mv)
         true

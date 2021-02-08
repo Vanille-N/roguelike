@@ -5,7 +5,6 @@ import scala.collection.mutable.Set
 import scala.swing._
 import java.awt.Font
 import java.lang.System
-import java.util.Random
 import event._
 import Direction._
 
@@ -104,9 +103,8 @@ class Castle extends Reactor {
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
         }
-        val r = new Random
         organisms.foreach(o => {
-            if (o.isFriendly && r.nextInt(100) < 10) o.stats.health.residual -= 1
+            if (o.isFriendly && Rng.choice(0.1)) o.stats.health.residual -= 1
             o.sync
         })
         room.locs.map(_.trySpawn)

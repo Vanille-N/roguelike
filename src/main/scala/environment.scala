@@ -3,7 +3,6 @@ import scala.collection.mutable.Buffer
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
-import scala.util.Random
 import scala.swing._
 import javax.swing.BorderFactory._
 import java.awt.Font
@@ -122,10 +121,9 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                 }
             })
         }
-        val r = new Random()
-        r.shuffle(orgs)
-        r.shuffle(split(0))
-        r.shuffle(split(1))
+        orgs = Rng.shuffle(orgs)
+        split(0) = Rng.shuffle(split(0))
+        split(1) = Rng.shuffle(split(1))
         orgs.foreach(x => {
             val idx = if (x.isFriendly) 0 else 1
             if (split(idx).size > 0) {
@@ -143,7 +141,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                     // target is still alive, pick next target randomly
                     if (split(idx).size > 1) {
                         val n = split(idx).size
-                        val swap = r.nextInt(n - 1)
+                        val swap = Rng.uniform(0, n - 1)
                         val tmp = split(idx)(n - 1)
                         split(idx)(n - 1) = split(idx)(0)
                         split(idx)(0) = tmp

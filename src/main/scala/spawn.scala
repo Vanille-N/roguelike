@@ -4,7 +4,6 @@ import scala.collection.mutable.HashMap
 import scala.swing._
 import java.awt.Font
 import java.lang.System
-import java.util.Random
 import event._
 
 abstract class Spawner (
@@ -92,9 +91,8 @@ class DefaultWhiteCellSpawner extends CellSpawner(
 ) {}
 
 class PhysicalSpawner (val model: Spawner, var threshold: Int) {
-    val rng = new Random
     var position: Pos = null
     def step = {
-        if (position != null && rng.nextInt(100) < threshold) model.spawn(position)
+        if (position != null && Rng.choice(threshold/100)) model.spawn(position)
     }
 }
