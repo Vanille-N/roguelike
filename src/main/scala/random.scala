@@ -8,7 +8,7 @@ object Rng extends Random {
     }
 
     def choice (p: Double): Boolean = {
-        p >= (this.nextInt / 100.0)
+        this.nextFloat < p
     }
 
     def weightedChoice[T] (options: Buffer[Tuple2[Double, T]]): Option[T] = {

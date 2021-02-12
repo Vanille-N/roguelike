@@ -104,7 +104,7 @@ class Castle extends Reactor {
             room.locs.map(_.battle)
         }
         organisms.foreach(o => {
-            if (o.isFriendly && Rng.choice(0.1)) o.stats.health.residual -= 1
+            if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
         })
         room.locs.map(_.trySpawn)
