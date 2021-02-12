@@ -90,9 +90,12 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     behavior = Behavior.SEEK
 ) {}
 
-class PhysicalSpawner (val model: Spawner, var threshold: Int) {
+class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
-    def step = {
-        if (position != null && Rng.choice(threshold/100)) model.spawn(position)
+    def spawn {
+        for (i <- 0 to pulse) model.spawn(position)
+    }
+    def step {
+        if (position != null && Rng.choice(threshold)) spawn
     }
 }
