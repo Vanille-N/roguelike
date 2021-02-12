@@ -294,7 +294,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         })
     }
     def getItmById(i: Int): Item = {
-        if(i > castle.items.length) {
+        if(i > castle.items.size) {
             return null
         } else {
             var n: Int = 0
