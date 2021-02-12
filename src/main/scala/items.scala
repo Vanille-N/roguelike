@@ -164,8 +164,11 @@ abstract class Item {
     def setRoom(r: Room): Unit = { room = r }
     def setCastle(c: Castle): Unit = { castle = c }
 
+    def setPosition(p: Pos) = {
+        //TODO!
+    }
     def addToPosition(i: Int, j: Int) = {
-        // TODO !
+        // TODO!
     }
 
     // Game evolution

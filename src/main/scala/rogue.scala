@@ -44,6 +44,7 @@ class Castle extends Reactor {
         editable = false
     }
     var organisms: Set[Organism] = Set()
+    var items: Set[Item] = Set()
 
     val room = new PlainRoom(this, rows, cols)
 
@@ -106,6 +107,9 @@ class Castle extends Reactor {
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
+        })
+        items.foreach(i => {
+            i.step
         })
         room.locs.map(_.trySpawn)
         room.locs.map(_.updateVisuals)
