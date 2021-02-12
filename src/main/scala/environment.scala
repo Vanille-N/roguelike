@@ -37,6 +37,7 @@ import Direction._
 class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var isFocused: Boolean = false
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
+    var items: Set[Item] = Set()
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
     var virusSpawner: PhysicalSpawner = null
@@ -210,6 +211,11 @@ extends Reactor with Publisher {
         o.updateStrength
         o.placeOnMap(p)
         castle.organisms.add(o)
+    }
+
+    def addItem (i: Item, p: Pos) = {
+        i.setPosition(p)
+        castle.items.add(i)
     }
 
     def wallSpawner = new DefaultWallCellSpawner()
