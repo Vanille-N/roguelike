@@ -141,7 +141,7 @@ class Castle extends Reactor {
 object main extends SimpleSwingApplication {
     val top = new MainFrame {
         title = "Castle"
-        contents = (new Castle).newGame
+        contents = ( new Castle ).newGame
         centerOnScreen()
     }
 }

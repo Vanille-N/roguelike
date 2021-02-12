@@ -186,10 +186,11 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
 
     def play (arg: Array[String]) : Unit = {
         castle.logs.text += "\n"
-        if(castle.isPlaying) {return ()}
+        if (castle.isPlaying) return
         castle.isPlaying = true
-        if(arg.length == 0) { runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { castle.step } }
-        else {
+        if (arg.length == 0) {
+            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { castle.step }
+        } else {
             runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(arg(0).toInt,TimeUnit.SECONDS)) { castle.step }
         }
     }

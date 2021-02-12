@@ -101,10 +101,17 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
     def updateVisuals {
         // text
-        var t0 = if (strength(0) + strength(1) > 0) strength(0).toString else " "
-        var t1 = if (strength(0) + strength(1) > 0) strength(1).toString else " "
-        if (hostileSpawner != null) t0 += "+"
-        if (friendlySpawner != null) t1 += "+"
+        val totalStrength = strength(0) + strength(1)
+        var t0 = if (totalStrength > 0) strength(0).toString else ""
+        var t1 = if (totalStrength > 0) strength(1).toString else ""
+        if (hostileSpawner != null) {
+            t0 += "+"
+            if (friendlySpawner == null && totalStrength == 0) t1 += "."
+        }
+        if (friendlySpawner != null) {
+            t1 += "+"
+            if (hostileSpawner == null && totalStrength == 0) t0 += "."
+        }
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
