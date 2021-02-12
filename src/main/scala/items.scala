@@ -165,7 +165,8 @@ abstract class Item {
     def setCastle(c: Castle): Unit = { castle = c }
 
     def setPosition(p: Pos) = {
-        //TODO!
+        position = p
+        p.setItem(this)
     }
     def addToPosition(i: Int, j: Int) = {
         // TODO!

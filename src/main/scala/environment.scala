@@ -45,6 +45,9 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
     this.focusable = false
 
+    def setItem (i: Item) = {
+       items.add(i)
+    }
     def addOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)
@@ -112,6 +115,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             t1 += "+"
             if (hostileSpawner == null && totalStrength == 0) t0 += "."
         }
+        if (items.size != 0) t1 += "i"
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
@@ -192,6 +196,9 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                 k += 1
             })
         }
+        if (items.size > 0) {
+            items.foreach(i => {s += "  Item" +  i + "\n"})
+        }
         if (organisms(0).size + organisms(1).size == 0) {
             s += "  empty\n"
         }
@@ -225,8 +232,8 @@ extends Reactor with Publisher {
     }
 
     def addItem (i: Item, p: Pos) = {
-        i.setPosition(p)
         castle.items.add(i)
+        i.setPosition(p)
     }
 
     def wallSpawner = new DefaultWallCellSpawner()
