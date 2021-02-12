@@ -17,8 +17,10 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
 
     var prompt: String = "\t>"
 
-    // Stores args for the next function to be executed
+    // Stores args for the next function to be executed + the repetition factor
     var next = new Array[String](10)
+
+    var repeat: Int = 1
 
     // handle the auto-play
     def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
@@ -122,7 +124,34 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         }
     }
 
-    def show (arg: Array[String]) : Unit = { if(arg.length == 1) { castle.logs.text += "\n" + getOrganismById(arg(0).toInt) } }
+    def show (arg: Array[String]) : Unit = {
+        status match {
+            case 0 => {
+                if(arg.length == 1) {
+                    castle.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                } else {
+                    status = 1
+                    next(0) = "show"
+                    castle.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                }
+            }
+            case 1 => {
+                arg(0) match {
+                    case "l" => {
+                        list
+                        castle.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                    }
+                    case _ => {
+                        status = 0
+                        castle.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                    }
+                }
+            }
+            case _ => {
+                castle.logs.text += "\n" + prompt + "Error, try `help` for usage"
+            }
+        }
+    }
 
     def help (args: Array[String]): Unit = {
         if(args.length == 0) {
@@ -170,20 +199,80 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         else { () }
     }
 
+    def repeatAction (u: () => Unit): Unit = {
+        if(repeat == 1) { u() }
+        else {
+            castle.logs.text += "\nRepeating " + repeat + " times the action ..."
+            while(repeat > 0) {
+                u()
+                repeat -= 1
+            }
+            castle.logs.text += "\ndone"
+            repeat = 1
+        }
+    }
+
+    def itm (arg: Array[String]): Unit = {
+        if(arg.length == 0) {
+            status match {
+                case 0 => {
+                    next(0) = "itm"
+                    status = 1
+                    castle.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
+                }
+                case 1 => {
+                    arg(0) match {
+                        case "add" => { itmadd (new Array[String](0)) }
+                        case "del" => { itmdel (new Array[String](0)) }
+                        case "lvl" => { itmlvl (new Array[String](0)) }
+                    }
+                }
+            }
+        } else {
+            arg(0) match {
+                case "add" => { itmadd(arg.tail) }
+                case "del" => { itmdel(arg.tail) }
+                case "lvl" => { itmlvl(arg.tail) }
+            }
+        }
+    }
+
+    def itmadd (arg: Array[String]): Unit = {
+        // TODO!
+    }
+    def itmdel (arg: Array[String]): Unit = {
+        // TODO!
+    }
+    def itmlvl (arg: Array[String]): Unit = {
+        // TODO!
+    }
+
     def commandRequest (s: String): Unit = {
         if (status == 0 ) {
             main_command = s
             if (s != "" && castle.cmdline.text != "") castle.logs.text += "\n$ " + s
             s.split(" ")(0) match  {
+                // Repetition handling -> better keys to find! (I have got issues with numeral keys)
+                case "W" =>     { repeat = repeat * 10 }
+                case "X" =>     { repeat = repeat * 10 + 1 }
+                case "C" =>     { repeat = repeat * 10 + 2 }
+                case "V" =>     { repeat = repeat * 10 + 3 }
+                case "B" =>     { repeat = repeat * 10 + 4 }
+                case "S" =>     { repeat = repeat * 10 + 5 }
+                case "D" =>     { repeat = repeat * 10 + 6 }
+                case "F" =>     { repeat = repeat * 10 + 7 }
+                case "G" =>     { repeat = repeat * 10 + 8 }
+                case "P" =>     { repeat = repeat * 10 + 9 }
+                case "Echap" => { repeat = 1 }
                 // Movements
                 case "Up" =>    { tryMove(UP) }
-                case "K" =>     { tryMove(UP) }
+                case "K" =>     { repeatAction({() => tryMove(UP)}) }
                 case "Down" =>  { tryMove(DOWN) }
-                case "J" =>     { tryMove(DOWN) }
+                case "J" =>     { repeatAction({() => tryMove(DOWN)}) }
                 case "Right" => { tryMove(RIGHT) }
-                case "L" =>     { tryMove(RIGHT) }
+                case "L" =>     { repeatAction({() => tryMove(RIGHT)}) }
                 case "Left" =>  { tryMove(LEFT) }
-                case "H" =>     { tryMove(LEFT) }
+                case "H" =>     { repeatAction({() => tryMove(LEFT)}) }
                 // Exiting / functionnalities
                 case "quit" =>  { stop; sys.exit(0) }
                 case "Q" =>     { stop; sys.exit(0) }
@@ -191,10 +280,10 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "clear" => { castle.logs.text = "" }
                 // Game interaction
                 case "step" =>  { step (s.split(" ").tail) }
-                case "N" =>     { castle.step }
+                case "N" =>     { repeatAction({() => castle.step}) }
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
-                case "Space" =>{
+                case "Space" => {
                     if(castle.isPlaying) {
                         stop
                     } else {
@@ -208,22 +297,29 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                         play (Array[String]("1"))
                     }
                 }
-                // Misc
+                // Organisms
                 case "list" =>  { list }
                 case "O" =>     { list }
                 case "show" =>  { show (s.split(" ").tail) }
                 case "set" =>   { trySet (s.split(" ").tail) }
+                // Items
+                case "itm" =>     { itm (s.split(" ").tail) }
+                case "itmadd" =>  { itmadd (s.split(" ").tail) }
+                case "itmdel" =>  { itmdel (s.split(" ").tail) }
+                case "itmlvl" =>  { itmlvl (s.split(" ").tail) }
                 // Misc'
                 case "help" =>  { help (s.split(" ").tail) }
                 case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}
-                case _ =>       { if(castle.cmdline.text != "" ) {castle.logs.text += "\t> command not found ;/\n"} }
+                case _ =>       { if(castle.cmdline.text != "" ) {castle.logs.text += "\t> command not found ;/\n"} /*else { castle.logs.text += "\n"+s }*/ }
             }
         } else {
             castle.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s
             next(0) match {
                 case "set" => { trySet (castle.cmdline.text.split(" ")) }
-                case _ => { castle.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)" }
+                case "show" =>{ show (castle.cmdline.text.split(" ")) }
+                case "itm" => { itm (castle.cmdline.text.split(" ")) }
+                case _ => { castle.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = 0 }
             }
         }
         castle.cmdline.text = ""
