@@ -233,6 +233,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "add" => { itmadd(arg.tail) }
                 case "del" => { itmdel(arg.tail) }
                 case "lvl" => { itmlvl(arg.tail) }
+                case "list"=> { itmlist(arg.tail) }
             }
         }
     }
@@ -244,7 +245,65 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         // TODO!
     }
     def itmlvl (arg: Array[String]): Unit = {
-        // TODO!
+        status match {
+            case 0 => {
+                arg.length match {
+                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { castle.logs.text += "\nError, item command" } }
+                    case 2 => {
+                        arg(0) match { // that makes up-set-down haha!
+                            case "up" =>  { getItmById(arg(1).toInt).levelUp }
+                            case "down" =>{ getItmById(arg(1).toInt).levelDown }
+                            case _ =>     { castle.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                        }
+                    }
+                    case 1 => {
+                        arg(0) match {
+                            case "up" =>  { next(1) = "up"}
+                            case "down" =>{ next(1) = "down" }
+                            case "set" => { next(1) = "set" }
+                            case _ =>     { castle.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                        }
+                        next(0) = "itmlvl"
+                        status = 1
+                        castle.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
+                    }
+                    case 0 => {
+                        castle.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
+                        next(0) = "itmlvl"
+                        status = 2
+                    }
+                }
+            }
+            case 1 => {
+                //TODO!
+            }
+            case 2 => {
+                //TODO!
+            }
+            case _ => {
+                castle.logs.text += "\nError ..."
+                status = 0
+            }
+        }
+    }
+    def itmlist (arg: Array[String]): Unit = {
+        var n: Int = 0
+        castle.items.foreach ( itm => {
+            castle.logs.text += "\nItem " + n + "\n\t" + itm
+            n += 1
+        })
+    }
+    def getItmById(i: Int): Item = {
+        if(i > castle.items.length) {
+            return null
+        } else {
+            var n: Int = 0
+            castle.items.foreach ( itm => {
+                if(n == i) { return itm }
+                n += 1
+            })
+        }
+        return null
     }
 
     def commandRequest (s: String): Unit = {
