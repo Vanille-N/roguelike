@@ -39,8 +39,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
-    var virusSpawner: PhysicalSpawner = null
-    var cellSpawner: PhysicalSpawner = null
+    var friendlySpawner: PhysicalSpawner = null
+    var hostileSpawner: PhysicalSpawner = null
 
     this.focusable = false
 
@@ -81,11 +81,15 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         "(" + i + "," + j + ")"
     }
 
-    def setFriendlySpawner (s: PhysicalSpawner) { virusSpawner = s; s.position = this }
-    def setHostileSpawner (s: PhysicalSpawner) { cellSpawner = s; s.position = this }
+    def setFriendlySpawner (s: PhysicalSpawner) { friendlySpawner = s; s.position = this }
+    def setHostileSpawner (s: PhysicalSpawner) { hostileSpawner = s; s.position = this }
     def trySpawn {
-        if (virusSpawner != null) virusSpawner.step
-        if (cellSpawner != null) cellSpawner.step
+        if (friendlySpawner != null) friendlySpawner.step
+        if (hostileSpawner != null) hostileSpawner.step
+    }
+    def forceSpawn {
+        if (friendlySpawner != null) friendlySpawner.spawn
+        if (hostileSpawner != null) hostileSpawner.spawn
     }
 
     // visual appearance
@@ -98,8 +102,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         // text
         var t0 = if (strength(0) + strength(1) > 0) strength(0).toString else " "
         var t1 = if (strength(0) + strength(1) > 0) strength(1).toString else " "
-        if (cellSpawner != null) t0 += "+"
-        if (virusSpawner != null) t1 += "+"
+        if (hostileSpawner != null) t0 += "+"
+        if (friendlySpawner != null) t1 += "+"
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
@@ -230,15 +234,18 @@ extends Room (castle, rows, cols) {
     makeWall(locs(rows/2, cols/3), locs(cols/2, 2*cols/3))
 
     val redCellSpawner = new DefaultRedCellSpawner()
-    locs(5, 5).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 20))
-    locs(5, 9).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 30))
+    locs(5, 5).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.05, 10))
+    locs(5, 9).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.05, 5))
 
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
-    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
-    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
-    locs(5, 5).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 10))
+    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.05, 5))
+    locs(15, 15).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.05, 5))
+    locs(5, 5).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.05, 5))
 
     val virusSpawner = new DefaultVirusSpawner()
-    locs(7, 2).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 10))
-    locs(18, 3).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 10))
+    locs(7, 2).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 0.02, 10))
+    locs(18, 3).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 0.02, 10))
+
+    locs(7, 2).friendlySpawner.spawn
+    locs(18, 3).friendlySpawner.spawn
 }

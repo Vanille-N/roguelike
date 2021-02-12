@@ -119,11 +119,11 @@ class Castle extends Reactor {
                 this.cmdline.text += " " + p.i + " " + p.j
             }
         }
-        case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
-        case KeyPressed(_, c, _, _) =>  {
+        case leftClicked(o: Object) => { globalPanel.requestFocusInWindow() }
+        case KeyPressed(_, c, _, _) => {
             c.toString match {
             case "Deux-points" => { cmdline.requestFocusInWindow() }
-            case "Semicolon"   => { cmdline.requestFocusInWindow() }
+            case "Semicolon" => { cmdline.requestFocusInWindow() }
             case _ => { command.commandRequest(c.toString) }
             }
         }
