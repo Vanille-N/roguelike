@@ -331,7 +331,7 @@ class Command (val body:BodyPart, val room: Room, val player: Player) {
                 case "Right" => { tryMove(RIGHT) }
                 case "Left" =>  { tryMove(LEFT) }
                 // Exiting / functionnalities
-                case "quit" =>  { stop; sys.exit(0) }
+                case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
                 case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
                 case "clear" => { body.logs.text = "" }
                 // Game interaction
