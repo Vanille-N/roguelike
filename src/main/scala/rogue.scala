@@ -19,13 +19,13 @@ class Symbol (val form: Char, val color: Color) {}
 
 /****************************************************************************/
 
-// Castle coordinates the gameplay. Mover is a thread that takes a target
+// BodyPart coordinates the gameplay. Mover is a thread that takes a target
 // for the player and makes one move towards that target every 100ms. Mover
 // stops if something "important" happens in between (such as a monster
 // hitting the player), which is why a lot of the functions in the actor/
 // item/floor code returns booleans.
 
-class Castle extends Reactor {
+class BodyPart extends Reactor {
     val cols = 25
     val rows = 25
 
@@ -163,8 +163,8 @@ class Castle extends Reactor {
 
 object main extends SimpleSwingApplication {
     val top = new MainFrame {
-        title = "Castle"
-        contents = ( new Castle ).newGame
+        title = "BodyPart"
+        contents = ( new BodyPart ).newGame
         centerOnScreen()
     }
 }

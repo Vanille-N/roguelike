@@ -7,7 +7,7 @@ import java.io.IOException
 import Direction._
 import scala.io.Source
 
-class Command (val castle:Castle, val room: Room, val player: Player) {
+class Command (val body:BodyPart, val room: Room, val player: Player) {
     // Status :=
     // | 0 -> waiting for a new command
     // | 1 -> waiting for an answer to a prompt
@@ -30,16 +30,16 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def tryMove (dir: Direction): Unit = {
         player.move(dir)
         /* if (player.move(dir)) {
-            castle.logs.text += prompt + "Player goes " + dir + "\n"
-            castle.logs.text += "-> " + player.position.i + ", " + player.position.j + "\n"
+            body.logs.text += prompt + "Player goes " + dir + "\n"
+            body.logs.text += "-> " + player.position.i + ", " + player.position.j + "\n"
         } else {
-            castle.logs.text += "\t> Player cannot go " + dir + "\n"
+            body.logs.text += "\t> Player cannot go " + dir + "\n"
         } */
         room.locs.map(_.updateVisuals)
     }
 
     def getOrganismById (id: Int): Organism = {
-        val lily : List[Organism] = castle.organisms.toList
+        val lily : List[Organism] = body.organisms.toList
         if(id > lily.length) { null }
         else {
             var i: Int = 0
@@ -53,8 +53,8 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
 
     def list: Unit = {
         var i: Int = 0
-        for ( o <- castle.organisms.toList ) {
-            castle.logs.text += "\n" + i + "-\t" + o
+        for ( o <- body.organisms.toList ) {
+            body.logs.text += "\n" + i + "-\t" + o
             i += 1
         }
     }
@@ -73,21 +73,21 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                         case "POW" => { target_organism.stats.power }
                         case "DEF" => { target_organism.stats.resistance }
                         case "DEC" => { target_organism.stats.decisiveness }
-                        case _ => { castle.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+                        case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
                     }
                     if (stat != null) {
                         stat.base = new_value
                         stat.syncBase
                     }
-                    castle.logs.text += "\n" + target_organism
+                    body.logs.text += "\n" + target_organism
                 }
                 case 1 => { // The command is incomplete => ask id; ask value (whatever the initial command was).
                     status = 1 // The next call will be passed to the second step
                     next(0) = "set"
                     next(1) = args(0)
-                    castle.logs.text += "\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)"
+                    body.logs.text += "\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)"
                 }
-                case _ => { castle.logs.text += "\nInternal error: `set` missing argument" }
+                case _ => { body.logs.text += "\nInternal error: `set` missing argument" }
             }
             }
         case 1 => {
@@ -95,31 +95,31 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
             else {
                 status = 2
                 next(2) = args(0)
-                castle.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
+                body.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
             }
         }
         case 2 => {
             val target_id = next(2).toInt
             val new_value = args(0).toInt
             val target_organism = getOrganismById(target_id)
-            //castle.logs.text += "\n\n\n" + target_organism
+            //body.logs.text += "\n\n\n" + target_organism
             val stat = next(1) match {
                     case "SPD" => { target_organism.stats.speed }
                     case "HP" => { target_organism.stats.health }
                     case "POW" => { target_organism.stats.power }
                     case "DEF" => { target_organism.stats.resistance }
                     case "DEC" => { target_organism.stats.decisiveness }
-                    case _ => { castle.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+                    case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
             }
             if (stat != null) {
                 stat.base = new_value
                 stat.syncBase
             }
-            castle.logs.text += "\n\n\n" + target_organism
+            body.logs.text += "\n\n\n" + target_organism
             status = 0
         }
         case _ => {
-            castle.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
+            body.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
             status = 0
         }
         }
@@ -129,27 +129,27 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         status match {
             case 0 => {
                 if(arg.length == 1) {
-                    castle.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                    body.logs.text += "\n" + getOrganismById(arg(0).toInt)
                 } else {
                     status = 1
                     next(0) = "show"
-                    castle.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                    body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
                 }
             }
             case 1 => {
                 arg(0) match {
                     case "l" => {
                         list
-                        castle.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                        body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
                     }
                     case _ => {
                         status = 0
-                        castle.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                        body.logs.text += "\n" + getOrganismById(arg(0).toInt)
                     }
                 }
             }
             case _ => {
-                castle.logs.text += "\n" + prompt + "Error, try `help` for usage"
+                body.logs.text += "\n" + prompt + "Error, try `help` for usage"
             }
         }
     }
@@ -157,9 +157,9 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def help (args: Array[String]): Unit = {
         if(args.length == 0) {
             try {
-                castle.logs.text += "\n"
+                body.logs.text += "\n"
                 val src = Source.fromFile("help/help")
-                src.foreach { s => castle.logs.text += s }
+                src.foreach { s => body.logs.text += s }
                 src.close
             } catch {
                 case e: FileNotFoundException => println("Error: Help file not found")
@@ -168,48 +168,48 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         } else {
             for (i <- args) {
                 try {
-                    castle.logs.text += "\n"
+                    body.logs.text += "\n"
                     val src = Source.fromFile("help/help." + i)
-                    src.foreach { s => castle.logs.text += s }
+                    src.foreach { s => body.logs.text += s }
                     src.close
-                } catch { case e: java.io.FileNotFoundException => castle.logs.text += "Internal Error: help unavailable for `" + i + "`" }
+                } catch { case e: java.io.FileNotFoundException => body.logs.text += "Internal Error: help unavailable for `" + i + "`" }
             }
         }
     }
 
     def step (arg: Array[String]) : Unit = {
-        castle.logs.text += "\n"
-        if(arg.length == 0) { castle.step }
+        body.logs.text += "\n"
+        if(arg.length == 0) { body.step }
         else {
-            for(i <- 1 to (arg(0).toInt)) { castle.step }
+            for(i <- 1 to (arg(0).toInt)) { body.step }
         }
     }
 
     def play (arg: Array[String]) : Unit = {
-        castle.logs.text += "\n"
-        if (castle.isPlaying) return
-        castle.isPlaying = true
+        body.logs.text += "\n"
+        if (body.isPlaying) return
+        body.isPlaying = true
         if (arg.length == 0) {
-            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { castle.step }
+            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { body.step }
         } else {
-            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(arg(0).toInt,TimeUnit.SECONDS)) { castle.step }
+            runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(arg(0).toInt,TimeUnit.SECONDS)) { body.step }
         }
     }
 
     def stop : Unit = {
-        if(castle.isPlaying) {runner.cancel(); castle.isPlaying = false}
+        if(body.isPlaying) {runner.cancel(); body.isPlaying = false}
         else { () }
     }
 
     def repeatAction (u: () => Unit): Unit = {
         if(repeat == 1) { u() }
         else {
-            castle.logs.text += "\nRepeating " + repeat + " times the action ..."
+            body.logs.text += "\nRepeating " + repeat + " times the action ..."
             while(repeat > 0) {
                 u()
                 repeat -= 1
             }
-            castle.logs.text += "\ndone"
+            body.logs.text += "\ndone"
             repeat = 1
         }
     }
@@ -220,7 +220,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case 0 => {
                     next(0) = "itm"
                     status = 1
-                    castle.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
+                    body.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
                 }
                 case 1 => {
                     arg(0) match {
@@ -250,12 +250,12 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
         status match {
             case 0 => {
                 arg.length match {
-                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { castle.logs.text += "\nError, item command" } }
+                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { body.logs.text += "\nError, item command" } }
                     case 2 => {
                         arg(0) match { // that makes up-set-down haha!
                             case "up" =>  { getItmById(arg(1).toInt).levelUp }
                             case "down" =>{ getItmById(arg(1).toInt).levelDown }
-                            case _ =>     { castle.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
                         }
                     }
                     case 1 => {
@@ -263,14 +263,14 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                             case "up" =>  { next(1) = "up"}
                             case "down" =>{ next(1) = "down" }
                             case "set" => { next(1) = "set" }
-                            case _ =>     { castle.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
                         }
                         next(0) = "itmlvl"
                         status = 1
-                        castle.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
+                        body.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
                     }
                     case 0 => {
-                        castle.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
+                        body.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
                         next(0) = "itmlvl"
                         status = 2
                     }
@@ -283,24 +283,24 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 //TODO!
             }
             case _ => {
-                castle.logs.text += "\nError ..."
+                body.logs.text += "\nError ..."
                 status = 0
             }
         }
     }
     def itmlist (arg: Array[String]): Unit = {
         var n: Int = 0
-        castle.items.foreach ( itm => {
-            castle.logs.text += "\nItem " + n + "\n\t" + itm
+        body.items.foreach ( itm => {
+            body.logs.text += "\nItem " + n + "\n\t" + itm
             n += 1
         })
     }
     def getItmById(i: Int): Item = {
-        if(i > castle.items.size) {
+        if(i > body.items.size) {
             return null
         } else {
             var n: Int = 0
-            castle.items.foreach ( itm => {
+            body.items.foreach ( itm => {
                 if(n == i) { return itm }
                 n += 1
             })
@@ -311,7 +311,7 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
     def commandRequest (s: String): Unit = {
         if (status == 0 ) {
             main_command = s
-            if (s != "" && castle.cmdline.text != "") castle.logs.text += "\n$ " + s
+            if (s != "" && body.cmdline.text != "") body.logs.text += "\n$ " + s
             s.split(" ")(0) match  {
                 // Repetition handling -> better keys to find! (I have got issues with numeral keys)
                 case "0" =>     { repeat = repeat * 10 }
@@ -332,15 +332,15 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "Left" =>  { tryMove(LEFT) }
                 // Exiting / functionnalities
                 case "quit" =>  { stop; sys.exit(0) }
-                case "q" =>     { castle.logs.text += "\n"; castle.globalPanel.requestFocusInWindow() }
-                case "clear" => { castle.logs.text = "" }
+                case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
+                case "clear" => { body.logs.text = "" }
                 // Game interaction
                 case "step" =>  { step (s.split(" ").tail) }
-                case "N" =>     { repeatAction({() => castle.step}) }
+                case "N" =>     { repeatAction({() => body.step}) }
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
                 case "Space" => {
-                    if(castle.isPlaying) {
+                    if(body.isPlaying) {
                         stop
                     } else {
                         play (Array[String]("1"))
@@ -360,17 +360,17 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "help" =>  { help (s.split(" ").tail) }
                 case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}
-                case _ =>       { if(castle.cmdline.text != "" ) {castle.logs.text += "\t> command not found ;/\n"} /*else { castle.logs.text += "\n"+s }*/ }
+                case _ =>       { if(body.cmdline.text != "" ) {body.logs.text += "\t> command not found ;/\n"} /*else { body.logs.text += "\n"+s }*/ }
             }
         } else {
-            castle.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s
+            body.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s
             next(0) match {
-                case "set" => { trySet (castle.cmdline.text.split(" ")) }
-                case "show" =>{ show (castle.cmdline.text.split(" ")) }
-                case "itm" => { itm (castle.cmdline.text.split(" ")) }
-                case _ => { castle.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = 0 }
+                case "set" => { trySet (body.cmdline.text.split(" ")) }
+                case "show" =>{ show (body.cmdline.text.split(" ")) }
+                case "itm" => { itm (body.cmdline.text.split(" ")) }
+                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = 0 }
             }
         }
-        castle.cmdline.text = ""
+        body.cmdline.text = ""
     }
 }

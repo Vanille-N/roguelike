@@ -128,7 +128,7 @@ class Virus (
     var name = "virus"
 
     def focus: Pos = {
-        this.position.room.castle.player.position
+        this.position.room.body.player.position
     }
     val behavior: Behavior = SEEK
 }
@@ -140,6 +140,6 @@ class Cell (
     val behavior: Behavior = FLEE
 ) extends Organism (stats, skills) {
     def focus: Pos = {
-        this.position.room.castle.player.position
+        this.position.room.body.player.position
     }
 }

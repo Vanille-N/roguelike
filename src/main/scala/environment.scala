@@ -62,7 +62,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     }
     def kill (o: Organism) = {
         removeOrganism(o)
-        room.castle.organisms.remove(o)
+        room.body.organisms.remove(o)
     }
 
     def tryAdd (i: Direction): Pos = {
@@ -215,7 +215,7 @@ class Grid (room: Room, rows: Int, cols: Int) {
 
 /****************************************************************************/
 
-class Room (val castle: Castle, val cols: Int, val rows: Int)
+class Room (val body: BodyPart, val cols: Int, val rows: Int)
 extends Reactor with Publisher {
     var locs = new Grid(this, rows, cols)
 
@@ -228,11 +228,11 @@ extends Reactor with Publisher {
     def addOrganism (o: Organism, p: Pos) = {
         o.updateStrength
         o.placeOnMap(p)
-        castle.organisms.add(o)
+        body.organisms.add(o)
     }
 
     def addItem (i: Item, p: Pos) = {
-        castle.items.add(i)
+        body.items.add(i)
         i.setPosition(p)
     }
 
@@ -245,8 +245,8 @@ extends Reactor with Publisher {
     }
 }
 
-class PlainRoom (castle: Castle, rows: Int, cols: Int)
-extends Room (castle, rows, cols) {
+class PlainRoom (body: BodyPart, rows: Int, cols: Int)
+extends Room (body, rows, cols) {
     makeWall(locs(0, 0), locs(0, cols-1))
     makeWall(locs(0, 0), locs(rows-1, 0))
     makeWall(locs(rows-1, 0), locs(rows-1, cols-1))

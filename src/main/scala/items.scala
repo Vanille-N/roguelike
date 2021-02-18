@@ -17,7 +17,7 @@ import StatType._
 
 abstract class Item {
     var room: Room = null
-    var castle: Castle = null
+    var body: BodyPart = null
 
     // Item pickink up -- dropping
     var pickable: Boolean = true
@@ -162,7 +162,7 @@ abstract class Item {
     var position: Pos = null
     def setPos(p: Pos): Unit = { position = p }
     def setRoom(r: Room): Unit = { room = r }
-    def setCastle(c: Castle): Unit = { castle = c }
+    def setBodyPart(c: BodyPart): Unit = { body = c }
 
     def setPosition(p: Pos) = {
         position = p
@@ -230,7 +230,7 @@ abstract class SpatialActionItem extends Item {
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
 abstract class GlobalActionItem extends Item {
     override def action (o: Organism, t: Organism): Unit = {
-        for (o <- castle.organisms ) { super.action (owner, o) }
+        for (o <- body.organisms ) { super.action (owner, o) }
         drop
     }
 }
@@ -239,8 +239,8 @@ abstract class GlobalActionItem extends Item {
 
 /* --- * SpatialActionItem * ---*/
 // Affaiblie tout sur son passage
-class Alcohol (val cstle: Castle, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
-    setRoom(castle.room)
+class Alcohol (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = HP
@@ -253,10 +253,10 @@ class Alcohol (val cstle: Castle, val pos_init: Pos, val dir1: Int, val dir2: In
 }
 
 // Tue tous les organismes et altère les spawners
-class Knife (val cstle: Castle, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
+class Knife (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
     setRadius(3)
-    setCastle(cstle)
-    setRoom(castle.room)
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     pickable = false
@@ -279,9 +279,9 @@ class Knife (val cstle: Castle, val pos_init: Pos, val dir1: Int, val dir2: Int)
 
 /* --- * GlobalActionItem * ---*/
 // Déplace tous les organismes aléatoirement et détériore les spawners
-class BodyMovement (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
-    setCastle(cstle)
-    setRoom(castle.room)
+class BodyMovement (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = HP
@@ -290,7 +290,7 @@ class BodyMovement (val cstle: Castle, val pos_init: Pos) extends GlobalActionIt
     targetStat = HP
 
     override def action (o: Organism, t: Organism): Unit = {
-        for(org <- castle.organisms) {
+        for(org <- body.organisms) {
             unpayCost(owner)
             super.action(owner, org)
             for(i <- 1 to 10) {
@@ -304,13 +304,13 @@ class BodyMovement (val cstle: Castle, val pos_init: Pos) extends GlobalActionIt
 }
 
 // Tue tous les organisms, et détériore les spawners  dès que ramassée
-class Javel (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
-    setCastle(cstle)
-    setRoom(castle.room)
+class Javel (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     override def action (o: Organism, t: Organism): Unit = {
-        for(org <- castle.organisms) {
+        for(org <- body.organisms) {
             org.stats.health.residual = 0
         }
         drop
@@ -318,9 +318,9 @@ class Javel (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
 }
 
 // Améliore les spawners + ralentit les cellules;
-class Heat (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
-    setCastle(cstle)
-    setRoom(castle.room)
+class Heat (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = HP
@@ -333,9 +333,9 @@ class Heat (val cstle: Castle, val pos_init: Pos) extends GlobalActionItem {
 
 /* --- * LocalActionItem * --- */
 // Améliore les cellules, renforce les virus (ils peuvent se faire passer pour des gentils maintenant => immUnité) ;; newhealth.residual = health.residual_factor * level + health.residual
-class MembraneReplacement (val cstle: Castle, val pos_init: Pos) extends Item {
-    setCastle(cstle)
-    setRoom(castle.room)
+class MembraneReplacement (val cstle: BodyPart, val pos_init: Pos) extends Item {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = SPD
@@ -345,9 +345,9 @@ class MembraneReplacement (val cstle: Castle, val pos_init: Pos) extends Item {
 }
 
 // Renforce les virus
-class Spike (val cstle: Castle, val pos_init: Pos) extends Item {
-    setCastle(cstle)
-    setRoom(castle.room)
+class Spike (val cstle: BodyPart, val pos_init: Pos) extends Item {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = SPD
@@ -357,9 +357,9 @@ class Spike (val cstle: Castle, val pos_init: Pos) extends Item {
 }
 
 // Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
-class CytoplasmLeak (val cstle: Castle, val pos_init: Pos) extends Item {
-    setCastle(cstle)
-    setRoom(castle.room)
+class CytoplasmLeak (val cstle: BodyPart, val pos_init: Pos) extends Item {
+    setBodyPart(cstle)
+    setRoom(body.room)
     setPos(pos_init)
 
     cost_type = HP
