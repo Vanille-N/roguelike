@@ -28,12 +28,13 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
 
 
     def tryMove (dir: Direction): Unit = {
-        if (player.move(dir)) {
+        player.move(dir)
+        /* if (player.move(dir)) {
             castle.logs.text += prompt + "Player goes " + dir + "\n"
             castle.logs.text += "-> " + player.position.i + ", " + player.position.j + "\n"
         } else {
             castle.logs.text += "\t> Player cannot go " + dir + "\n"
-        }
+        } */
         room.locs.map(_.updateVisuals)
     }
 
@@ -313,29 +314,24 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
             if (s != "" && castle.cmdline.text != "") castle.logs.text += "\n$ " + s
             s.split(" ")(0) match  {
                 // Repetition handling -> better keys to find! (I have got issues with numeral keys)
-                case "W" =>     { repeat = repeat * 10 }
-                case "X" =>     { repeat = repeat * 10 + 1 }
-                case "C" =>     { repeat = repeat * 10 + 2 }
-                case "V" =>     { repeat = repeat * 10 + 3 }
-                case "B" =>     { repeat = repeat * 10 + 4 }
-                case "S" =>     { repeat = repeat * 10 + 5 }
-                case "D" =>     { repeat = repeat * 10 + 6 }
-                case "F" =>     { repeat = repeat * 10 + 7 }
-                case "G" =>     { repeat = repeat * 10 + 8 }
-                case "P" =>     { repeat = repeat * 10 + 9 }
-                case "Echap" => { repeat = 1 }
+                case "0" =>     { repeat = repeat * 10 }
+                case "1" =>     { repeat = repeat * 10 + 1 }
+                case "2" =>     { repeat = repeat * 10 + 2 }
+                case "3" =>     { repeat = repeat * 10 + 3 }
+                case "4" =>     { repeat = repeat * 10 + 4 }
+                case "5" =>     { repeat = repeat * 10 + 5 }
+                case "6" =>     { repeat = repeat * 10 + 6 }
+                case "7" =>     { repeat = repeat * 10 + 7 }
+                case "8" =>     { repeat = repeat * 10 + 8 }
+                case "9" =>     { repeat = repeat * 10 + 9 }
+                case "Escape" => { repeat = 1 }
                 // Movements
                 case "Up" =>    { tryMove(UP) }
-                case "K" =>     { repeatAction({() => tryMove(UP)}) }
                 case "Down" =>  { tryMove(DOWN) }
-                case "J" =>     { repeatAction({() => tryMove(DOWN)}) }
                 case "Right" => { tryMove(RIGHT) }
-                case "L" =>     { repeatAction({() => tryMove(RIGHT)}) }
                 case "Left" =>  { tryMove(LEFT) }
-                case "H" =>     { repeatAction({() => tryMove(LEFT)}) }
                 // Exiting / functionnalities
                 case "quit" =>  { stop; sys.exit(0) }
-                case "Q" =>     { stop; sys.exit(0) }
                 case "q" =>     { castle.logs.text += "\n"; castle.globalPanel.requestFocusInWindow() }
                 case "clear" => { castle.logs.text = "" }
                 // Game interaction
@@ -344,13 +340,6 @@ class Command (val castle:Castle, val room: Room, val player: Player) {
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
                 case "Space" => {
-                    if(castle.isPlaying) {
-                        stop
-                    } else {
-                        play (Array[String]("1"))
-                    }
-                }
-                case "Espace" =>{
                     if(castle.isPlaying) {
                         stop
                     } else {
