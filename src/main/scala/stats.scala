@@ -45,6 +45,9 @@ class StatSet (
     val resistance: Stat,
     val decisiveness: Stat,
 ) {
+    def list : List[Stat] = {
+        List(speed, health, power, resistance, decisiveness)
+    }
     def syncBase {
         speed.syncBase
         health.syncBase

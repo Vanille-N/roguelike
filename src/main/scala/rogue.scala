@@ -26,8 +26,8 @@ class Symbol (val form: Char, val color: Color) {}
 // item/floor code returns booleans.
 
 class BodyPart extends Reactor {
-    val cols = 25
-    val rows = 25
+    val cols = 30
+    val rows = 30
 
     var globalPanel : GridBagPanel = null
 

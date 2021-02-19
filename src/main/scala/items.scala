@@ -32,7 +32,7 @@ abstract class Item (var room: Room, var body: BodyPart) {
     }
 
     // Item usage-related elements
-    var cost_factor: Int = 0// The real cost is cost_factor * level
+    var cost_factor: Int = 0 // The real cost is cost_factor * level
     var level: Int = 1
     val max_lvl: Int = 5
     var cost_type: StatType = NONE
@@ -42,73 +42,59 @@ abstract class Item (var room: Room, var body: BodyPart) {
 
     def isUsable (o: Organism): Boolean = {
         updateCost
+        def is_enough (x: Stat) : Boolean = {
+            x.residual - cost > 0
+        }
+        def attr_is_enough (accessor: StatSet => Stat) : Boolean = {
+            is_enough(accessor(o.stats))
+        }
         cost_type match {
-            case HP   => { return (o.stats.health.residual - cost > 0)       }
-            case SPD  => { return (o.stats.speed.residual - cost > 0)        }
-            case POW  => { return (o.stats.power.residual - cost > 0)        }
-            case DEF  => { return (o.stats.resistance.residual - cost > 0)   }
-            case DEC  => { return (o.stats.decisiveness.residual - cost > 0) }
-            case ALL  => { return ( (o.stats.health.residual - cost > 0)
-                        && (o.stats.speed.residual - cost > 0)
-                        && (o.stats.power.residual - cost > 0)
-                        && (o.stats.resistance.residual - cost > 0)
-                        && (o.stats.decisiveness.residual - cost > 0) ) }
-            case ANY  => { return ( (o.stats.health.residual - cost > 0)
-                        || (o.stats.speed.residual - cost > 0)
-                        || (o.stats.power.residual - cost > 0)
-                        || (o.stats.resistance.residual - cost > 0)
-                        || (o.stats.decisiveness.residual - cost > 0) ) }
-            case NONE => { return true }
+            case HP   => { attr_is_enough(_.health) }
+            case SPD  => { attr_is_enough(_.speed) }
+            case POW  => { attr_is_enough(_.power) }
+            case DEF  => { attr_is_enough(_.resistance) }
+            case DEC  => { attr_is_enough(_.decisiveness) }
+            case ALL  => { o.stats.list.exists(is_enough(_)) }
+            case ANY  => { o.stats.list.forall(is_enough(_)) }
+            case NONE => { true }
         }
     }
 
-    def unpayCost (o: Organism): Unit ={
+    def unpayCost (o: Organism) {
         updateCost
+        def augment (x: Stat) {
+            x.residual += cost
+        }
+        def attr_augment (accessor: StatSet => Stat) {
+            augment(accessor(o.stats))
+        }
         cost_type match {
-            case HP   => { o.stats.health.residual = (o.stats.health.residual + cost)             }
-            case SPD  => { o.stats.speed.residual = (o.stats.speed.residual + cost)               }
-            case POW  => { o.stats.power.residual = (o.stats.power.residual + cost)               }
-            case DEF  => { o.stats.resistance.residual = (o.stats.resistance.residual + cost)     }
-            case DEC  => { o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost) }
-            case ALL  => { o.stats.health.residual = (o.stats.health.residual + cost)
-                        o.stats.speed.residual = (o.stats.speed.residual + cost)
-                        o.stats.power.residual = (o.stats.power.residual + cost)
-                        o.stats.resistance.residual = (o.stats.resistance.residual + cost)
-                        o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost) }
-            case ANY  => {
-                Rng.uniform(0, 4) match {
-                    case 0 => o.stats.health.residual = (o.stats.health.residual + cost)
-                    case 1 => o.stats.speed.residual = (o.stats.speed.residual + cost)
-                    case 2 => o.stats.power.residual = (o.stats.power.residual + cost)
-                    case 3 => o.stats.resistance.residual = (o.stats.resistance.residual + cost)
-                    case 4 => o.stats.decisiveness.residual = (o.stats.decisiveness.residual + cost)
-                }
-            }
+            case HP   => { attr_augment(_.health) }
+            case SPD  => { attr_augment(_.speed) }
+            case POW  => { attr_augment(_.power) }
+            case DEF  => { attr_augment(_.resistance) }
+            case DEC  => { attr_augment(_.decisiveness) }
+            case ALL  => { o.stats.list.foreach(x => augment(x)) }
+            case ANY  => { augment(o.stats.list(Rng.uniform(0, 4))) }
             case NONE => {}
         }
     }
-    def payCost (o: Organism): Unit ={
+    def payCost (o: Organism) {
         updateCost
+        def reduce (x: Stat) {
+            x.residual -= cost
+        }
+        def attr_reduce (accessor: StatSet => Stat) {
+            reduce(accessor(o.stats))
+        }
         cost_type match {
-            case HP   => { o.stats.health.residual = (o.stats.health.residual - cost)             }
-            case SPD  => { o.stats.speed.residual = (o.stats.speed.residual - cost)               }
-            case POW  => { o.stats.power.residual = (o.stats.power.residual - cost)               }
-            case DEF  => { o.stats.resistance.residual = (o.stats.resistance.residual - cost)     }
-            case DEC  => { o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost) }
-            case ALL  => { o.stats.health.residual = (o.stats.health.residual - cost)
-                        o.stats.speed.residual = (o.stats.speed.residual - cost)
-                        o.stats.power.residual = (o.stats.power.residual - cost)
-                        o.stats.resistance.residual = (o.stats.resistance.residual - cost)
-                        o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost) }
-            case ANY  => {
-                Rng.uniform(0, 4) match {
-                    case 0 => o.stats.health.residual = (o.stats.health.residual - cost)
-                    case 1 => o.stats.speed.residual = (o.stats.speed.residual - cost)
-                    case 2 => o.stats.power.residual = (o.stats.power.residual - cost)
-                    case 3 => o.stats.resistance.residual = (o.stats.resistance.residual - cost)
-                    case 4 => o.stats.decisiveness.residual = (o.stats.decisiveness.residual - cost)
-                }
-            }
+            case HP   => { attr_reduce(_.health) }
+            case SPD  => { attr_reduce(_.speed) }
+            case POW  => { attr_reduce(_.power) }
+            case DEF  => { attr_reduce(_.resistance) }
+            case DEC  => { attr_reduce(_.decisiveness) }
+            case ALL  => { o.stats.list.foreach(x => reduce(x)) }
+            case ANY  => { reduce(o.stats.list(Rng.uniform(0, 4))) }
             case NONE => {}
         }
     }
@@ -121,28 +107,20 @@ abstract class Item (var room: Room, var body: BodyPart) {
     def action (o: Organism, t: Organism): Unit = {
         payCost(o)
         damageUpdate
-        targetStat match {
-            case HP   => { t.stats.health.residual = (t.stats.health.residual - damage)             }
-            case SPD  => { t.stats.speed.residual = (t.stats.speed.residual - damage)               }
-            case POW  => { t.stats.power.residual = (t.stats.power.residual - damage)               }
-            case DEF  => { t.stats.resistance.residual = (t.stats.resistance.residual - damage)     }
-            case DEC  => { t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage) }
-            case ALL  => {
-                t.stats.health.residual = (t.stats.health.residual - damage)
-                t.stats.speed.residual = (t.stats.speed.residual - damage)
-                t.stats.power.residual = (t.stats.power.residual - damage)
-                t.stats.resistance.residual = (t.stats.resistance.residual - damage)
-                t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage)
-            }
-            case ANY  => {
-                Rng.uniform(0, 4) match {
-                    case 0 => t.stats.health.residual = (t.stats.health.residual - damage)
-                    case 1 => t.stats.speed.residual = (t.stats.speed.residual - damage)
-                    case 2 => t.stats.power.residual = (t.stats.power.residual - damage)
-                    case 3 => t.stats.resistance.residual = (t.stats.resistance.residual - damage)
-                    case 4 => t.stats.decisiveness.residual = (t.stats.decisiveness.residual - damage)
-                }
-            }
+        def apply_damage (x: Stat) {
+            x.residual -= damage
+        }
+        def attr_apply_damage (accessor: StatSet => Stat) {
+            apply_damage(accessor(o.stats))
+        }
+        cost_type match {
+            case HP   => { attr_apply_damage(_.health) }
+            case SPD  => { attr_apply_damage(_.speed) }
+            case POW  => { attr_apply_damage(_.power) }
+            case DEF  => { attr_apply_damage(_.resistance) }
+            case DEC  => { attr_apply_damage(_.decisiveness) }
+            case ALL  => { o.stats.list.foreach(x => apply_damage(x)) }
+            case ANY  => { apply_damage(o.stats.list(Rng.uniform(0, 4))) }
             case NONE => {}
         }
         drop
