@@ -15,10 +15,7 @@ object StatType extends Enumeration {
 
 import StatType._
 
-abstract class Item {
-    var room: Room = null
-    var body: BodyPart = null
-
+abstract class Item (var room: Room, var body: BodyPart) {
     // Item pickink up -- dropping
     var pickable: Boolean = true
     var owner: Organism = null
@@ -188,7 +185,7 @@ abstract class Item {
 
 // Partition the Items according to their application area:
 // Action on local area + straight movement
-abstract class SpatialActionItem extends Item {
+abstract class SpatialActionItem (room: Room, body: BodyPart) extends Item(room, body) {
     var mvt_a: Int = 1
     var mvt_b: Int = 1
 
@@ -230,7 +227,7 @@ abstract class SpatialActionItem extends Item {
 }
 
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
-abstract class GlobalActionItem extends Item {
+abstract class GlobalActionItem (room: Room, body: BodyPart) extends Item (room, body) {
     override def action (o: Organism, t: Organism): Unit = {
         for (o <- body.organisms ) { super.action (owner, o) }
         drop
@@ -241,8 +238,7 @@ abstract class GlobalActionItem extends Item {
 
 /* --- * SpatialActionItem * ---*/
 // Affaiblie tout sur son passage
-class Alcohol (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
-    setRoom(body.room)
+class Alcohol (body: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem (body.room, body) {
     setPos(pos_init)
 
     cost_type = HP
@@ -255,10 +251,8 @@ class Alcohol (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: 
 }
 
 // Tue tous les organismes et altère les spawners
-class Knife (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem {
+class Knife (body: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: Int) extends SpatialActionItem(body.room, body) {
     setRadius(3)
-    setBodyPart(cstle)
-    setRoom(body.room)
     setPos(pos_init)
 
     pickable = false
@@ -281,9 +275,7 @@ class Knife (val cstle: BodyPart, val pos_init: Pos, val dir1: Int, val dir2: In
 
 /* --- * GlobalActionItem * ---*/
 // Déplace tous les organismes aléatoirement et détériore les spawners
-class BodyMovement (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class BodyMovement (body: BodyPart, val pos_init: Pos) extends GlobalActionItem (body.room, body) {
     setPos(pos_init)
 
     cost_type = HP
@@ -306,9 +298,7 @@ class BodyMovement (val cstle: BodyPart, val pos_init: Pos) extends GlobalAction
 }
 
 // Tue tous les organisms, et détériore les spawners  dès que ramassée
-class Javel (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class Javel (body: BodyPart, val pos_init: Pos) extends GlobalActionItem(body.room, body) {
     setPos(pos_init)
 
     override def action (o: Organism, t: Organism): Unit = {
@@ -320,9 +310,7 @@ class Javel (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
 }
 
 // Améliore les spawners + ralentit les cellules;
-class Heat (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class Heat (body: BodyPart, val pos_init: Pos) extends GlobalActionItem (body.room, body) {
     setPos(pos_init)
 
     cost_type = HP
@@ -335,9 +323,7 @@ class Heat (val cstle: BodyPart, val pos_init: Pos) extends GlobalActionItem {
 
 /* --- * LocalActionItem * --- */
 // Améliore les cellules, renforce les virus (ils peuvent se faire passer pour des gentils maintenant => immUnité) ;; newhealth.residual = health.residual_factor * level + health.residual
-class MembraneReplacement (val cstle: BodyPart, val pos_init: Pos) extends Item {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class MembraneReplacement (body: BodyPart, val pos_init: Pos) extends Item (body.room, body) {
     setPos(pos_init)
 
     cost_type = SPD
@@ -347,9 +333,7 @@ class MembraneReplacement (val cstle: BodyPart, val pos_init: Pos) extends Item 
 }
 
 // Renforce les virus
-class Spike (val cstle: BodyPart, val pos_init: Pos) extends Item {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class Spike (body: BodyPart, val pos_init: Pos) extends Item (body.room, body) {
     setPos(pos_init)
 
     cost_type = SPD
@@ -359,9 +343,7 @@ class Spike (val cstle: BodyPart, val pos_init: Pos) extends Item {
 }
 
 // Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
-class CytoplasmLeak (val cstle: BodyPart, val pos_init: Pos) extends Item {
-    setBodyPart(cstle)
-    setRoom(body.room)
+class CytoplasmLeak (body: BodyPart, val pos_init: Pos) extends Item (body.room, body) {
     setPos(pos_init)
 
     cost_type = HP
