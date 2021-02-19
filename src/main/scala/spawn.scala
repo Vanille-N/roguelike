@@ -6,11 +6,15 @@ import java.awt.Font
 import java.lang.System
 import event._
 
+import Rng.Distribution
+import MakeItem.MakeItem
+
 abstract class Spawner (
     stats: StatSetGen,
     skills: SkillSetGen,
 ) {
     def generate: Organism
+    def itemDrops: Distribution[MakeItem] = Buffer()
     def spawn (p: Pos) = {
         val o = generate
         o.placeOnMap(p)
@@ -23,7 +27,7 @@ class VirusSpawner (
     skills: SkillSetGen = new SkillSetGen(),
 ) extends Spawner(stats, skills) {
     def generate: Virus = {
-        new Virus(stats.instantiate, skills.instantiate)
+        new Virus(stats.instantiate, skills.instantiate, itemDrops)
     }
 }
 
@@ -34,7 +38,7 @@ class CellSpawner (
     behavior: Behavior.Behavior = Behavior.FLEE,
 ) extends Spawner(stats, skills) {
     def generate: Cell = {
-        new Cell(stats.instantiate, skills.instantiate, name, behavior)
+        new Cell(stats.instantiate, skills.instantiate, name, behavior, itemDrops)
     }
 }
 
@@ -72,7 +76,9 @@ class DefaultRedCellSpawner extends CellSpawner(
         decisiveness = new StatGen(30, 5),
     ),
     name = "red cell",
-) {}
+) {
+    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+}
 
 class DefaultWhiteCellSpawner extends CellSpawner(
     stats = new StatSetGen(
