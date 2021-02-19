@@ -150,7 +150,7 @@ class BodyPart extends Reactor {
             case Key.Q => {command.commandRequest("quit")}
             case Key.P => {command.commandRequest("Space")}
             case Key.Space => {command.commandRequest("Space")}
-            case Key.N => {command.commandRequest("step")}
+            case Key.O => {command.commandRequest("list")}
             case _ => { command.commandRequest(c.toString) }
             }
         }
