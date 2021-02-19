@@ -20,6 +20,52 @@ import java.lang.System
 import event._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
+    // When a key is pressed, it is checked to define the action to perform
+    // actionFromText 
+    def actionFromText  (str: String) : (() => Unit) = {
+        if(str == "focus" ) (() => body.cmdline.requestFocusInWindow())
+        else (() => commandRequest(str))
+    }
+
+    def actionFromKey (key: Key.Value): ( () => Unit ) = {
+        try shortcuts(key)
+        catch {
+            case e:java.util.NoSuchElementException => {
+                //body.logs.text += "\nErreur: touche " + key.toString + " non programmée."
+                () => ()
+            }
+        }
+    }
+
+    var shortcuts: Map[Key.Value, () => Unit] = Map(
+        (Key.Semicolon,  actionFromText("focus")),
+        (Key.Colon  ,    actionFromText("focus")),
+        (Key.Numpad0,    actionFromText("0")),
+        (Key.Numpad1,    actionFromText("1")),
+        (Key.Numpad2,    actionFromText("2")),
+        (Key.Numpad3,    actionFromText("3")),
+        (Key.Numpad4,    actionFromText("4")),
+        (Key.Numpad5,    actionFromText("5")),
+        (Key.Numpad6,    actionFromText("6")),
+        (Key.Numpad7,    actionFromText("7")),
+        (Key.Numpad8,    actionFromText("8")),
+        (Key.Numpad9,    actionFromText("9")),
+        (Key.Escape,     actionFromText("Escape")),
+        (Key.Up,         actionFromText("Up")),
+        (Key.K,          actionFromText("Up")),
+        (Key.Down,       actionFromText("Down")),
+        (Key.J,          actionFromText("Down")),
+        (Key.Right,      actionFromText("Right")),
+        (Key.L,          actionFromText("Right")),
+        (Key.Left,       actionFromText("Left")),
+        (Key.H,          actionFromText("Left")),
+        (Key.Q,          actionFromText("quit")),
+        (Key.P,          actionFromText("Space")),
+        (Key.Space,      actionFromText("Space")),
+        (Key.O,          actionFromText("list")),
+        (Key.N,          actionFromText("step_multiple"))
+    )
+
     var status: Status = FIRST_CALL
     var main_command: String = null
 
@@ -338,7 +384,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 case "clear" => { body.logs.text = "" }
                 // Game interaction
                 case "step" =>  { step (s.split(" ").tail) }
-                case "N" =>     { repeatAction({() => body.step}) }
+                case "step_multiple" =>     { repeatAction({() => body.step}) }
                 case "play" =>  { play (s.split(" ").tail) }
                 case "stop" =>  { stop }
                 case "Space" => {
@@ -376,34 +422,6 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         body.cmdline.text = ""
     }
 
-    def keyPressed (c: Key.Value ): Unit = {
-        c match {
-            case Key.Semicolon => { body.cmdline.requestFocusInWindow() }
-            case Key.Colon   =>   { body.cmdline.requestFocusInWindow() }
-            case Key.Numpad0 =>   {commandRequest("0")}
-            case Key.Numpad1 =>   {commandRequest("1")}
-            case Key.Numpad2 =>   {commandRequest("2")}
-            case Key.Numpad3 =>   {commandRequest("3")}
-            case Key.Numpad4 =>   {commandRequest("4")}
-            case Key.Numpad5 =>   {commandRequest("5")}
-            case Key.Numpad6 =>   {commandRequest("6")}
-            case Key.Numpad7 =>   {commandRequest("7")}
-            case Key.Numpad8 =>   {commandRequest("8")}
-            case Key.Numpad9 =>   {commandRequest("9")}
-            case Key.Escape =>    {commandRequest("Escape")}
-            case Key.Up =>        {commandRequest("Up")}
-            case Key.K =>         {commandRequest("Up")}
-            case Key.Down => {commandRequest("Down")}
-            case Key.J => {commandRequest("Down")}
-            case Key.Right => {commandRequest("Right")}
-            case Key.L => {commandRequest("Right")}
-            case Key.Left => {commandRequest("Left")}
-            case Key.H => {commandRequest("Left")}
-            case Key.Q => {commandRequest("quit")}
-            case Key.P => {commandRequest("Space")}
-            case Key.Space => {commandRequest("Space")}
-            case Key.O => {commandRequest("list")}
-            case _ => { commandRequest(c.toString) }
-        }
-    }
+    def keyPressed (c: Key.Value ): Unit = { actionFromKey(c)() }
 }
+
