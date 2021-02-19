@@ -16,10 +16,6 @@ import scala.io.Source
 import Status._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
-    // Status :=
-    // | 0 -> waiting for a new command
-    // | 1 -> waiting for an answer to a prompt
-    // | waiting for a confirmetion on a particular action
     var status: Status = FIRST_CALL
     var main_command: String = null
 

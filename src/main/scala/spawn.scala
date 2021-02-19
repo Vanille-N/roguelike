@@ -77,7 +77,7 @@ class DefaultRedCellSpawner extends CellSpawner(
     ),
     name = "red cell",
 ) {
-    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+    def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
 }
 
 class DefaultWhiteCellSpawner extends CellSpawner(

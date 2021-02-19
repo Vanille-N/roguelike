@@ -74,6 +74,10 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         } else null
     }
 
+    def jump (vert: Int, horiz: Int) : Pos = {
+        new Pos(room, i + vert, j + horiz)
+    }
+
     def distanceL1 (other: Pos): Int = {
         (this.i - other.i).abs + (this.j - other.j).abs
     }
@@ -233,7 +237,7 @@ extends Reactor with Publisher {
 
     def addItem (i: Item, p: Pos) = {
         body.items.add(i)
-        i.setPosition(p)
+        i.setPos(p)
     }
 
     def wallSpawner = new DefaultWallCellSpawner()
