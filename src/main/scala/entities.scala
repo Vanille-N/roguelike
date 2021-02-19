@@ -12,6 +12,7 @@ import Behavior._
 abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
+    val itemDrop: Buffer[Tuple2[Double, Item]] = Buffer(),
 ) {
     var position: Pos = null
     def isFriendly: Boolean = false
@@ -113,6 +114,10 @@ abstract class Organism (
         stats.syncCurrent
         if (stats.health.current <= 0) {
             position.kill(this)
+            Rng.weightedChoice(itemDrop) match {
+                case None => ()
+                case Some(item) => item.setPosition(position)
+            }
         } else {
             val idx = if (isFriendly) 1 else 0
             position.strength(idx) += this.updateStrength
