@@ -14,6 +14,10 @@ import java.io.IOException
 import Direction._
 import scala.io.Source
 import Status._
+import scala.swing._
+import java.awt.Font
+import java.lang.System
+import event._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
     var status: Status = FIRST_CALL
@@ -370,5 +374,36 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             }
         }
         body.cmdline.text = ""
+    }
+
+    def keyPressed (c: Key.Value ): Unit = {
+        c match {
+            case Key.Semicolon => { body.cmdline.requestFocusInWindow() }
+            case Key.Colon   =>   { body.cmdline.requestFocusInWindow() }
+            case Key.Numpad0 =>   {commandRequest("0")}
+            case Key.Numpad1 =>   {commandRequest("1")}
+            case Key.Numpad2 =>   {commandRequest("2")}
+            case Key.Numpad3 =>   {commandRequest("3")}
+            case Key.Numpad4 =>   {commandRequest("4")}
+            case Key.Numpad5 =>   {commandRequest("5")}
+            case Key.Numpad6 =>   {commandRequest("6")}
+            case Key.Numpad7 =>   {commandRequest("7")}
+            case Key.Numpad8 =>   {commandRequest("8")}
+            case Key.Numpad9 =>   {commandRequest("9")}
+            case Key.Escape =>    {commandRequest("Escape")}
+            case Key.Up =>        {commandRequest("Up")}
+            case Key.K =>         {commandRequest("Up")}
+            case Key.Down => {commandRequest("Down")}
+            case Key.J => {commandRequest("Down")}
+            case Key.Right => {commandRequest("Right")}
+            case Key.L => {commandRequest("Right")}
+            case Key.Left => {commandRequest("Left")}
+            case Key.H => {commandRequest("Left")}
+            case Key.Q => {commandRequest("quit")}
+            case Key.P => {commandRequest("Space")}
+            case Key.Space => {commandRequest("Space")}
+            case Key.O => {commandRequest("list")}
+            case _ => { commandRequest(c.toString) }
+        }
     }
 }

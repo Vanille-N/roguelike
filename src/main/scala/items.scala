@@ -27,6 +27,7 @@ abstract class Item (var position: Pos) {
         }
     }
     def drop: Unit = {
+        if(owner != null) setPosition(owner.position)
         owner = null
         pickable = true
     }
