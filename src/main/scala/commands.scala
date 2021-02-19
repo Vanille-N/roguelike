@@ -1,3 +1,10 @@
+object Status extends Enumeration {
+    type Status = Value
+    val FIRST_CALL = Value("first call")
+    val SEC_CALL = Value("second call")
+    val TER_CALL = Value("lthird call")
+}
+
 import java.util.concurrent.TimeUnit
 import akka.actor._
 import scala.concurrent.duration.FiniteDuration
@@ -6,13 +13,14 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import Direction._
 import scala.io.Source
+import Status._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
     // Status :=
     // | 0 -> waiting for a new command
     // | 1 -> waiting for an answer to a prompt
     // | waiting for a confirmetion on a particular action
-    var status: Int = 0
+    var status: Status = FIRST_CALL
     var main_command: String = null
 
     var prompt: String = "\t>"
@@ -61,7 +69,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
 
     def trySet (args: Array[String]) : Unit = {
         status match {
-            case 0 => {
+            case FIRST_CALL => {
                 args.length match {
                 case 3 => { // The command is already complete: non-interactive mode
                     val target_id = args(1).toInt
@@ -82,68 +90,68 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                     body.logs.text += "\n" + target_organism
                 }
                 case 1 => { // The command is incomplete => ask id; ask value (whatever the initial command was).
-                    status = 1 // The next call will be passed to the second step
+                    status = SEC_CALL // The next call will be passed to the second step
                     next(0) = "set"
                     next(1) = args(0)
                     body.logs.text += "\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)"
                 }
                 case _ => { body.logs.text += "\nInternal error: `set` missing argument" }
+                }
             }
+            case SEC_CALL => {
+                if(args(0) == "l") { list }
+                else {
+                    status = TER_CALL
+                    next(2) = args(0)
+                    body.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
+                }
             }
-        case 1 => {
-            if(args(0) == "l") { list }
-            else {
-                status = 2
-                next(2) = args(0)
-                body.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
+            case TER_CALL => {
+                val target_id = next(2).toInt
+                val new_value = args(0).toInt
+                val target_organism = getOrganismById(target_id)
+                //body.logs.text += "\n\n\n" + target_organism
+                val stat = next(1) match {
+                        case "SPD" => { target_organism.stats.speed }
+                        case "HP" =>  { target_organism.stats.health }
+                        case "POW" => { target_organism.stats.power }
+                        case "DEF" => { target_organism.stats.resistance }
+                        case "DEC" => { target_organism.stats.decisiveness }
+                        case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+                }
+                if (stat != null) {
+                    stat.base = new_value
+                    stat.syncBase
+                }
+                body.logs.text += "\n\n\n" + target_organism
+                status = FIRST_CALL
             }
-        }
-        case 2 => {
-            val target_id = next(2).toInt
-            val new_value = args(0).toInt
-            val target_organism = getOrganismById(target_id)
-            //body.logs.text += "\n\n\n" + target_organism
-            val stat = next(1) match {
-                    case "SPD" => { target_organism.stats.speed }
-                    case "HP" => { target_organism.stats.health }
-                    case "POW" => { target_organism.stats.power }
-                    case "DEF" => { target_organism.stats.resistance }
-                    case "DEC" => { target_organism.stats.decisiveness }
-                    case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+            case _ => {
+                body.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
+                status = FIRST_CALL
             }
-            if (stat != null) {
-                stat.base = new_value
-                stat.syncBase
-            }
-            body.logs.text += "\n\n\n" + target_organism
-            status = 0
-        }
-        case _ => {
-            body.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
-            status = 0
-        }
         }
     }
 
     def show (arg: Array[String]) : Unit = {
         status match {
-            case 0 => {
+            case FIRST_CALL => {
                 if(arg.length == 1) {
                     body.logs.text += "\n" + getOrganismById(arg(0).toInt)
                 } else {
-                    status = 1
+                    status = SEC_CALL
                     next(0) = "show"
                     body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
                 }
             }
-            case 1 => {
+            case SEC_CALL => {
                 arg(0) match {
                     case "l" => {
                         list
                         body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
                     }
                     case _ => {
-                        status = 0
+                        status = FIRST_CALL
                         body.logs.text += "\n" + getOrganismById(arg(0).toInt)
                     }
                 }
@@ -211,12 +219,12 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def itm (arg: Array[String]): Unit = {
         if(arg.length == 0) {
             status match {
-                case 0 => {
+                case FIRST_CALL => {
                     next(0) = "itm"
-                    status = 1
+                    status = SEC_CALL
                     body.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
                 }
-                case 1 => {
+                case SEC_CALL => {
                     arg(0) match {
                         case "add" => { itmadd (new Array[String](0)) }
                         case "del" => { itmdel (new Array[String](0)) }
@@ -242,7 +250,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
     def itmlvl (arg: Array[String]): Unit = {
         status match {
-            case 0 => {
+            case FIRST_CALL => {
                 arg.length match {
                     case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { body.logs.text += "\nError, item command" } }
                     case 2 => {
@@ -260,25 +268,25 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                             case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
                         }
                         next(0) = "itmlvl"
-                        status = 1
+                        status = SEC_CALL
                         body.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
                     }
                     case 0 => {
                         body.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
                         next(0) = "itmlvl"
-                        status = 2
+                        status = TER_CALL
                     }
                 }
             }
-            case 1 => {
+            case SEC_CALL => {
                 //TODO!
             }
-            case 2 => {
+            case TER_CALL => {
                 //TODO!
             }
             case _ => {
                 body.logs.text += "\nError ..."
-                status = 0
+                status = FIRST_CALL
             }
         }
     }
@@ -303,7 +311,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def commandRequest (s: String): Unit = {
-        if (status == 0 ) {
+        if (status == FIRST_CALL ) {
             main_command = s
             if (s != "" && body.cmdline.text != "") body.logs.text += "\n$ " + s
             s.split(" ")(0) match  {
@@ -362,7 +370,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 case "set" => { trySet (body.cmdline.text.split(" ")) }
                 case "show" =>{ show (body.cmdline.text.split(" ")) }
                 case "itm" => { itm (body.cmdline.text.split(" ")) }
-                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = 0 }
+                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = FIRST_CALL }
             }
         }
         body.cmdline.text = ""
