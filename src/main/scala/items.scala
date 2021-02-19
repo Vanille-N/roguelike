@@ -162,7 +162,21 @@ abstract class Item {
     }
 }
 
+object MakeItem extends Enumeration {
+    type MakeItem = Value
+    val KNIFE = Value
+    val ALCOHOL = Value
+    val NONE = Value
 
+    def build_item (it: MakeItem, pos: Pos) : Item = {
+        var item = it match {
+            case KNIFE => new Knife(pos)
+            case ALCOHOL => new Alcohol(pos)
+            case NONE => null
+        }
+        item
+    }
+}
 
 // Partition the Items according to their application area:
 // Action on local area + straight movement
