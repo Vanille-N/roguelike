@@ -9,10 +9,12 @@ import event._
 import Direction._
 import Behavior._
 
+import Rng.Distribution
+
 abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
-    val itemDrop: Buffer[Tuple2[Double, Item]] = Buffer(),
+    val itemDrop: Distribution[Item] = Buffer(),
 ) {
     var position: Pos = null
     def isFriendly: Boolean = false

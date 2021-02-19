@@ -7,7 +7,7 @@ import java.io.IOException
 import Direction._
 import scala.io.Source
 
-class Command (val body:BodyPart, val room: Room, val player: Player) {
+class Command (val body: BodyPart, val room: Room, val player: Player) {
     // Status :=
     // | 0 -> waiting for a new command
     // | 1 -> waiting for an answer to a prompt
@@ -178,7 +178,7 @@ class Command (val body:BodyPart, val room: Room, val player: Player) {
     }
 
     def step (arg: Array[String]) : Unit = {
-        body.logs.text += "\n"
+        // body.logs.text += "\n"
         if(arg.length == 0) { body.step }
         else {
             for(i <- 1 to (arg(0).toInt)) { body.step }
@@ -197,7 +197,7 @@ class Command (val body:BodyPart, val room: Room, val player: Player) {
     }
 
     def stop : Unit = {
-        if(body.isPlaying) {runner.cancel(); body.isPlaying = false}
+        if(body.isPlaying) { runner.cancel(); body.isPlaying = false }
         else { () }
     }
 
@@ -205,7 +205,7 @@ class Command (val body:BodyPart, val room: Room, val player: Player) {
         if(repeat == 1) { u() }
         else {
             body.logs.text += "\nRepeating " + repeat + " times the action ..."
-            while(repeat > 0) {
+            while (repeat > 0) {
                 u()
                 repeat -= 1
             }
@@ -360,7 +360,8 @@ class Command (val body:BodyPart, val room: Room, val player: Player) {
                 case "help" =>  { help (s.split(" ").tail) }
                 case "?" =>     { help (s.split(" ").tail) }
                 case "" =>      {}
-                case _ =>       { if(body.cmdline.text != "" ) {body.logs.text += "\t> command not found ;/\n"} /*else { body.logs.text += "\n"+s }*/ }
+                case _ =>       { if(body.cmdline.text != "" ) { body.logs.text += "\t> command not found ;/\n" }
+                /*else { body.logs.text += "\n"+s }*/ }
             }
         } else {
             body.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s
