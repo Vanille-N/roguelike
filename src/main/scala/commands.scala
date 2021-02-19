@@ -201,17 +201,11 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         else { () }
     }
 
-    def repeatAction (u: () => Unit): Unit = {
-        if(repeat == 1) { u() }
-        else {
-            body.logs.text += "\nRepeating " + repeat + " times the action ..."
-            while (repeat > 0) {
-                u()
-                repeat -= 1
-            }
-            body.logs.text += "\ndone"
-            repeat = 1
-        }
+    def repeatAction (action: () => Unit): Unit = {
+        if (repeat > 1) body.logs.text += "\nRepeating " + repeat + " times the action ..."
+        for (i <- 1 to repeat) action()
+        if (repeat > 1) body.logs.text += "\ndone"
+        repeat = 1
     }
 
     def itm (arg: Array[String]): Unit = {
@@ -348,7 +342,6 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 }
                 // Organisms
                 case "list" =>  { list }
-                case "O" =>     { list }
                 case "show" =>  { show (s.split(" ").tail) }
                 case "set" =>   { trySet (s.split(" ").tail) }
                 // Items

@@ -147,7 +147,9 @@ abstract class Item {
         p.setItem(this)
     }
     def addToPosition(i: Int, j: Int) = {
-        // TODO!
+        position.items.remove(this)
+        position = room.locs(position.i + i, position.j + j)
+        position.setItem(this)
     }
 
     // Game evolution
