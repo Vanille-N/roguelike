@@ -10,11 +10,12 @@ import Direction._
 import Behavior._
 
 import Rng.Distribution
+import MakeItem._
 
 abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
-    val itemDrop: Distribution[Item] = Buffer(),
+    val itemDrop: Distribution[MakeItem] = Buffer(),
 ) {
     var position: Pos = null
     def isFriendly: Boolean = false
@@ -118,7 +119,7 @@ abstract class Organism (
             position.kill(this)
             Rng.weightedChoice(itemDrop) match {
                 case None => ()
-                case Some(item) => item.setPosition(position)
+                case Some(item) => MakeItem.build_item(item, position)
             }
         } else {
             val idx = if (isFriendly) 1 else 0
@@ -130,7 +131,8 @@ abstract class Organism (
 class Virus (
     stats: StatSet,
     skills: SkillSet,
-) extends Organism (stats, skills) {
+    itemDrop: Distribution[MakeItem] = Buffer(),
+) extends Organism (stats, skills, itemDrop) {
     override def isFriendly = true
     var name = "virus"
 
@@ -144,8 +146,9 @@ class Cell (
     stats: StatSet,
     skills: SkillSet,
     val name: String,
-    val behavior: Behavior = FLEE
-) extends Organism (stats, skills) {
+    val behavior: Behavior = FLEE,
+    itemDrop: Distribution[MakeItem] = Buffer(),
+) extends Organism (stats, skills, itemDrop) {
     def focus: Pos = {
         this.position.room.body.player.position
     }
