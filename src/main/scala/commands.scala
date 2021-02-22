@@ -1,8 +1,22 @@
+/* The Status enumeration describes the way a command is called:
+*    | FIRST_CALL -> the first time a function is called
+*    | SEC_CALL   -> the second time it if called
+*    | TER_CALL   -> the third time the function is called
+*/
 object Status extends Enumeration {
     type Status = Value
     val FIRST_CALL = Value("first call")
     val SEC_CALL = Value("second call")
     val TER_CALL = Value("lthird call")
+}
+
+object CommandType extends Enumeration {
+    type CommandType = Value
+    val DIRECTION         = Value("ExecuteDirection")
+    val DIGIT             = Value("ExecuteDigit")
+    val GAME_INTERACTION  = Value("ExecuteGameInteraction")
+    val GAME_MANIPULATION = Value("ExecuteGameManipulation")
+    val OTHER             = Value("ExecuteOther")
 }
 
 import java.util.concurrent.TimeUnit
@@ -14,8 +28,183 @@ import java.io.IOException
 import Direction._
 import scala.io.Source
 import Status._
+import scala.swing._
+import java.awt.Font
+import java.lang.System
+import event._
+import CommandType._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
+    // When a key is pressed, it is checked to define the action to perform
+    // actionFromText returns the action to perform given a text command.
+    def actionFromText  (str: String) : (() => Unit) = {
+        if(str == "focus" ) (() => body.cmdline.requestFocusInWindow())
+        else (() => commandRequest(str))
+    }
+
+    // actionFromKey returns the action to perform given a pressed key
+    def actionFromKey (key: Key.Value): ( () => Unit ) = {
+        try shortcuts(key)
+        catch {
+            case e:java.util.NoSuchElementException => {
+                //body.logs.text += "\nErreur: touche " + key.toString + " non programmée."
+                () => ()
+            }
+        }
+    }
+
+    def keyPressed (c: Key.Value ): Unit = { actionFromKey(c)() }
+
+    def ExecuteDirection (command: String): (() =>Unit) = { () => {
+        command match {
+            case "Up" => { tryMove(UP) }
+            case "Down" => { tryMove(DOWN) }
+            case "Left" => { tryMove(LEFT) }
+            case "Right" => { tryMove(RIGHT) }
+        }
+    }}
+
+    def ExecuteDigit (command: String): (() =>Unit) = { () => {
+        repeat = repeat * 10 + command.toInt
+    }}
+    
+    def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
+        command match {
+                case "step" =>  { step (main_command.split(" ").tail) }
+                case "step_multiple" =>     { repeatAction({() => body.step}) }
+                case "play" =>  { play (main_command.split(" ").tail) }
+                case "stop" =>  { stop }
+                case "Space" => {
+                    if(body.isPlaying) {
+                        stop
+                    } else {
+                        play (Array[String]("1"))
+                    }
+                }
+        }
+    }}
+
+    def ExecuteGameManipulation(command: String): (() =>Unit) = { () => {}}
+
+    def ExecuteOther(command: String): (() =>Unit) = { () => {
+        command match {
+            case "Escape" => { repeat = 1 }
+            case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
+            case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
+            case "clear" => { body.logs.text = "" }
+            // Organisms
+            case "list" =>  { list }
+            case "show" =>  { show (main_command.split(" ").tail) }
+            case "set" =>   { trySet (main_command.split(" ").tail) }
+            // Items
+            case "itm" =>     { itm (main_command.split(" ").tail) }
+            case "itmadd" =>  { itmadd (main_command.split(" ").tail) }
+            case "itmdel" =>  { itmdel (main_command.split(" ").tail) }
+            case "itmlvl" =>  { itmlvl (main_command.split(" ").tail) }
+            // Misc'
+            case "help" =>  { help (main_command.split(" ").tail) }
+            case "?" =>     { help (main_command.split(" ").tail) }
+            case "" =>      {}
+            case _ =>       { if(body.cmdline.text != "" ) { body.logs.text += "\t> command not found ;/\n" }
+            /*else { body.logs.text += "\n"+s }*/ }
+        }
+    }}
+    def commandIsDirection (command: String) : Boolean = {
+        val list_of_dirs: List[String] = List("Up", "Down", "Left", "Right")
+        if (list_of_dirs.exists ( x => x == command )) true
+        else false
+    }
+
+    def commandIsDigit (command: String) : Boolean = {
+        val list_of_digits: List[String] = List("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+        if (list_of_digits.exists ( x => x == command )) true
+        else false
+    }
+
+    def commandIsGameInteraction (command: String) : Boolean = {
+        val list_of_interactions: List[String] = List("play", "step", "stop", "step_multiple", "Space")
+        if (list_of_interactions.exists ( x => x == command )) true
+        else false
+    }
+
+    def commandIsGameManipulation (command: String) : Boolean = {
+        false
+    }
+
+    def commandIsOther (command: String) : Boolean = {
+        (!commandIsDirection(command)
+            && !commandIsDigit(command)
+            && !commandIsGameInteraction(command)
+            && !commandIsGameManipulation(command)
+        )
+    }
+    
+    def getCommandType (command: String) : CommandType = {
+        val filters_list: List[String => Boolean] = List(commandIsDirection, commandIsDigit, commandIsGameInteraction, commandIsGameManipulation, commandIsOther)
+        filters_list.indexOf(filters_list.filter( x => x(command) )(0)) match {
+            case 0 => DIRECTION
+            case 1 => DIGIT
+            case 2 => GAME_INTERACTION
+            case 3 => GAME_MANIPULATION
+            case _ => OTHER
+        }
+    }
+
+    def boundTypeFun (command_type: CommandType) : (String => (() => Unit)) = {
+        command_type match {
+            case DIRECTION         => ExecuteDirection
+            case DIGIT             => ExecuteDigit
+            case GAME_INTERACTION  => ExecuteGameInteraction
+            case GAME_MANIPULATION => ExecuteGameManipulation
+            case OTHER             => ExecuteOther
+        }
+    }
+
+    def commandRequest (main_command: String): Unit = {
+        if (status == FIRST_CALL ) {
+            if (main_command != "" && body.cmdline.text != "") body.logs.text += "\n$ " + main_command
+            boundTypeFun(getCommandType(main_command))(main_command)()
+        } else {
+            body.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + main_command
+            next(0) match {
+                case "set" => { trySet (body.cmdline.text.split(" ")) }
+                case "show" =>{ show (body.cmdline.text.split(" ")) }
+                case "itm" => { itm (body.cmdline.text.split(" ")) }
+                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = FIRST_CALL }
+            }
+        }
+        body.cmdline.text = ""
+    }
+
+    var shortcuts: Map[Key.Value, () => Unit] = Map(
+        (Key.Semicolon,  actionFromText("focus")),
+        (Key.Colon  ,    actionFromText("focus")),
+        (Key.Numpad0,    actionFromText("0")),
+        (Key.Numpad1,    actionFromText("1")),
+        (Key.Numpad2,    actionFromText("2")),
+        (Key.Numpad3,    actionFromText("3")),
+        (Key.Numpad4,    actionFromText("4")),
+        (Key.Numpad5,    actionFromText("5")),
+        (Key.Numpad6,    actionFromText("6")),
+        (Key.Numpad7,    actionFromText("7")),
+        (Key.Numpad8,    actionFromText("8")),
+        (Key.Numpad9,    actionFromText("9")),
+        (Key.Escape,     actionFromText("Escape")),
+        (Key.Up,         actionFromText("Up")),
+        (Key.K,          actionFromText("Up")),
+        (Key.Down,       actionFromText("Down")),
+        (Key.J,          actionFromText("Down")),
+        (Key.Right,      actionFromText("Right")),
+        (Key.L,          actionFromText("Right")),
+        (Key.Left,       actionFromText("Left")),
+        (Key.H,          actionFromText("Left")),
+        (Key.Q,          actionFromText("quit")),
+        (Key.P,          actionFromText("Space")),
+        (Key.Space,      actionFromText("Space")),
+        (Key.O,          actionFromText("list")),
+        (Key.N,          actionFromText("step_multiple"))
+    )
+
     var status: Status = FIRST_CALL
     var main_command: String = null
 
@@ -305,70 +494,5 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         }
         return null
     }
-
-    def commandRequest (s: String): Unit = {
-        if (status == FIRST_CALL ) {
-            main_command = s
-            if (s != "" && body.cmdline.text != "") body.logs.text += "\n$ " + s
-            s.split(" ")(0) match  {
-                // Repetition handling -> better keys to find! (I have got issues with numeral keys)
-                case "0" =>     { repeat = repeat * 10 }
-                case "1" =>     { repeat = repeat * 10 + 1 }
-                case "2" =>     { repeat = repeat * 10 + 2 }
-                case "3" =>     { repeat = repeat * 10 + 3 }
-                case "4" =>     { repeat = repeat * 10 + 4 }
-                case "5" =>     { repeat = repeat * 10 + 5 }
-                case "6" =>     { repeat = repeat * 10 + 6 }
-                case "7" =>     { repeat = repeat * 10 + 7 }
-                case "8" =>     { repeat = repeat * 10 + 8 }
-                case "9" =>     { repeat = repeat * 10 + 9 }
-                case "Escape" => { repeat = 1 }
-                // Movements
-                case "Up" =>    { tryMove(UP) }
-                case "Down" =>  { tryMove(DOWN) }
-                case "Right" => { tryMove(RIGHT) }
-                case "Left" =>  { tryMove(LEFT) }
-                // Exiting / functionnalities
-                case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
-                case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
-                case "clear" => { body.logs.text = "" }
-                // Game interaction
-                case "step" =>  { step (s.split(" ").tail) }
-                case "N" =>     { repeatAction({() => body.step}) }
-                case "play" =>  { play (s.split(" ").tail) }
-                case "stop" =>  { stop }
-                case "Space" => {
-                    if(body.isPlaying) {
-                        stop
-                    } else {
-                        play (Array[String]("1"))
-                    }
-                }
-                // Organisms
-                case "list" =>  { list }
-                case "show" =>  { show (s.split(" ").tail) }
-                case "set" =>   { trySet (s.split(" ").tail) }
-                // Items
-                case "itm" =>     { itm (s.split(" ").tail) }
-                case "itmadd" =>  { itmadd (s.split(" ").tail) }
-                case "itmdel" =>  { itmdel (s.split(" ").tail) }
-                case "itmlvl" =>  { itmlvl (s.split(" ").tail) }
-                // Misc'
-                case "help" =>  { help (s.split(" ").tail) }
-                case "?" =>     { help (s.split(" ").tail) }
-                case "" =>      {}
-                case _ =>       { if(body.cmdline.text != "" ) { body.logs.text += "\t> command not found ;/\n" }
-                /*else { body.logs.text += "\n"+s }*/ }
-            }
-        } else {
-            body.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + s
-            next(0) match {
-                case "set" => { trySet (body.cmdline.text.split(" ")) }
-                case "show" =>{ show (body.cmdline.text.split(" ")) }
-                case "itm" => { itm (body.cmdline.text.split(" ")) }
-                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = FIRST_CALL }
-            }
-        }
-        body.cmdline.text = ""
-    }
 }
+
