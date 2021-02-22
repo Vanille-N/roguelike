@@ -14,7 +14,7 @@ abstract class Spawner (
     skills: SkillSetGen,
 ) {
     def generate: Organism
-    def itemDrops: Distribution[MakeItem] = Buffer()
+    def itemDrop: Distribution[MakeItem] = Buffer()
     def spawn (p: Pos) = {
         val o = generate
         o.placeOnMap(p)
@@ -27,7 +27,7 @@ class VirusSpawner (
     skills: SkillSetGen = new SkillSetGen(),
 ) extends Spawner(stats, skills) {
     def generate: Virus = {
-        new Virus(stats.instantiate, skills.instantiate, itemDrops)
+        new Virus(stats.instantiate, skills.instantiate, itemDrop)
     }
 }
 
@@ -38,7 +38,7 @@ class CellSpawner (
     behavior: Behavior.Behavior = Behavior.FLEE,
 ) extends Spawner(stats, skills) {
     def generate: Cell = {
-        new Cell(stats.instantiate, skills.instantiate, name, behavior, itemDrops)
+        new Cell(stats.instantiate, skills.instantiate, name, behavior, itemDrop)
     }
 }
 
@@ -77,7 +77,7 @@ class DefaultRedCellSpawner extends CellSpawner(
     ),
     name = "red cell",
 ) {
-    def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
 }
 
 class DefaultWhiteCellSpawner extends CellSpawner(
@@ -94,7 +94,9 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     ),
     name = "red cell",
     behavior = Behavior.SEEK
-) {}
+) {
+    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+}
 
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
