@@ -15,4 +15,8 @@ object Scheme {
         val b = (c1.getBlue * p1 + c2.getBlue * p2 + base.getBlue).max(0).min(255)
         new Color(r.toInt, g.toInt, b.toInt)
     }
+
+    def set_blue_channel (c: Color, b: Int): Color = {
+        new Color(c.getRed, c.getGreen, c.getBlue.max(b))
+    }
 }
