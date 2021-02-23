@@ -31,7 +31,7 @@ abstract class Item (var position: Pos) {
             owner = o
             pickable = false
             position.items -= this
-            position.room.body.logs.text += "\n\n>I have been picked !!!"
+            //position.room.body.logs.text += "\n\n>I have been picked !!!"
         }
     }
     def drop: Unit = {
