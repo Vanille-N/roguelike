@@ -24,12 +24,15 @@ abstract class Item (var position: Pos) {
         if(pickable) {
             owner = o
             pickable = false
+            position.items -= this
+            position.room.body.logs.text += "\n\n>I have been picked !!!"
         }
     }
     def drop: Unit = {
         if(owner != null) position = owner.position
         owner = null
         pickable = true
+        position.items += this
     }
 
     // Item usage-related elements

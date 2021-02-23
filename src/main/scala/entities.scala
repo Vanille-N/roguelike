@@ -21,6 +21,8 @@ abstract class Organism (
     def isFriendly: Boolean = false
     def name: String
 
+    var items: Set[Item] = Set()
+
     def placeOnMap (p: Pos) {
         position = p
         p.addOrganism(this)
@@ -107,6 +109,17 @@ abstract class Organism (
         mv match {
             case None => ()
             case Some(p) => moveTo(p)
+        }
+        if ( position.items.size > 0 ) {
+            if(Rng.choice(stats.decisiveness.current / 100.0)) {
+                position.items.head.pickUp (this)
+                items += position.items.head
+                room.body.logs.text += "\nI " + this + " pick up the item, yay !"
+            } else {
+                room.body.logs.text += "\nI " + this + " did not pick up the item !"
+            }
+        } else {
+            room.body.logs.text += "\nno items: " + position.items
         }
         true
     }
