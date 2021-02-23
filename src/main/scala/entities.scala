@@ -106,8 +106,10 @@ abstract class Organism (
 
     override def toString: String = {
         val s = skills.toString
-        name + "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
+        val stats = "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
         "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]"
+        val holding = if items.size > 0 then "\nholding ..." else ""
+        name + stats + holding
     }
 
     // Pathfinding parameters
