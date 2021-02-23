@@ -26,16 +26,16 @@ abstract class Item (var position: Pos) {
     var pickable: Boolean = true
     var owner: Organism = null
 
-    def pickUp (o: Organism): Unit = {
-        if(pickable) {
+    def pickUp (o: Organism): Boolean = {
+        if (pickable) {
             owner = o
             pickable = false
             position.items -= this
-            //position.room.body.logs.text += "\n\n>I have been picked !!!"
-        }
+            true
+        } else false
     }
     def drop: Unit = {
-        if(owner != null) position = owner.position
+        if (owner != null) position = owner.position
         owner = null
         pickable = true
         position.items += this

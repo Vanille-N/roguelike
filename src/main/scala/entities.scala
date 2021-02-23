@@ -128,12 +128,14 @@ abstract class Organism (
         // try to pick up an item if there is one
         if (position.items.size > 0) {
             if (Rng.choice(stats.decisiveness.current / 100.0)) {
-                position.items.head.pickUp (this)
-                items += position.items.head
-                room.body.logs.text += "\nI " + this + " pick up the item, yay !"
-            }/* else {
+                val it = position.items.head
+                if (it.pickUp(this)) {
+                    items += it
+                    room.body.logs.text += "\nI " + this + " pick up the item, yay !"
+                }
+            } /* else {
                 room.body.logs.text += "\nI " + this + " did not pick up the item !"
-            }*/
+            } */
         } /*else {
             room.body.logs.text += "\nno items: " + position.items
         }*/
