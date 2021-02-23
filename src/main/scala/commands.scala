@@ -64,9 +64,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         }
     }}
 
-    def ExecuteDigit (command: String): (() =>Unit) = { () => {
-        repeat = repeat * 10 + command.toInt
-    }}
+    def ExecuteDigit (command: String): (() =>Unit) = { () => { repeat = repeat * 10 + command.toInt }}
     
     def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
         command match {
@@ -84,14 +82,8 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         }
     }}
 
-    def ExecuteGameManipulation(command: String): (() =>Unit) = { () => {}}
-
-    def ExecuteOther(command: String): (() =>Unit) = { () => {
+    def ExecuteGameManipulation(command: String): (() =>Unit) = { () => {
         command match {
-            case "Escape" => { repeat = 1 }
-            case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
-            case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
-            case "clear" => { body.logs.text = "" }
             // Organisms
             case "list" =>  { list }
             case "show" =>  { show (main_command.split(" ").tail) }
@@ -101,6 +93,15 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             case "itmadd" =>  { itmadd (main_command.split(" ").tail) }
             case "itmdel" =>  { itmdel (main_command.split(" ").tail) }
             case "itmlvl" =>  { itmlvl (main_command.split(" ").tail) }
+        }
+    }}
+
+    def ExecuteOther(command: String): (() =>Unit) = { () => {
+        command match {
+            case "Escape" => { repeat = 1 }
+            case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
+            case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
+            case "clear" => { body.logs.text = "" }
             // Misc'
             case "help" =>  { help (main_command.split(" ").tail) }
             case "?" =>     { help (main_command.split(" ").tail) }
@@ -128,7 +129,9 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def commandIsGameManipulation (command: String) : Boolean = {
-        false
+        val list_of_manipulation: List[String] = List("list", "show", "set", "itm", "itmadd", "itmdel", "itmlvl")
+        if (list_of_manipulation.exists ( x => x == command )) true
+        else false
     }
 
     def commandIsOther (command: String) : Boolean = {
