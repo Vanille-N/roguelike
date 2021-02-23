@@ -12,23 +12,30 @@ import Behavior._
 import Rng.Distribution
 import MakeItem._
 
+
+/* Entities: all living things
+ * - interaction with other entities (attack)
+ * - movement utilities
+ * - interaction with items (pickup, drop)
+ */
+
 abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
-    val itemDrop: Distribution[MakeItem] = Buffer(),
+    val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops
 ) {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
 
-    var items: Set[Item] = Set()
+    var items: Set[Item] = Set() // held by organism
 
     def placeOnMap (p: Pos) {
         position = p
         p.addOrganism(this)
     }
 
-    var strength: Int = 0
+    var strength: Int = 0 // arbitrary measure of strength
 
     // Adjust the strength according to the health of the Organism
     def updateStrength: Int = {
@@ -55,6 +62,9 @@ abstract class Organism (
         strength - oldStrength
     }
 
+    // Check that
+    // - the organism is allowed to move
+    // - the new position is available (not blocked by a skill)
     def moveIsAllowed (room: Room, dir: Direction): Pos = {
         if (dir == STAY) return position
         val newPosition = position.tryAdd(dir)
@@ -66,6 +76,7 @@ abstract class Organism (
         } else null
     }
 
+    // Actually move
     def moveTo (pos: Pos) {
         if (pos != null) {
             position.removeOrganism(this)
@@ -73,11 +84,13 @@ abstract class Organism (
         }
     }
 
+    // Determine new position with a probability of moving
     def maybeMove (room: Room, dir: Direction): Pos = {
         if (Rng.choice(stats.decisiveness.current / 100.0)) return null
         moveIsAllowed(room, dir)
     }
 
+    // What to do when attacked
     def attackedBy (ennemy: Organism) {
         if (ennemy.stats.power.residual > 0) {
             println(this, "attacked by", ennemy)
@@ -97,12 +110,14 @@ abstract class Organism (
         "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]"
     }
 
+    // Pathfinding parameters
     def focus: Pos
     def behavior: Behavior
 
     def step (room: Room): Boolean = { // boolean indicates if the organism can still move
         val options = PathFinder.next(this.position, this.focus, this.behavior)
         val allowed = options.map(moveIsAllowed(room, _)).filter(x => x != null)
+        // choose where to go: higher decisiveness leads to better decisions
         val mv = Rng.priorityChoice(allowed, stats.decisiveness.current / 100.0)
         stats.speed.residual -= Rng.uniform(0, 100)
         if (stats.speed.residual <= 0) return false // can't move anymore
@@ -110,8 +125,9 @@ abstract class Organism (
             case None => ()
             case Some(p) => moveTo(p)
         }
-        if ( position.items.size > 0 ) {
-            if(Rng.choice(stats.decisiveness.current / 100.0)) {
+        // try to pick up an item if there is one
+        if (position.items.size > 0) {
+            if (Rng.choice(stats.decisiveness.current / 100.0)) {
                 position.items.head.pickUp (this)
                 items += position.items.head
                 room.body.logs.text += "\nI " + this + " pick up the item, yay !"
@@ -130,6 +146,7 @@ abstract class Organism (
         stats.syncCurrent
         if (stats.health.current <= 0) {
             position.kill(this)
+            // died, maybe drop an item upon death
             Rng.weightedChoice(itemDrop) match {
                 case None => ()
                 case Some(item) => MakeItem.build_item(item, position)
@@ -141,7 +158,7 @@ abstract class Organism (
     }
 }
 
-class Virus (
+class Virus ( // friendly
     stats: StatSet,
     skills: SkillSet,
     itemDrop: Distribution[MakeItem] = Buffer(),
@@ -155,7 +172,7 @@ class Virus (
     val behavior: Behavior = SEEK
 }
 
-class Cell (
+class Cell ( // hostile
     stats: StatSet,
     skills: SkillSet,
     val name: String,

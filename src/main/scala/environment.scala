@@ -9,10 +9,12 @@ import java.awt.Font
 import java.lang.System
 import event._
 
-/****************************************************************************/
-
-// This class represents one dungeon cell with a floor, optionally an actor
-// and an item. Handles the visual appearance and user-interface aspects.
+/* Environment: tiles of the "dungeon"
+ * - visual feedback for tile contents
+ * - interaction with organisms
+ * - battle procedure
+ * - initial layout of the room
+ */
 
 object Direction extends Enumeration {
     type Direction = Value
@@ -34,15 +36,19 @@ object Direction extends Enumeration {
 }
 import Direction._
 
+// one tile
 class Pos (val room: Room, val i: Int, val j: Int) extends Button {
-    var isFocused: Boolean = false
+    var isFocused: Boolean = false // position of cursor
+    // for all members of type Array[...] with two indexes, information
+    // on friendly organisms is stored in (1) and hostile in (0)
+    // This explains the `if (isFriendly) 1 else 0` in what follows
     var organisms: Array[Set[Organism]] = Array(Set(), Set())
     var items: Set[Item] = Set()
     var strength: Array[Int] = Array(0, 0)
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
     var friendlySpawner: PhysicalSpawner = null
     var hostileSpawner: PhysicalSpawner = null
-    var notifyLevel: Int = 0
+    var notifyLevel: Int = 0 // visual feedback for important events
 
     this.focusable = false
 
@@ -67,6 +73,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         room.body.organisms.remove(o)
     }
 
+    // Vector addition on positions may fail if the resulting position
+    // is outside of the grid
     def tryAdd (i: Direction): Pos = {
         val dpos = Direction.toTuple(i)
         val newJ = this.j + dpos._1
@@ -75,11 +83,15 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             room.locs(newI, newJ)
         } else null
     }
-
     def jump (vert: Int, horiz: Int) : Pos = {
-        new Pos(room, i + vert, j + horiz)
+        val newJ = this.j + horiz
+        val newI = this.i + vert
+        if (room.cols > newJ && room.rows > newI && 0 <= newJ && 0 <= newI) {
+            room.locs(newI, newJ)
+        } else null
     }
 
+    // distances on locations
     def distanceL1 (other: Pos): Int = {
         (this.i - other.i).abs + (this.j - other.j).abs
     }
@@ -91,6 +103,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         "(" + i + "," + j + ")"
     }
 
+    // interaction with spawners
     def setFriendlySpawner (s: PhysicalSpawner) { friendlySpawner = s; s.position = this }
     def setHostileSpawner (s: PhysicalSpawner) { hostileSpawner = s; s.position = this }
     def trySpawn {
@@ -108,10 +121,10 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     font = new Font("default", 0, 20)
     focusPainted = false
 
+    // visual effects
     def notification {
         notifyLevel = 255
     }
-
     def updateVisuals {
         // text
         val totalStrength = strength(0) + strength(1)
@@ -138,7 +151,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
     def battle {
         // For now, battles are nondeterministic.
-        // Each organism in turn (in a random order) picks an ennemy that is still alive and tries to attack it.
+        // Each organism in turn picks an ennemy that is still alive and tries to attack it.
         // This attack may fail due to skills.
         var orgs: Buffer[Organism] = Buffer()
         var split: Array[Buffer[Organism]] = Array(Buffer(), Buffer())
@@ -149,6 +162,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                 }
             })
         }
+        // battles happen in a random order
         orgs = Rng.shuffle(orgs)
         split(0) = Rng.shuffle(split(0))
         split(1) = Rng.shuffle(split(1))
@@ -218,6 +232,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     }
 }
 
+// Aggregate functions for positions
 class Grid (room: Room, rows: Int, cols: Int) {
     val elem = IndexedSeq.tabulate(rows, cols) {(i, j) => new Pos(room, i, j)}
     def map[U] (f: Pos => U) = elem.map(_.map(f(_)))
@@ -225,8 +240,7 @@ class Grid (room: Room, rows: Int, cols: Int) {
     def apply (i: Int, j: Int) = elem(i)(j)
 }
 
-/****************************************************************************/
-
+// The whole room
 class Room (val body: BodyPart, val cols: Int, val rows: Int)
 extends Reactor with Publisher {
     var locs = new Grid(this, rows, cols)
@@ -257,6 +271,7 @@ extends Reactor with Publisher {
     }
 }
 
+// One instance of a room
 class PlainRoom (body: BodyPart, rows: Int, cols: Int)
 extends Room (body, rows, cols) {
     makeWall(locs(0, 0), locs(0, cols-1))

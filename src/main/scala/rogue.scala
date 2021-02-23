@@ -8,16 +8,14 @@ import java.lang.System
 import event._
 import Direction._
 
-/****************************************************************************/
+/* Main game loop
+ * - global application layout
+ * - user interface
+ * - move/battle/spawn coordination
+ */
 
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
-
-/****************************************************************************/
-
-class Symbol (val form: Char, val color: Color) {}
-
-/****************************************************************************/
 
 // BodyPart coordinates the gameplay. Mover is a thread that takes a target
 // for the player and makes one move towards that target every 100ms. Mover
@@ -94,20 +92,24 @@ class BodyPart extends Reactor {
         panel
     }
 
+    // main loop
     def step {
         println("next turn")
         organisms.foreach(o => o.stats.syncCurrent)
         var active = true
+        // loop until no one can move anymore
         while (active) {
             println("Still some active cells")
             active = false
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
         }
+        // viruses age
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
         })
+        // move
         items.foreach(i => {
             i.step
         })
@@ -129,8 +131,6 @@ class BodyPart extends Reactor {
     }
 
 }
-
-/****************************************************************************/
 
 object main extends SimpleSwingApplication {
     val top = new MainFrame {

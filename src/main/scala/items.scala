@@ -1,6 +1,13 @@
 import scala.collection.mutable.ListBuffer
 import Math._
 
+/* Items interface
+ * - interaction with an organism's stats
+ * - pickup/drop
+ * - usage
+ */
+
+// What stat is targeted by an item
 object StatType extends Enumeration {
     type StatType = Value
     val HP   = Value("health.residual")
@@ -12,11 +19,10 @@ object StatType extends Enumeration {
     val ANY  = Value("any field")
     val NONE = Value("free to use")
 }
-
 import StatType._
 
 abstract class Item (var position: Pos) {
-    // Item pickink up -- dropping
+    // Item picking up -- dropping
     var pickable: Boolean = true
     var owner: Organism = null
 

@@ -10,6 +10,12 @@ import event._
 
 import Direction._
 
+/* Abstraction for movement and pathfinding
+ * - cursor movement (controlled by player)
+ * - behavior of organisms moving towards/away from the cursor
+ */
+
+
 class Player (var position: Pos) {
     def placeOnMap (p: Pos) {
         position = p
@@ -38,15 +44,16 @@ object PathFinder {
     def next (curr: Pos, focus: Pos, behavior: Behavior): Buffer[Direction] = {
         val possible = Array(STAY, LEFT, RIGHT, DOWN, UP)
         var distances: Buffer[Tuple2[Double, Direction]] = Buffer()
+        // all reachable positions
         for (i <- 0 to 4) {
             val newPosition = curr.tryAdd(possible(i))
             if (newPosition != null) distances += Tuple2(newPosition.distanceL2(focus), possible(i))
         }
+        // choose best ones
         behavior match {
-            case SEEK => distances = distances.sortBy(_._1)
-            case FLEE => distances = distances.sortBy(- _._1)
+            case SEEK => distances = distances.sortBy(_._1) // close positions first
+            case FLEE => distances = distances.sortBy(- _._1) // far positions first
         }
-        // println(distances)
         distances.map(_._2)
     }
 }

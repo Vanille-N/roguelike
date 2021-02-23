@@ -1,14 +1,28 @@
-/* The Status enumeration describes the way a command is called:
-*    | FIRST_CALL -> the first time a function is called
-*    | SEC_CALL   -> the second time it if called
-*    | TER_CALL   -> the third time the function is called
-*/
+import java.util.concurrent.TimeUnit
+import akka.actor._
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
+import java.io.FileNotFoundException
+import java.io.IOException
+import scala.io.Source
+import scala.swing._
+import java.awt.Font
+import java.lang.System
+import event._
+
+import Direction._
+
+// The Status enumeration describes the way a command is called:
+//    | FIRST_CALL -> the first time a function is called
+//    | SEC_CALL   ->     second
+//    | TER_CALL   ->     third
 object Status extends Enumeration {
     type Status = Value
     val FIRST_CALL = Value("first call")
     val SEC_CALL = Value("second call")
     val TER_CALL = Value("lthird call")
 }
+import Status._
 
 object CommandType extends Enumeration {
     type CommandType = Value
@@ -18,20 +32,6 @@ object CommandType extends Enumeration {
     val GAME_MANIPULATION = Value("ExecuteGameManipulation")
     val OTHER             = Value("ExecuteOther")
 }
-
-import java.util.concurrent.TimeUnit
-import akka.actor._
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.io.FileNotFoundException
-import java.io.IOException
-import Direction._
-import scala.io.Source
-import Status._
-import scala.swing._
-import java.awt.Font
-import java.lang.System
-import event._
 import CommandType._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
@@ -65,7 +65,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }}
 
     def ExecuteDigit (command: String): (() =>Unit) = { () => { repeat = repeat * 10 + command.toInt }}
-    
+
     def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
         command match {
                 case "step" =>  { step (main_command.split(" ").tail) }
@@ -141,7 +141,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             && !commandIsGameManipulation(command)
         )
     }
-    
+
     def getCommandType (command: String) : CommandType = {
         val filters_list: List[String => Boolean] = List(commandIsDirection, commandIsDigit, commandIsGameInteraction, commandIsGameManipulation, commandIsOther)
         filters_list.indexOf(filters_list.filter( x => x(command) )(0)) match {
@@ -498,4 +498,3 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         return null
     }
 }
-

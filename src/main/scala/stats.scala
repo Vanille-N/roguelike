@@ -4,15 +4,17 @@ import scala.collection.mutable.HashMap
 import scala.swing._
 import java.awt.Font
 import java.lang.System
-import java.util.Random
 import event._
 
+/* Stat/skills management
+ * - creation with random variations
+ * - interface
+ */
+
+// random variation upon stat creation
 class StatGen (var amount: Int, var variability: Int) {
     def instantiate: Stat = {
-        var x = amount
-        val r = new Random
-        x += (variability * r.nextGaussian).round.toInt
-        new Stat(x.max(0))
+        new Stat(Rng.gaussian(amount, variability).max(0))
     }
 }
 
@@ -38,6 +40,7 @@ class Stat (var base: Int) {
     def syncCurrent { residual = current }
 }
 
+// aggregation of stats
 class StatSet (
     val speed: Stat,
     val health: Stat,
@@ -125,6 +128,7 @@ class SkillSet (
     }
 }
 
+// Calculates the current strongest skill level
 class SkillRecord {
     var count: Array[Int] = Array(0, 0, 0, 0, 0, 0)
     var level: Int = 0

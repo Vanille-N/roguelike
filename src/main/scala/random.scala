@@ -2,13 +2,25 @@ import scala.util.Random
 import scala.collection.Iterable
 import scala.collection.mutable.Buffer
 
+/* Wrapper around util.Random
+ * - uniform random integers
+ * - weighted probabilistic yes/no choice
+ * - weighted choice from a probability distribution
+ * - geometric law
+ */
+
 object Rng extends Random {
     def uniform (min: Int, max: Int): Int = {
         min + this.nextInt(max - min)
     }
 
+    // returns true with probability p
     def choice (p: Double): Boolean = {
         this.nextFloat < p
+    }
+
+    def gaussian (base: Int, variability: Int): Int = {
+        base + (variability * this.nextGaussian).round.toInt
     }
 
     type Distribution[T] = Buffer[Tuple2[Double, T]]
@@ -19,6 +31,7 @@ object Rng extends Random {
             case Some(x) => Some(x)
         }
     }
+    // choose from probability distribution
     def weightedChoice[T] (options: Distribution[T]): Option[T] = {
         if (options.size == 0) return None
         var tot = 0.0
@@ -37,7 +50,7 @@ object Rng extends Random {
         null_flatten(Some(options(0)._2)) // should not happen except in case of floating point rounding issue
     }
 
-    // geometric random choice
+    // geometric random choice with parameter p
     def priorityChoice[T] (options: Iterable[T], p: Double): Option[T] = {
         var buf: Distribution[T] = Buffer()
         var q = 1.0

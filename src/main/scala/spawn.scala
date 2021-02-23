@@ -9,6 +9,11 @@ import event._
 import Rng.Distribution
 import MakeItem.MakeItem
 
+/* Spawners: organism creation
+ * - abstract definition
+ * - instances of cells
+ */
+
 abstract class Spawner (
     stats: StatSetGen,
     skills: SkillSetGen,
