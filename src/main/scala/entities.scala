@@ -115,12 +115,12 @@ abstract class Organism (
                 position.items.head.pickUp (this)
                 items += position.items.head
                 room.body.logs.text += "\nI " + this + " pick up the item, yay !"
-            } else {
+            }/* else {
                 room.body.logs.text += "\nI " + this + " did not pick up the item !"
-            }
-        } else {
+            }*/
+        } /*else {
             room.body.logs.text += "\nno items: " + position.items
-        }
+        }*/
         true
     }
 
