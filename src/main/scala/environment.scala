@@ -42,11 +42,13 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
     var friendlySpawner: PhysicalSpawner = null
     var hostileSpawner: PhysicalSpawner = null
+    var notifyLevel: Int = 0
 
     this.focusable = false
 
     def setItem (i: Item) = {
        items.add(i)
+       notification
     }
     def addOrganism (o: Organism) = {
         val idx = if (o.isFriendly) 1 else 0
@@ -106,6 +108,10 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     font = new Font("default", 0, 20)
     focusPainted = false
 
+    def notification {
+        notifyLevel = 255
+    }
+
     def updateVisuals {
         // text
         val totalStrength = strength(0) + strength(1)
@@ -123,6 +129,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
+        background = Scheme.set_blue_channel(background, notifyLevel)
+        notifyLevel = 3 * notifyLevel / 4
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
         foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
