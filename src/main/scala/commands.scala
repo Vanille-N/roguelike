@@ -21,6 +21,8 @@ object Status extends Enumeration {
     val FIRST_CALL = Value("first call")
     val SEC_CALL = Value("second call")
     val TER_CALL = Value("lthird call")
+    val WAIT_LOCS_CLICK_FIRST = Value("wait foir first click")
+    val WAIT_LOCS_CLICK_SECOND = Value("wait for second click")
 }
 import Status._
 
@@ -35,6 +37,8 @@ object CommandType extends Enumeration {
 import CommandType._
 
 class Command (val body: BodyPart, val room: Room, val player: Player) {
+    def AppendToLog(str: String): Unit = { body.logs.text += str }
+
     // When a key is pressed, it is checked to define the action to perform
     // actionFromText returns the action to perform given a text command.
     def actionFromText  (str: String) : (() => Unit) = {
@@ -47,7 +51,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         try shortcuts(key)
         catch {
             case e:java.util.NoSuchElementException => {
-                //body.logs.text += "\nErreur: touche " + key.toString + " non programmée."
+                //AppendToLog ("\nErreur: touche " + key.toString + " non programmée.")
                 () => ()
             }
         }
@@ -55,23 +59,130 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
 
     def keyPressed (c: Key.Value ): Unit = { actionFromKey(c)() }
 
+    def locsClicked(p: Pos) {
+        AppendToLog ("\nPosition clicked. status = " + status)
+        if(status != WAIT_LOCS_CLICK_FIRST && status != WAIT_LOCS_CLICK_SECOND) {
+            AppendToLog (p.listContents)
+            if (body.cmdline.text != "") {
+                body.cmdline.text += " " + p.i + " " + p.j
+            }
+        } else {
+            next(0) match {
+                case "select" => { LocsSelection(p) }
+                case _ => { status = FIRST_CALL }
+            }
+        }
+    }
+
+    def printSelection: Unit = {
+        AppendToLog ("Printing the " + body.organisms_selection.size + " selected organisms:")
+        body.organisms_selection.foreach { o => AppendToLog("\n" + o) }
+        AppendToLog ("\nEnd of the selection.")
+    }
+
+    def LocsSelection(p: Pos): Unit = {
+        def defineSelection: Unit = {
+            body.organisms_selection --= body.organisms_selection
+            if (List(2, 3, 4, 5).exists( x => next(x) == "" )) redefineSelection
+            else {
+                val x1: Int = next(2).toInt
+                val y1: Int = next(3).toInt
+                val x2: Int = next(4).toInt
+                val y2: Int = next(5).toInt
+                val R2: Int = ( (x1 - x2)^2 + (y1 - y2)^2 ).ceil.toInt
+                val R: Int  = ( scala.math.sqrt(R2) ).ceil.toInt
+                for ( i <- x1 - R to x1 + R ) {
+                    for ( j <- y1 - R to y1 + R ) {
+                        if( ( (x1-i)^2 + (y1-j)^2 ) < R2) {
+                            body.organisms_selection ++= room.locs(i, j).organisms(0)
+                            body.organisms_selection ++= room.locs(i, j).organisms(1)
+                        }// else { AppendToLog("\n(" + i + ", " + j + ") :/") }
+                    }
+                }
+                AppendToLog ("\n" + body.organisms_selection.size + " organisms added to selection")
+            }
+            status = FIRST_CALL
+        }
+        def redefineSelection: Unit = {
+            body.organisms_selection --= body.organisms_selection
+            AppendToLog ("\nAborting: selection empty")
+            status = FIRST_CALL
+        }
+        status match {
+            case FIRST_CALL => {
+                next(0) = "select"
+                AppendToLog ("\nPlease click on the center of your selection (q to abort)")
+                status = WAIT_LOCS_CLICK_FIRST
+            }
+            case WAIT_LOCS_CLICK_FIRST  => {
+                next(2) = p.i.toString
+                next(3) = p.j.toString
+                AppendToLog ("\n\t(" + p.i + ", " + p.j + ")\nPlease click on a location to define the radius of the selection (q to abort).")
+                status = WAIT_LOCS_CLICK_SECOND
+                }
+            case WAIT_LOCS_CLICK_SECOND  => {
+                next(4) = p.i.toString
+                next(5) = p.j.toString
+                AppendToLog ("\n\t(" + p.i + ", " + p.j + ")\nIs the selection C((" + next(2) + ", " + next(3) + "), (" + p.i  + ", " + p.j + ")) correct ? (Yes/No)")
+                status = SEC_CALL
+            }
+            case SEC_CALL               => {
+                next(1) match {
+                    case "Y" =>   { defineSelection }
+                    case "Yes" => { defineSelection }
+                    case "N" =>   { redefineSelection }
+                    case "No" =>  { redefineSelection }
+                    case _ => { AppendToLog("\nWrong Answer :/"); redefineSelection }
+                }
+                status = FIRST_CALL
+            }
+            case _                      => { AppendToLog(status.toString); redefineSelection }
+        }
+    }
+
+    def selection (args: Array[String]): Unit = {
+        if(args.length == 0) { AppendToLog ("\nArguments required (run `help selection` for more details)") }
+        else {
+            args(0) match {
+                case "show" =>  { printSelection }
+                case "filter" =>{
+                    if(args.length == 1) { AppendToLog ("An extra argument (`cells` or `cell` or `virus` or `virusses`) is requested") }
+                    args(1) match {
+                        case "virus" | "viruses" => { body.organisms_selection = body.organisms_selection.filter ( o => o.isFriendly ) }
+                        case "cell" | "cells" => { body.organisms_selection = body.organisms_selection.filter ( o => !o.isFriendly ) }
+                    }
+                }
+                case "flush" => {
+                    body.organisms_selection --= body.organisms_selection
+                }
+            }
+        }
+    }
+
     def ExecuteDirection (command: String): (() =>Unit) = { () => {
         command match {
-            case "Up" => { tryMove(UP) }
+            case "Up" =>   { tryMove(UP) }
             case "Down" => { tryMove(DOWN) }
             case "Left" => { tryMove(LEFT) }
-            case "Right" => { tryMove(RIGHT) }
+            case "Right" =>{ tryMove(RIGHT) }
+            case _ =>      { AppendToLog("\nUnknown direction `" + command + "` :/") }
         }
     }}
 
     def ExecuteDigit (command: String): (() =>Unit) = { () => { repeat = repeat * 10 + command.toInt }}
 
     def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
-        command match {
-                case "step" =>  { step (main_command.split(" ").tail) }
-                case "step_multiple" =>     { repeatAction({() => body.step}) }
-                case "play" =>  { play (main_command.split(" ").tail) }
-                case "stop" =>  { stop }
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
+                case "selection"=>      { selection (end_of_command) }
+                case "selection_print"=>{ printSelection }
+                case "select" =>        { LocsSelection (null) }
+                case "step" =>          { step (end_of_command) }
+                case "step_multiple" => { repeatAction({() => body.step}) }
+                case "play" =>          { play (end_of_command) }
+                case "stop" =>          { stop }
                 case "Space" => {
                     if(body.isPlaying) {
                         stop
@@ -83,30 +194,36 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }}
 
     def ExecuteGameManipulation(command: String): (() =>Unit) = { () => {
-        command match {
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
             // Organisms
-            case "list" =>  { list }
-            case "show" =>  { show (main_command.split(" ").tail) }
-            case "set" =>   { trySet (main_command.split(" ").tail) }
+            case "list" => { list }
+            case "show" => { show   (end_of_command) }
+            case "set" =>  { trySet (end_of_command) }
             // Items
-            case "itm" =>     { itm (main_command.split(" ").tail) }
-            case "itmadd" =>  { itmadd (main_command.split(" ").tail) }
-            case "itmdel" =>  { itmdel (main_command.split(" ").tail) }
-            case "itmlvl" =>  { itmlvl (main_command.split(" ").tail) }
+            case "itm" =>    { itm    (end_of_command) }
+            case "itmadd" => { itmadd (end_of_command) }
+            case "itmdel" => { itmdel (end_of_command) }
+            case "itmlvl" => { itmlvl (end_of_command) }
         }
     }}
 
     def ExecuteOther(command: String): (() =>Unit) = { () => {
-        command match {
-            case "Escape" => { repeat = 1 }
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
+            case "Escape" =>{ repeat = 1 }
             case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
-            case "q" =>     { body.logs.text += "\n"; body.globalPanel.requestFocusInWindow() }
+            case "q" =>     { AppendToLog ("\n"); body.globalPanel.requestFocusInWindow() }
             case "clear" => { body.logs.text = "" }
             // Misc'
-            case "help" =>  { help (main_command.split(" ").tail) }
-            case "?" =>     { help (main_command.split(" ").tail) }
-            case "" =>      {}
-            case _ =>       { if(body.cmdline.text != "" ) { body.logs.text += "\t> command not found ;/\n" }
+            case "help" => { help (end_of_command) }
+            case "?" =>    { help (end_of_command) }
+            case "" =>     {}
+            case _ =>      { if(body.cmdline.text != "" ) { AppendToLog ("\t> command not found ;/\n") }
             /*else { body.logs.text += "\n"+s }*/ }
         }
     }}
@@ -123,7 +240,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def commandIsGameInteraction (command: String) : Boolean = {
-        val list_of_interactions: List[String] = List("play", "step", "stop", "step_multiple", "Space")
+        val list_of_interactions: List[String] = List("play", "step", "stop", "step_multiple", "Space", "select", "selection_print", "selection")
         if (list_of_interactions.exists ( x => x == command )) true
         else false
     }
@@ -165,15 +282,16 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
 
     def commandRequest (main_command: String): Unit = {
         if (status == FIRST_CALL ) {
-            if (main_command != "" && body.cmdline.text != "") body.logs.text += "\n$ " + main_command
-            boundTypeFun(getCommandType(main_command))(main_command)()
+            if (main_command != "" && body.cmdline.text != "") AppendToLog("\n$ " + main_command)
+            boundTypeFun(getCommandType(main_command.split(" ")(0)))(main_command)()
         } else {
-            body.logs.text += "\n" + "?" + prompt + next(0) + ".ans\t<-\t" + main_command
+            AppendToLog("\n" + "?" + prompt + next(0) + ".ans\t<-\t" + main_command)
             next(0) match {
-                case "set" => { trySet (body.cmdline.text.split(" ")) }
-                case "show" =>{ show (body.cmdline.text.split(" ")) }
-                case "itm" => { itm (body.cmdline.text.split(" ")) }
-                case _ => { body.logs.text += "\nInternal error: unexpected a status > 0 ;:)"; status = FIRST_CALL }
+                case "set" =>    { trySet (body.cmdline.text.split(" ")) }
+                case "show" =>   { show (body.cmdline.text.split(" ")) }
+                case "itm" =>    { itm (body.cmdline.text.split(" ")) }
+                case "select" => { next(1) = main_command; LocsSelection(null) }
+                case _ => { AppendToLog("\nInternal error: unexpected a status > 0 ;:)"); status = FIRST_CALL }
             }
         }
         body.cmdline.text = ""
@@ -209,7 +327,6 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     )
 
     var status: Status = FIRST_CALL
-    var main_command: String = null
 
     var prompt: String = "\t>"
 
@@ -250,7 +367,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def list: Unit = {
         var i: Int = 0
         for ( o <- body.organisms.toList ) {
-            body.logs.text += "\n" + i + "-\t" + o
+            AppendToLog("\n" + i + "-\t" + o)
             i += 1
         }
     }
@@ -265,25 +382,25 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                     val target_organism = getOrganismById(target_id)
                     val stat = args(0) match {
                         case "SPD" => { target_organism.stats.speed }
-                        case "HP" => { target_organism.stats.health }
+                        case "HP" =>  { target_organism.stats.health }
                         case "POW" => { target_organism.stats.power }
                         case "DEF" => { target_organism.stats.resistance }
                         case "DEC" => { target_organism.stats.decisiveness }
-                        case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+                        case _ =>     { AppendToLog ("\nError: unbound value " + args(0) + " ;:("); null }
                     }
                     if (stat != null) {
                         stat.base = new_value
                         stat.syncBase
                     }
-                    body.logs.text += "\n" + target_organism
+                    AppendToLog ("\n" + target_organism)
                 }
                 case 1 => { // The command is incomplete => ask id; ask value (whatever the initial command was).
                     status = SEC_CALL // The next call will be passed to the second step
                     next(0) = "set"
                     next(1) = args(0)
-                    body.logs.text += "\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)"
+                    AppendToLog ("\n" + prompt + "Which organism do you want to affect? (type l to list the organisms)")
                 }
-                case _ => { body.logs.text += "\nInternal error: `set` missing argument" }
+                case _ => { AppendToLog ("\nInternal error: `set` missing argument") }
                 }
             }
             case SEC_CALL => {
@@ -291,7 +408,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 else {
                     status = TER_CALL
                     next(2) = args(0)
-                    body.logs.text += "\n" + prompt + "What is the new value of " + next(1) + "?"
+                    AppendToLog ("\n" + prompt + "What is the new value of " + next(1) + "?")
                 }
             }
             case TER_CALL => {
@@ -305,17 +422,17 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                         case "POW" => { target_organism.stats.power }
                         case "DEF" => { target_organism.stats.resistance }
                         case "DEC" => { target_organism.stats.decisiveness }
-                        case _ => { body.logs.text += "\nError: unbound value " + args(0) + " ;:("; null }
+                        case _ =>     { AppendToLog ("\nError: unbound value " + args(0) + " ;:("); null }
                 }
                 if (stat != null) {
                     stat.base = new_value
                     stat.syncBase
                 }
-                body.logs.text += "\n\n\n" + target_organism
+                AppendToLog ("\n\n\n" + target_organism)
                 status = FIRST_CALL
             }
             case _ => {
-                body.logs.text += "\nInternal error: command.trySet entered with status > 2 ;:)"
+                AppendToLog ("\nInternal error: command.trySet entered with status > 2 ;:)")
                 status = FIRST_CALL
             }
         }
@@ -325,38 +442,39 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         status match {
             case FIRST_CALL => {
                 if(arg.length == 1) {
-                    body.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                    AppendToLog ("\n" + getOrganismById(arg(0).toInt) )
                 } else {
                     status = SEC_CALL
                     next(0) = "show"
-                    body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                    AppendToLog ("\nWhich organism do you want to look for ? (l to list them)")
                 }
             }
             case SEC_CALL => {
                 arg(0) match {
                     case "l" => {
                         list
-                        body.logs.text += "\nWhich organism do you want to look for ? (l to list them)"
+                        AppendToLog ("\nWhich organism do you want to look for ? (l to list them)")
                     }
                     case _ => {
                         status = FIRST_CALL
-                        body.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                        AppendToLog ("\n" + getOrganismById(arg(0).toInt))
                     }
                 }
             }
             case _ => {
-                body.logs.text += "\n" + prompt + "Error, try `help` for usage"
+                AppendToLog ("\n" + prompt + "Error, try `help` for usage")
             }
         }
     }
 
     def help (args: Array[String]): Unit = {
+        var buffer: String = "\n"
         if(args.length == 0) {
             try {
-                body.logs.text += "\n"
                 val src = Source.fromFile("help/help")
-                src.foreach { s => body.logs.text += s }
+                src.foreach { s => buffer += s }
                 src.close
+                AppendToLog(buffer)
             } catch {
                 case e: FileNotFoundException => println("Error: Help file not found")
                 case e: IOException => println("Error: Failed to open help file")
@@ -364,17 +482,16 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         } else {
             for (i <- args) {
                 try {
-                    body.logs.text += "\n"
                     val src = Source.fromFile("help/help." + i)
-                    src.foreach { s => body.logs.text += s }
+                    src.foreach { s => buffer +=s }
                     src.close
-                } catch { case e: java.io.FileNotFoundException => body.logs.text += "Internal Error: help unavailable for `" + i + "`" }
+                    AppendToLog(buffer)
+                } catch { case e: java.io.FileNotFoundException => AppendToLog ("Internal Error: help unavailable for `" + i + "`") }
             }
         }
     }
 
     def step (arg: Array[String]) : Unit = {
-        // body.logs.text += "\n"
         if(arg.length == 0) { body.step }
         else {
             for(i <- 1 to (arg(0).toInt)) { body.step }
@@ -398,9 +515,9 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def repeatAction (action: () => Unit): Unit = {
-        if (repeat > 1) body.logs.text += "\nRepeating " + repeat + " times the action ..."
+        if (repeat > 1) AppendToLog ("\nRepeating " + repeat + " times the action ...")
         for (i <- 1 to repeat) action()
-        if (repeat > 1) body.logs.text += "\ndone"
+        if (repeat > 1) AppendToLog("\ndone")
         repeat = 1
     }
 
@@ -410,7 +527,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 case FIRST_CALL => {
                     next(0) = "itm"
                     status = SEC_CALL
-                    body.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
+                    AppendToLog ("\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->")
                 }
                 case SEC_CALL => {
                     arg(0) match {
@@ -440,12 +557,12 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         status match {
             case FIRST_CALL => {
                 arg.length match {
-                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { body.logs.text += "\nError, item command" } }
+                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { AppendToLog ("\nError, item command") } }
                     case 2 => {
                         arg(0) match { // that makes up-set-down haha!
                             case "up" =>  { getItmById(arg(1).toInt).levelUp }
                             case "down" =>{ getItmById(arg(1).toInt).levelDown }
-                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { AppendToLog ("\nError: `" + arg(0) + "` is not a defined command") }
                         }
                     }
                     case 1 => {
@@ -453,14 +570,14 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                             case "up" =>  { next(1) = "up"}
                             case "down" =>{ next(1) = "down" }
                             case "set" => { next(1) = "set" }
-                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { AppendToLog ("\nError: `" + arg(0) + "` is not a defined command") }
                         }
                         next(0) = "itmlvl"
                         status = SEC_CALL
-                        body.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
+                        AppendToLog ("\nOn which items woul you like to apply these changes ? (l to list them)")
                     }
                     case 0 => {
-                        body.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
+                        AppendToLog ("\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>")
                         next(0) = "itmlvl"
                         status = TER_CALL
                     }
@@ -473,7 +590,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 //TODO!
             }
             case _ => {
-                body.logs.text += "\nError ..."
+                AppendToLog ("\nError ...")
                 status = FIRST_CALL
             }
         }
@@ -481,7 +598,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def itmlist (arg: Array[String]): Unit = {
         var n: Int = 0
         body.items.foreach ( itm => {
-            body.logs.text += "\nItem " + n + "\n\t" + itm
+            AppendToLog ("\nItem " + n + "\n\t" + itm)
             n += 1
         })
     }
@@ -498,3 +615,4 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         return null
     }
 }
+
