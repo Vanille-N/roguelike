@@ -436,7 +436,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         status match {
             case FIRST_CALL => {
                 if(arg.length == 1) {
-                    body.logs.text += "\n" + getOrganismById(arg(0).toInt)
+                    AppendToLog ("\n" + getOrganismById(arg(0).toInt) )
                 } else {
                     status = SEC_CALL
                     next(0) = "show"
@@ -466,7 +466,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             try {
                 AppendToLog ("\n")
                 val src = Source.fromFile("help/help")
-                src.foreach { s => body.logs.text += s }
+                src.foreach { s => AppendToLog (s) }
                 src.close
             } catch {
                 case e: FileNotFoundException => println("Error: Help file not found")
@@ -475,17 +475,16 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         } else {
             for (i <- args) {
                 try {
-                    body.logs.text += "\n"
+                    AppendToLog ("\n")
                     val src = Source.fromFile("help/help." + i)
-                    src.foreach { s => body.logs.text += s }
+                    src.foreach { s => AppendToLog (s) }
                     src.close
-                } catch { case e: java.io.FileNotFoundException => body.logs.text += "Internal Error: help unavailable for `" + i + "`" }
+                } catch { case e: java.io.FileNotFoundException => AppendToLog ("Internal Error: help unavailable for `" + i + "`") }
             }
         }
     }
 
     def step (arg: Array[String]) : Unit = {
-        // body.logs.text += "\n"
         if(arg.length == 0) { body.step }
         else {
             for(i <- 1 to (arg(0).toInt)) { body.step }
@@ -509,9 +508,9 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def repeatAction (action: () => Unit): Unit = {
-        if (repeat > 1) body.logs.text += "\nRepeating " + repeat + " times the action ..."
+        if (repeat > 1) AppendToLog ("\nRepeating " + repeat + " times the action ...")
         for (i <- 1 to repeat) action()
-        if (repeat > 1) body.logs.text += "\ndone"
+        if (repeat > 1) AppendToLog("\ndone")
         repeat = 1
     }
 
@@ -521,7 +520,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 case FIRST_CALL => {
                     next(0) = "itm"
                     status = SEC_CALL
-                    body.logs.text += "\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->"
+                    AppendToLog ("\nWhich action would you like to perform ?\n\tadd\n\tdel\n\tlvl => (set|(de|in)crease) the level of a given item\n\t->")
                 }
                 case SEC_CALL => {
                     arg(0) match {
@@ -551,12 +550,12 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         status match {
             case FIRST_CALL => {
                 arg.length match {
-                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { body.logs.text += "\nError, item command" } }
+                    case 3 => { if(arg(0) == "set") { getItmById(arg(1).toInt).level = arg(2).toInt } else { AppendToLog ("\nError, item command") } }
                     case 2 => {
                         arg(0) match { // that makes up-set-down haha!
                             case "up" =>  { getItmById(arg(1).toInt).levelUp }
                             case "down" =>{ getItmById(arg(1).toInt).levelDown }
-                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { AppendToLog ("\nError: `" + arg(0) + "` is not a defined command") }
                         }
                     }
                     case 1 => {
@@ -564,14 +563,14 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                             case "up" =>  { next(1) = "up"}
                             case "down" =>{ next(1) = "down" }
                             case "set" => { next(1) = "set" }
-                            case _ =>     { body.logs.text += "\nError: `" + arg(0) + "` is not a defined command" }
+                            case _ =>     { AppendToLog ("\nError: `" + arg(0) + "` is not a defined command") }
                         }
                         next(0) = "itmlvl"
                         status = SEC_CALL
-                        body.logs.text += "\nOn which items woul you like to apply these changes ? (l to list them)"
+                        AppendToLog ("\nOn which items woul you like to apply these changes ? (l to list them)")
                     }
                     case 0 => {
-                        body.logs.text += "\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>"
+                        AppendToLog ("\nWhat action would you like to perform ?\n\tup -> increase a level\n\tdown -> decrease a level\n\tset -> set a level\n\t=>")
                         next(0) = "itmlvl"
                         status = TER_CALL
                     }
@@ -584,7 +583,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 //TODO!
             }
             case _ => {
-                body.logs.text += "\nError ..."
+                AppendToLog ("\nError ...")
                 status = FIRST_CALL
             }
         }
@@ -592,7 +591,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def itmlist (arg: Array[String]): Unit = {
         var n: Int = 0
         body.items.foreach ( itm => {
-            body.logs.text += "\nItem " + n + "\n\t" + itm
+            AppendToLog ("\nItem " + n + "\n\t" + itm)
             n += 1
         })
     }
