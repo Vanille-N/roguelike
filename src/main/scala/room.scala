@@ -30,6 +30,13 @@ extends Reactor with Publisher {
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
     val virusSpawner = new DefaultVirusSpawner()
 
+    def init {
+        val src = Source.fromFile("assets/" + fbase + ".room")
+        val lines = src.getLines
+        val dimensions = lines.next.split(" ")
+        rows = dimensions(0).toInt
+        cols = dimensions(1).toInt
+        locs = new Grid(this, rows, cols)
     locs.map(listenTo(_))
 
     reactions += {
