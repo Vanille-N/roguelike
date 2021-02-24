@@ -37,6 +37,22 @@ extends Reactor with Publisher {
         rows = dimensions(0).toInt
         cols = dimensions(1).toInt
         locs = new Grid(this, rows, cols)
+        for (i <- 0 to rows-1) {
+            val line = lines.next
+            for (j <- 0 to cols-1) {
+                line(j) match {
+                    case ' ' => ()
+                    case '*' => locs(i, j).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 0.015, 10))
+                    case '#' => wallSpawner.spawn(locs(i, j))
+                    case 'R' => locs(i, j).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.03, 7))
+                    case 'W' => locs(i, j).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.02, 5))
+                }
+            }
+        }
+        src.close
+    }
+    init
+
     locs.map(listenTo(_))
 
     reactions += {
