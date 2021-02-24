@@ -15,6 +15,20 @@ import scala.io.Source
 // The whole room
 class Room (val body: BodyPart, fbase: String)
 extends Reactor with Publisher {
+    // initialization from src file
+    var rows = 0
+    var cols = 0
+    var locs = new Grid(this, 0, 0)
+
+    val wallSpawner = new DefaultWallCellSpawner()
+    def makeWall (p: Pos, q: Pos) = {
+        for (i <- p.i to q.i; j <- p.j to q.j) {
+            wallSpawner.spawn(locs(i, j))
+        }
+    }
+    val redCellSpawner = new DefaultRedCellSpawner()
+    val whiteCellSpawner = new DefaultWhiteCellSpawner()
+    val virusSpawner = new DefaultVirusSpawner()
 
     locs.map(listenTo(_))
 
