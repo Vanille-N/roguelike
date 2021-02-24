@@ -24,9 +24,6 @@ case class displayContents (p: Pos) extends Event
 // item/floor code returns booleans.
 
 class BodyPart extends Reactor {
-    val cols = 30
-    val rows = 30
-
     var globalPanel : GridBagPanel = null
 
     val cmdline = new TextField {
@@ -44,7 +41,7 @@ class BodyPart extends Reactor {
     var organisms: Set[Organism] = Set()
     var items: Set[Item] = Set()
 
-    val room = new PlainRoom(this, rows, cols)
+    val room = new Room(this, "plain")
 
     val player = new Player(room.locs(10, 10))
 
@@ -54,7 +51,7 @@ class BodyPart extends Reactor {
 
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
-        val grid = new GridPanel(rows, cols)
+        val grid = new GridPanel(room.rows, room.cols)
         room.locs.map(grid.contents += _)
 
         listenTo(room, cmdline);
