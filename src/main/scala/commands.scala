@@ -93,13 +93,15 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 val R: Int  = ( scala.math.sqrt(R2) ).ceil.toInt
                 for ( i <- x1 - R to x1 + R ) {
                     for ( j <- y1 - R to y1 + R ) {
-                        if(((x1-i)^2 + (y1-j)^2) < R2 && i >= 0 && j >= 0 && i <= body.cols && j <= body.rows) {
-                            room.locs(i, j).organisms(0).foreach { o => body.organisms_selection += o }
-                            room.locs(i, j).organisms(1).foreach { o => body.organisms_selection += o }
-                        }
+                        if( ( (x1-i)^2 + (y1-j)^2 ) < R2) {
+                            body.organisms_selection ++= room.locs(i, j).organisms(0)
+                            body.organisms_selection ++= room.locs(i, j).organisms(1)
+                        }// else { AppendToLog("\n(" + i + ", " + j + ") :/") }
                     }
                 }
+                AppendToLog ("\n" + body.organisms_selection.size + " organisms added to selection")
             }
+            status = FIRST_CALL
         }
         def redefineSelection: Unit = {
             body.organisms_selection --= body.organisms_selection
@@ -130,10 +132,30 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                     case "Yes" => { defineSelection }
                     case "N" =>   { redefineSelection }
                     case "No" =>  { redefineSelection }
+                    case _ => { AppendToLog("\nWrong Answer :/"); redefineSelection }
                 }
                 status = FIRST_CALL
             }
-            case _                      => { AppendToLog ("\n\t-> Aborting."); status = FIRST_CALL }
+            case _                      => { AppendToLog(status.toString); redefineSelection }
+        }
+    }
+
+    def selection (args: Array[String]): Unit = {
+        if(args.length == 0) { AppendToLog ("\nArguments required (run `help selection` for more details)") }
+        else {
+            args(0) match {
+                case "show" =>  { printSelection }
+                case "filter" =>{
+                    if(args.length == 1) { AppendToLog ("An extra argument (`cells` or `cell` or `virus` or `virusses`) is requested") }
+                    args(1) match {
+                        case "virus" | "viruses" => { body.organisms_selection = body.organisms_selection.filter ( o => o.isFriendly ) }
+                        case "cell" | "cells" => { body.organisms_selection = body.organisms_selection.filter ( o => !o.isFriendly ) }
+                    }
+                }
+                case "flush" => {
+                    body.organisms_selection --= body.organisms_selection
+                }
+            }
         }
     }
 
@@ -151,6 +173,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
         val end_of_command: Array[String] = command.split(" ").tail
         command match {
+                case "selection"=>      { selection (end_of_command) }
                 case "selection_print"=>{ printSelection }
                 case "select" =>        { LocsSelection (null) }
                 case "step" =>          { step (end_of_command) }
@@ -210,7 +233,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def commandIsGameInteraction (command: String) : Boolean = {
-        val list_of_interactions: List[String] = List("play", "step", "stop", "step_multiple", "Space", "select", "selection_print")
+        val list_of_interactions: List[String] = List("play", "step", "stop", "step_multiple", "Space", "select", "selection_print", "selection")
         if (list_of_interactions.exists ( x => x == command )) true
         else false
     }
@@ -253,7 +276,7 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     def commandRequest (main_command: String): Unit = {
         if (status == FIRST_CALL ) {
             if (main_command != "" && body.cmdline.text != "") AppendToLog("\n$ " + main_command)
-            boundTypeFun(getCommandType(main_command))(main_command)()
+            boundTypeFun(getCommandType(main_command.split(" ")(0)))(main_command)()
         } else {
             AppendToLog("\n" + "?" + prompt + next(0) + ".ans\t<-\t" + main_command)
             next(0) match {
