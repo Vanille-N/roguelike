@@ -44,6 +44,8 @@ class BodyPart extends Reactor {
     var organisms: Set[Organism] = Set()
     var items: Set[Item] = Set()
 
+    var organisms_selection: Set[Organism] = Set()
+
     val room = new PlainRoom(this, rows, cols)
 
     val player = new Player(room.locs(10, 10))
@@ -119,12 +121,7 @@ class BodyPart extends Reactor {
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case displayContents(p: Pos) => {
-            this.logs.text += p.listContents
-            if (this.cmdline.text != "") {
-                this.cmdline.text += " " + p.i + " " + p.j
-            }
-        }
+        case displayContents(p: Pos) => { command.locsClicked(p) }
         case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { command.keyPressed(c) }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
