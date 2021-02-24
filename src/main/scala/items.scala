@@ -161,15 +161,29 @@ object MakeItem extends Enumeration {
     type MakeItem = Value
     val KNIFE = Value
     val ALCOHOL = Value
+    val MOVE = Value
+    val JAVEL = Value
+    val HEAT = Value
+    val SPIKE = Value
+    val LEAK = Value
+    val MEMBRANE = Value
     val NONE = Value
 
-    def build_item (it: MakeItem, pos: Pos) : Item = {
+    def build_item (it: MakeItem, pos: Pos) {
         var item = it match {
             case KNIFE => new Knife(pos)
             case ALCOHOL => new Alcohol(pos)
+            case MOVE => new BodyMovement(pos)
+            case JAVEL => new Javel(pos)
+            case HEAT => new Heat(pos)
+            case SPIKE => new Spike(pos)
+            case LEAK => new CytoplasmLeak(pos)
+            case MEMBRANE => new MembraneReplacement(pos)
             case NONE => null
         }
-        item
+        if (item != null) {
+            item.drop
+        }
     }
 }
 
@@ -227,7 +241,7 @@ abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
 
 
 /* --- * SpatialActionItem * ---*/
-// Affaiblie tout sur son passage
+// Affaiblit tout sur son passage
 class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     setPos(position)
 
@@ -246,6 +260,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
 
     override def step: Unit = {
         for (l <- LocsPicking) {
+            l.notification
             for (orga <- l.organisms.toList) {
                 for (o <- orga.toList) { o.stats.health.residual = (0) }
             }
@@ -268,7 +283,7 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     targetStat = HP
 
     override def action (o: Organism, t: Organism): Unit = {
-        for(org <- position.room.body.organisms) {
+        for (org <- position.room.body.organisms) {
             unpayCost(owner)
             super.action(owner, org)
             for(i <- 1 to 10) {
@@ -286,7 +301,7 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
     setPos(position)
 
     override def action (o: Organism, t: Organism): Unit = {
-        for(org <- position.room.body.organisms) {
+        for (org <- position.room.body.organisms) {
             org.stats.health.residual = 0
         }
         drop
