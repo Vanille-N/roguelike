@@ -462,12 +462,13 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }
 
     def help (args: Array[String]): Unit = {
+        var buffer: String = "\n"
         if(args.length == 0) {
             try {
-                AppendToLog ("\n")
                 val src = Source.fromFile("help/help")
-                src.foreach { s => AppendToLog (s) }
+                src.foreach { s => buffer += s }
                 src.close
+                AppendToLog(buffer)
             } catch {
                 case e: FileNotFoundException => println("Error: Help file not found")
                 case e: IOException => println("Error: Failed to open help file")
@@ -475,10 +476,10 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         } else {
             for (i <- args) {
                 try {
-                    AppendToLog ("\n")
                     val src = Source.fromFile("help/help." + i)
-                    src.foreach { s => AppendToLog (s) }
+                    src.foreach { s => buffer +=s }
                     src.close
+                    AppendToLog(buffer)
                 } catch { case e: java.io.FileNotFoundException => AppendToLog ("Internal Error: help unavailable for `" + i + "`") }
             }
         }
