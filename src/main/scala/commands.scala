@@ -165,14 +165,17 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             case "Down" => { tryMove(DOWN) }
             case "Left" => { tryMove(LEFT) }
             case "Right" =>{ tryMove(RIGHT) }
+            case _ =>      { AppendToLog("\nUnknown direction `" + command + "` :/") }
         }
     }}
 
     def ExecuteDigit (command: String): (() =>Unit) = { () => { repeat = repeat * 10 + command.toInt }}
 
     def ExecuteGameInteraction (command: String): (() =>Unit) = { () => {
-        val end_of_command: Array[String] = command.split(" ").tail
-        command match {
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
                 case "selection"=>      { selection (end_of_command) }
                 case "selection_print"=>{ printSelection }
                 case "select" =>        { LocsSelection (null) }
@@ -191,8 +194,10 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }}
 
     def ExecuteGameManipulation(command: String): (() =>Unit) = { () => {
-        val end_of_command: Array[String] = command.split(" ").tail
-        command match {
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
             // Organisms
             case "list" => { list }
             case "show" => { show   (end_of_command) }
@@ -206,8 +211,10 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     }}
 
     def ExecuteOther(command: String): (() =>Unit) = { () => {
-        val end_of_command: Array[String] = command.split(" ").tail
-        command match {
+        val array_command: Array[String] = command.split(" ")
+        val end_of_command: Array[String] = array_command.tail
+        val name_of_command: String = array_command.head
+        name_of_command match {
             case "Escape" =>{ repeat = 1 }
             case "quit" =>  { stop; Runtime.getRuntime().halt(0) }
             case "q" =>     { AppendToLog ("\n"); body.globalPanel.requestFocusInWindow() }
@@ -320,7 +327,6 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
     )
 
     var status: Status = FIRST_CALL
-    var main_command: String = null
 
     var prompt: String = "\t>"
 
