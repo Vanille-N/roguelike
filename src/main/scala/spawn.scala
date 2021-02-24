@@ -82,7 +82,13 @@ class DefaultRedCellSpawner extends CellSpawner(
     ),
     name = "red cell",
 ) {
-    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+    import MakeItem._
+    override def itemDrop = Buffer(
+        (0.7, NONE),
+        (0.1, JAVEL),
+        (0.1, MEMBRANE),
+        (0.1, ALCOHOL),
+    )
 }
 
 class DefaultWhiteCellSpawner extends CellSpawner(
@@ -100,7 +106,14 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     name = "red cell",
     behavior = Behavior.SEEK
 ) {
-    override def itemDrop = Buffer((0.5, MakeItem.KNIFE), (0.5, MakeItem.NONE))
+    import MakeItem._
+    override def itemDrop = Buffer(
+        (0.5, NONE),
+        (0.2, SPIKE),
+        (0.1, LEAK),
+        (0.1, HEAT),
+        (0.05, KNIFE),
+    )
 }
 
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
