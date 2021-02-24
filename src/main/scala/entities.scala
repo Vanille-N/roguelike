@@ -105,11 +105,11 @@ abstract class Organism (
     }
 
     override def toString: String = {
-        val s = skills.toString
-        val stats = "   STR:" + strength + (if (s == "") "" else "   (" + s + ")") + "\n" +
+        val sk = skills.toString
+        val st = "   STR:" + strength + (if (sk == "") "" else "   (" + sk + ")") + "\n" +
         "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]"
-        val holding = if items.size > 0 then "\nholding ..." else ""
-        name + stats + holding
+        val hold = if (items.size > 0) "\nholding {" + items.map(_.toString).mkString(",") + "}" else ""
+        name + st + hold
     }
 
     // Pathfinding parameters
@@ -131,13 +131,16 @@ abstract class Organism (
         if (position.items.size > 0) {
             if (Rng.choice(stats.decisiveness.current / 100.0)) {
                 val it = position.items.head
+                //room.body.logs.text += "Try to pick up"
                 if (it.pickUp(this)) {
                     items += it
                     room.body.logs.text += "\nI " + this + " pick up the item, yay !"
-                }
-            } /* else {
-                room.body.logs.text += "\nI " + this + " did not pick up the item !"
-            } */
+                } //else {
+                    //room.body.logs.text += "Nope"
+                //}
+            } //else {
+                //room.body.logs.text += "\nI " + this + " did not pick up the item !"
+            //}
         } /*else {
             room.body.logs.text += "\nno items: " + position.items
         }*/
