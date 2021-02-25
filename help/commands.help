@@ -1,5 +1,5 @@
 Available commands :
-  | set stat_field [organism_id new_value]
+  | set [...]             -> help set
   | list
   | play
   | stop
@@ -11,3 +11,5 @@ Available commands :
   | Left
   | help [...]
   | clear
+  | select                 -> help select
+  | selection [...]        -> help select

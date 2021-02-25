@@ -23,22 +23,12 @@ If there is no conflicts, one may use an uppercase reperesentant of a key as com
   │ (step    | N)     -> step by step advance of the game │
   │ (list    | O)     -> list the organisms               │
   │ (show n  | _)     -> show the organism n              │
-  │ (set ... | _)     -> set an organism stats            │
   │ (help    | ?)     -> print this msg                   │
   │ (play [n]| ' ')   -> make a step each [n=1] second(s) │
   │ (stop    | ' ')   -> stop autoplaying                 │
   └───────────────────────────────────────────────────────┘
 
-
-# Remarks over the set function:
-
-One can either use
-      `set stat id val`
-  to set the `stat` field of the organism `id` to (`val` :Int)
-OR `set stat` to use an interactive interface.
-
-where `stats` is:
-  | hp  -> health
-  | pow -> power
-  | def -> resistance
-  | dec -> decisiveness
+For more, use
+    help set
+    help commands
+    help select

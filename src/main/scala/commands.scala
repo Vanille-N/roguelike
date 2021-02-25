@@ -487,11 +487,11 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         } else {
             for (i <- args) {
                 try {
-                    val src = Source.fromFile("help/help." + i)
+                    val src = Source.fromFile("help/" + i + ".help")
                     src.foreach { s => buffer +=s }
                     src.close
                     AppendToLog(buffer)
-                } catch { case e: java.io.FileNotFoundException => AppendToLog ("Internal Error: help unavailable for `" + i + "`") }
+                } catch { case e: java.io.FileNotFoundException => AppendToLog ("\nInternal Error: help unavailable for `" + i + "`") }
             }
         }
     }
