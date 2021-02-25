@@ -16,7 +16,6 @@ import Direction._
  * - behavior of organisms moving towards/away from the cursor
  */
 
-
 class Player (var position: Pos) {
     def placeOnMap (p: Pos) {
         position = p
@@ -32,6 +31,8 @@ class Player (var position: Pos) {
             true
         } else false
     }
+
+    var inventory: Set[Item] = Set()
 }
 
 object Behavior extends Enumeration {

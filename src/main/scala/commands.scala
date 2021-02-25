@@ -20,8 +20,8 @@ object Status extends Enumeration {
     type Status = Value
     val FIRST_CALL = Value("first call")
     val SEC_CALL = Value("second call")
-    val TER_CALL = Value("lthird call")
-    val WAIT_LOCS_CLICK_FIRST = Value("wait foir first click")
+    val TER_CALL = Value("third call")
+    val WAIT_LOCS_CLICK_FIRST = Value("wait for first click")
     val WAIT_LOCS_CLICK_SECOND = Value("wait for second click")
 }
 import Status._
@@ -89,14 +89,11 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
                 val y1: Int = next(3).toInt
                 val x2: Int = next(4).toInt
                 val y2: Int = next(5).toInt
-                val R2: Int = ( (x1 - x2)^2 + (y1 - y2)^2 ).ceil.toInt
-                val R: Int  = ( scala.math.sqrt(R2) ).ceil.toInt
-                for ( i <- x1 - R to x1 + R ) {
-                    for ( j <- y1 - R to y1 + R ) {
-                        if( ( (x1-i)^2 + (y1-j)^2 ) < R2) {
-                            body.organisms_selection ++= room.locs(i, j).organisms(0)
-                            body.organisms_selection ++= room.locs(i, j).organisms(1)
-                        }// else { AppendToLog("\n(" + i + ", " + j + ") :/") }
+                val radius: Int = (x1 - x2).abs + (y1 - y2).abs
+                for (i <- x1 - radius to x1 + radius; j <- y1 - radius to y1 + radius ) {
+                    if (0 <= i && i < room.rows && 0 <= j && j < room.cols) {
+                        body.organisms_selection ++= room.locs(i, j).organisms(0)
+                        body.organisms_selection ++= room.locs(i, j).organisms(1)
                     }
                 }
                 AppendToLog ("\n" + body.organisms_selection.size + " organisms added to selection")
@@ -111,32 +108,30 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         status match {
             case FIRST_CALL => {
                 next(0) = "select"
-                AppendToLog ("\nPlease click on the center of your selection (q to abort)")
+                AppendToLog ("\nPlease click on the center of your selection\n(q to abort)")
                 status = WAIT_LOCS_CLICK_FIRST
             }
-            case WAIT_LOCS_CLICK_FIRST  => {
+            case WAIT_LOCS_CLICK_FIRST => {
                 next(2) = p.i.toString
                 next(3) = p.j.toString
-                AppendToLog ("\n\t(" + p.i + ", " + p.j + ")\nPlease click on a location to define the radius of the selection (q to abort).")
+                AppendToLog ("\n\t(" + p.i + ", " + p.j + ")\nPlease click on a location to define the radius\nof the selection (q to abort).")
                 status = WAIT_LOCS_CLICK_SECOND
-                }
-            case WAIT_LOCS_CLICK_SECOND  => {
+            }
+            case WAIT_LOCS_CLICK_SECOND => {
                 next(4) = p.i.toString
                 next(5) = p.j.toString
                 AppendToLog ("\n\t(" + p.i + ", " + p.j + ")\nIs the selection C((" + next(2) + ", " + next(3) + "), (" + p.i  + ", " + p.j + ")) correct ? (Yes/No)")
                 status = SEC_CALL
             }
-            case SEC_CALL               => {
+            case SEC_CALL => {
                 next(1) match {
-                    case "Y" =>   { defineSelection }
-                    case "Yes" => { defineSelection }
-                    case "N" =>   { redefineSelection }
-                    case "No" =>  { redefineSelection }
+                    case "Y" | "y" | "Yes" | "yes" =>   { defineSelection }
+                    case "N" | "n" | "No" | "no" =>   { redefineSelection }
                     case _ => { AppendToLog("\nWrong Answer :/"); redefineSelection }
                 }
                 status = FIRST_CALL
             }
-            case _                      => { AppendToLog(status.toString); redefineSelection }
+            case _ => { AppendToLog(status.toString); redefineSelection }
         }
     }
 
@@ -146,14 +141,24 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
             args(0) match {
                 case "show" =>  { printSelection }
                 case "filter" =>{
-                    if(args.length == 1) { AppendToLog ("An extra argument (`cells` or `cell` or `virus` or `virusses`) is requested") }
+                    if(args.length == 1) { AppendToLog ("An extra argument (`cell` or `virus` or a number) is requested") }
                     args(1) match {
-                        case "virus" | "viruses" => { body.organisms_selection = body.organisms_selection.filter ( o => o.isFriendly ) }
-                        case "cell" | "cells" => { body.organisms_selection = body.organisms_selection.filter ( o => !o.isFriendly ) }
+                        case "virus" => { body.organisms_selection = body.organisms_selection.filter ( o => o.isFriendly ) }
+                        case "cell" => { body.organisms_selection = body.organisms_selection.filter ( o => !o.isFriendly ) }
+                        case _ => { AppendToLog("\nNot a valid third argument") }
                     }
                 }
                 case "flush" => {
                     body.organisms_selection --= body.organisms_selection
+                }
+                case "take" => {
+                    body.organisms_selection.foreach(o => {
+                        if (o.isFriendly) {
+                            room.body.player.inventory ++= o.items
+                            o.items.empty
+                        }
+                    })
+                    AppendToLog("\nNow holding " + room.body.player.inventory.size + " items")
                 }
             }
         }
@@ -615,4 +620,3 @@ class Command (val body: BodyPart, val room: Room, val player: Player) {
         return null
     }
 }
-
