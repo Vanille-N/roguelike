@@ -234,7 +234,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
 // Aggregate functions for positions
 class Grid (room: Room, rows: Int, cols: Int) {
-    val elem = IndexedSeq.tabulate(rows, cols) {(i, j) => new Pos(room, i, j)}
+    val elem = IndexedSeq.tabulate(rows, cols) { (i, j) => new Pos(room, i, j) }
     def map[U] (f: Pos => U) = elem.map(_.map(f(_)))
     def filter (f: Pos => Boolean) = elem.flatten.filter(f(_))
     def apply (i: Int, j: Int) = elem(i)(j)

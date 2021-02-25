@@ -46,8 +46,8 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         var distances: Buffer[Tuple2[Double, Direction]] = Buffer()
         // all reachable positions
         for (i <- 0 to 4) {
-            val newPosition = curr.tryAdd(possible(i))
-            if (newPosition != null) distances += Tuple2(newPosition.distanceL2(focus), possible(i))
+            val newPos = curr.tryAdd(possible(i))
+            if (newPos != null) distances += Tuple2(getDistance(newPos.i, newPos.j, focus.i, focus.j), possible(i))
         }
         // choose best ones
         behavior match {

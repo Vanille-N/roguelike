@@ -43,7 +43,7 @@ class BodyPart extends Reactor {
 
     var organisms_selection: Set[Organism] = Set()
 
-    val room = new Room(this, "plain")
+    val room = new Room(this, "snake")
 
     val player = new Player(room.locs(10, 10))
 
