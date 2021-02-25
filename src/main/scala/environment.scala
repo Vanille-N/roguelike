@@ -104,11 +104,12 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     }
 
     // interaction with spawners
+    val maxLivingOrgs = 500
     def setFriendlySpawner (s: PhysicalSpawner) { friendlySpawner = s; s.position = this }
     def setHostileSpawner (s: PhysicalSpawner) { hostileSpawner = s; s.position = this }
-    def trySpawn {
+    def trySpawn (nbAlive: Int) {
         if (friendlySpawner != null) friendlySpawner.step
-        if (hostileSpawner != null) hostileSpawner.step
+        if (hostileSpawner != null && nbAlive < maxLivingOrgs) hostileSpawner.step
     }
     def forceSpawn {
         if (friendlySpawner != null) friendlySpawner.spawn

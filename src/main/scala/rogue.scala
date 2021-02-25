@@ -112,7 +112,7 @@ class BodyPart extends Reactor {
         items.foreach(i => {
             i.step
         })
-        room.locs.map(_.trySpawn)
+        room.locs.map(_.trySpawn(organisms.size))
         room.locs.map(_.updateVisuals)
     }
 
