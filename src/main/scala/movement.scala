@@ -55,12 +55,12 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         println("Calculating distances from (" + i + "," + j + ")")
         while (!q.isEmpty) {
             val (k, l, dist) = q.dequeue
-            println("Reached (" + k + "," + l + ")")
+            // println("Reached (" + k + "," + l + ")")
             for (dk <- -1 to 1; dl <- -1 to 1) {
                 if ((dk, dl) != (0, 0)) {
                     val nk = k + dk
                     val nl = l + dl
-                    println("Considering (" + nk + "," + nl + ")")
+                    // println("Considering (" + nk + "," + nl + ")")
                     if (
                         0 <= nk && nk < rows && 0 <= nl && nl < cols // valid position
                         && dists(nk)(nl) == -1 // not reached yet

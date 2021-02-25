@@ -40,6 +40,16 @@ abstract class Item (var position: Pos) {
         pickable = true
         position.items += this
     }
+    def destroy {
+        if (owner != null) {
+            owner.items -= this
+            owner.position.room.body.items -= this
+        }
+        if (position != null) {
+            position.items -= this
+            position.room.body.items -= this
+        }
+    }
 
     // Item usage-related elements
     var cost_factor: Int = 0 // The real cost is cost_factor * level
@@ -115,6 +125,7 @@ abstract class Item (var position: Pos) {
 
     var targetStat: StatType = NONE
     def action (o: Organism, t: Organism): Unit = {
+        println(this + " is being used")
         payCost(o)
         damageUpdate
         def apply_damage (x: Stat) {
@@ -138,7 +149,7 @@ abstract class Item (var position: Pos) {
 
     def superAction (o: Organism): Unit = {}
 
-    def use(o: Organism, t: Organism) = { if(isUsable(o)) { action(o, t) } }
+    def use (o: Organism, t: Organism) = { if(isUsable(o)) { action(o, t); destroy } }
 
     def levelUp: Unit = { level += 1 }
     def levelDown: Unit = { level -= 1 }
@@ -183,6 +194,7 @@ object MakeItem extends Enumeration {
         }
         if (item != null) {
             item.drop
+            pos.room.body.items += item
         }
     }
 }
@@ -217,16 +229,17 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
     }
 
     override def step: Unit = {
-        if(pickable == false) {
+        if (pickable == false) {
             damageUpdate
             for (l <- LocsPicking) {
+                l.notification
                 for (orga <- l.organisms.toList) {
                     for (o <- orga.toList) { if(o != owner) { o.stats.health.residual = (o.stats.health.residual - damage) } }
                 }
             }
         }
         super.step
-        position = position.jump(mv_vert, mv_horiz)
+        // position = position.jump(mv_vert, mv_horiz)
     }
 }
 
@@ -266,7 +279,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
             }
         }
         super.step
-        position = position.jump(mv_vert, mv_horiz)
+        // position = position.jump(mv_vert, mv_horiz)
     }
 }
 

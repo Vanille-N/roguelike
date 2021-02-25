@@ -98,7 +98,7 @@ class BodyPart extends Reactor {
         var active = true
         // loop until no one can move anymore
         while (active) {
-            println("Still some active cells")
+            // println("Still some active cells")
             active = false
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
@@ -110,6 +110,7 @@ class BodyPart extends Reactor {
         })
         // move
         items.foreach(i => {
+            print(".")
             i.step
         })
         room.locs.map(_.trySpawn(organisms.size))
