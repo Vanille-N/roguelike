@@ -41,6 +41,14 @@ object Behavior extends Enumeration {
 import Behavior._
 
 class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int) {
+    def getDistance (iCurrent: Int, jCurrent: Int, iTarget: Int, jTarget: Int): Int = {
+        // println("Checking (" + iTarget + "," + jTarget + ")")
+        if (distance(iTarget)(jTarget) == null) {
+            calcDistances(iTarget, jTarget)
+        }
+        distance(iTarget)(jTarget)(iCurrent)(jCurrent)
+    }
+
     def next (curr: Pos, focus: Pos, behavior: Behavior): Buffer[Direction] = {
         val possible = Array(STAY, LEFT, RIGHT, DOWN, UP)
         var distances: Buffer[Tuple2[Double, Direction]] = Buffer()
