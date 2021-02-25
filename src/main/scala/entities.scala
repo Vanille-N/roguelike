@@ -117,7 +117,7 @@ abstract class Organism (
     def behavior: Behavior
 
     def step (room: Room): Boolean = { // boolean indicates if the organism can still move
-        val options = PathFinder.next(this.position, this.focus, this.behavior)
+        val options = room.pathFinder.next(this.position, this.focus, this.behavior)
         val allowed = options.map(moveIsAllowed(room, _)).filter(x => x != null)
         // choose where to go: higher decisiveness leads to better decisions
         val mv = Rng.priorityChoice(allowed, stats.decisiveness.current / 100.0)

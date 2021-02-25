@@ -50,6 +50,7 @@ extends Reactor with Publisher {
             }
         }
         src.close
+        val pathFinder = new PathFinder(availability, rows, cols)
     }
     init
 

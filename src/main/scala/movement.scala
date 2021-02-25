@@ -40,7 +40,7 @@ object Behavior extends Enumeration {
 }
 import Behavior._
 
-object PathFinder {
+class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int) {
     def next (curr: Pos, focus: Pos, behavior: Behavior): Buffer[Direction] = {
         val possible = Array(STAY, LEFT, RIGHT, DOWN, UP)
         var distances: Buffer[Tuple2[Double, Direction]] = Buffer()
