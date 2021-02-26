@@ -1,4 +1,5 @@
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Buffer
 import Math._
 
 /* Items interface
@@ -125,7 +126,7 @@ abstract class Item (var position: Pos) {
 
     var targetStat: StatType = NONE
     def action (o: Organism, t: Organism): Unit = {
-        println(this + " is being used")
+        /**DEBUG println(this + " is being used") OVER**/
         payCost(o)
         damageUpdate
         def apply_damage (x: Stat) {
@@ -155,6 +156,7 @@ abstract class Item (var position: Pos) {
     def levelDown: Unit = { level -= 1 }
 
     def setPos (p: Pos) = {
+        if (position != null) position.items -= this
         position = p
         p.setItem(this)
     }
@@ -202,8 +204,13 @@ object MakeItem extends Enumeration {
 // Partition the Items according to their application area:
 // Action on local area + straight movement
 abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
-    var mv_vert: Int = 1
-    var mv_horiz: Int = 1
+    var (mv_vert, mv_horiz): Tuple2[Int, Int] = Rng.weightedChoice(Buffer(
+        (0.1, (1,0)), (0.1, (0,1)), (0.1, (-1,0)), (0.1, (0,-1)),
+        (0.1, (1,1)), (0.1, (1,-1)), (0.1, (-1,1)), (0.1, (-1,-1)),
+        (0.05, (2,1)), (0.05, (-2,1)), (0.05, (-1,2)), (0.05, (-2,-1)),
+    )).get
+    var moveProba: Double = 0.2
+    var durability: Int = 3
 
     var radius: Int = 0
     def setRadius (r: Int): Unit = { radius = r }
@@ -212,7 +219,11 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         var lst = ListBuffer[Pos]()
         for (i <- position.i - radius to position.i + radius) {
             for (j <- position.j - radius to position.j + radius) {
-                if(pow(position.i - i, 2) + pow(position.j - j, 2) <= radius) { lst += position.room.locs(i, j) }
+                if (0 <= i && i < position.room.rows && 0 <= j && j < position.room.cols) {
+                    if(pow(position.i - i, 2) + pow(position.j - j, 2) <= radius) {
+                        lst += position.room.locs(i, j)
+                    }
+                }
             }
         }
         lst
@@ -228,18 +239,36 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         super.action (o, t)
     }
 
+    def move: Unit = {
+        if (!Rng.choice(moveProba)) return
+        val newPos = position.jump(mv_vert, mv_horiz)
+        if (newPos != null) { setPos(newPos); return }
+        durability -= 1
+        if (durability <= 0) {
+            destroy
+        } else {
+            val tmp = mv_vert
+            mv_vert = -mv_horiz
+            mv_horiz = tmp
+        }
+    }
+
     override def step: Unit = {
         if (pickable == false) {
             damageUpdate
             for (l <- LocsPicking) {
                 l.notification
                 for (orga <- l.organisms.toList) {
-                    for (o <- orga.toList) { if(o != owner) { o.stats.health.residual = (o.stats.health.residual - damage) } }
+                    for (o <- orga.toList) {
+                        if (o != null && o != owner && o.skills.immunity.get < 5) {
+                            o.stats.health.residual -= damage
+                        }
+                    }
                 }
             }
         }
         super.step
-        // position = position.jump(mv_vert, mv_horiz)
+        move
     }
 }
 
@@ -252,7 +281,6 @@ abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
 }
 
 
-
 /* --- * SpatialActionItem * ---*/
 // Affaiblit tout sur son passage
 class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
@@ -262,6 +290,8 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     cost_factor = 10
     damage_factor = 20
     targetStat = HP
+
+    override def toString = "Alcohol"
 }
 
 // Tue tous les organismes et altère les spawners
@@ -275,12 +305,15 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
         for (l <- LocsPicking) {
             l.notification
             for (orga <- l.organisms.toList) {
-                for (o <- orga.toList) { o.stats.health.residual = (0) }
+                for (o <- orga.toList) {
+                    if (o.skills.immunity.get < 5) o.stats.health.residual = 0
+                }
             }
         }
-        super.step
-        // position = position.jump(mv_vert, mv_horiz)
+        move
     }
+
+    override def toString = "Knife"
 }
 
 
@@ -307,6 +340,8 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
             }
         }
     }
+
+    override def toString = "Movement"
 }
 
 // Tue tous les organisms, et détériore les spawners dès que ramassée
@@ -329,6 +364,8 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
     cost_factor = 10
     damage_factor = -5
     targetStat = SPD
+
+    override def toString = "Heat"
 }
 
 
@@ -342,6 +379,8 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
     cost_factor = 10
     targetStat = HP
     damage_factor = 20
+
+    override def toString = "Membrane"
 }
 
 // Renforce les virus
@@ -352,6 +391,8 @@ class Spike (pos: Pos) extends Item (pos) {
     cost_factor = 3
     targetStat = POW
     damage_factor = 20
+
+    override def toString = "Spike"
 }
 
 // Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
@@ -362,6 +403,8 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     cost_factor = 20
     targetStat = SPD
     damage_factor = 20
+
+    override def toString = "Leak"
 }
 
 // vim: set expandtab tabstop=4 shiftwidth=4 :

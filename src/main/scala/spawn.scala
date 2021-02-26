@@ -112,7 +112,7 @@ class DefaultWhiteCellSpawner extends CellSpawner(
         (0.2, SPIKE),
         (0.1, LEAK),
         (0.1, HEAT),
-        (0.05, KNIFE),
+        (0.02, KNIFE),
     )
 }
 

@@ -46,6 +46,7 @@ In particular the player can
 - take items from all selected viruses to put them in a special inventory
 - give an item to a specific organism
 - destroy an item
+- change the behavior of viruses to either follow the cursor or go to a specific position
 - ask for information on all organisms on a specific tile
 
 Not all of these can be counted as truly separate actions, but we have deemed them enough to satisfy the "two actions in addition to movement and picking up items" constraint.
@@ -53,11 +54,15 @@ Not all of these can be counted as truly separate actions, but we have deemed th
 ### Items and non-playable entities
 
 There are essentially two kinds of items: those that target all organisms in a certain area, and those that target a specific organism.
-All items have an activation cost that is paid by the organism by consuming part of its stats
+Their behaviors are different enough to count them as distinct entities : items of the first kind cannot be picked up, move around randomly and disappear after a certain time; items of the second kind are immobile and can be picked up, used and dropped by organisms.
+All items of the second kind have an activation cost that is paid by the organism by consuming part of its stats
 
 Other entities are all cells, but only some can move while the rest are immovable and constitute walls.
-All moving organisms (controlled by the player or not) have access to a pathfinding algorithm that makes them go towards (viruses and aggressive cells) or away from (passive cells) the cursor.
-They appear from a spawner, whose location, frequency and quantity of cells spawned are predetermined.
+All cells have access to a pathfinding algorithm that makes them go towards (aggressive cells) or away from (passive cells) the bulk of the virus swarm.
+Viruses have access to the same pathfinder but their behavior can be more finely tuned.
+
+Cells and viruses appear from spawners, whose location, frequency and quantity of cells spawned are predetermined.
+Items (and eventually the player) can interact with spawners, though in a more limited scope.
 
 ### Grid
 
@@ -67,11 +72,11 @@ Its layout is as follows:
 
 ```
 ┌────────────────┐
-│ VVVVVV  ++     │
-│ VVVVVV  ++     │
+│ VVVVVV  ++  ii │
+│ VVVVVV  ++  ii │
 │                │
-│ CCCCCC  ++  ii │
-│ CCCCCC  ++  ii │
+│ CCCCCC  ++     │
+│ CCCCCC  ++     │
 └────────────────┘
 ```
 `V`: arbitrary measure of the total strength of viruses located on this tile
@@ -80,3 +85,30 @@ Its layout is as follows:
 `i`: indicates the presence of an item if a `'i'` character is displayed
 
 There is no limit to the number of organisms or items that can be on a specific tile at the same time.
+
+### Ergonomics
+
+We were reluctant to create an interface that would require much clicking to interact with, but text-based interactions are also heavy when overused.
+We thus decided on the following compromise.
+- some amount of clicking:
+    tiles are clickable to allow for printing information on their contents and more intuitive interaction with commands (clicking rather than specifying coordinates)
+- a lot of visual feedback:
+    - viruses are green, cells are red, and each tile displays a level of green and red color components that reflect the number and strength of organisms on the tile
+    - when a special event (item activation) occurs on a tile, a notification is sent through the use of the blue channel
+    - a progress bar is shown to indicate the proportions of friendly vs hostile organisms alive
+- key- and command-based interaction
+    - all frequent commands have two versions, one with a keypress and one with a command
+    It is easy to switch between the two modes by typing the key `:` to enter commands mode and entering the command `"q"` to exit command mode.
+    - commands can have their parameters entered in several steps with instructions at each step
+    - there is a comprehensive and modular help menu (enter command `"help"` or `"help <foo>"`)
+
+
+
+## Future improvements
+
+We have plans to add
+- more room layouts, levels composed of possibly several rooms
+- a mechanism (possibly an item to pick up) that gives access to the next level
+- a more diverse population of cells
+- consumable items that give temporary or permanent stat boosts
+- consumable items that give immunity to other items or organisms

@@ -48,7 +48,7 @@ class BodyPart extends Reactor {
     var organisms_selection: Set[Organism] = Set()
     var repeat: Int = 1
 
-    val room = new Room(this, "snake")
+    val room = new Room(this, "cross")
 
     val player = new Player(room.locs(10, 10))
 
@@ -99,7 +99,7 @@ class BodyPart extends Reactor {
 
     // main loop
     def step {
-        println("next turn")
+        /**DEBUG println("next turn") OVER**/
         organisms.foreach(o => o.stats.syncCurrent)
         val () = { // update barycenter
             var count: Array[Int] = Array(0, 0)
@@ -123,15 +123,12 @@ class BodyPart extends Reactor {
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
         }
+        // items progress
+        items.foreach(_.step)
         // viruses age
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
-        })
-        // move
-        items.foreach(i => {
-            print(".")
-            i.step
         })
         room.locs.map(_.trySpawn(organisms.size))
         room.locs.map(_.updateVisuals)

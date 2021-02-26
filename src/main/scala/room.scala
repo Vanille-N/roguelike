@@ -42,6 +42,7 @@ extends Reactor with Publisher {
                 }
             }
         }
+        for (i <- 0 to rows - 1; j <- 0 to cols - 1) locs(i, j).forceSpawn
         src.close
         val pathFinder = new PathFinder(availability, rows, cols)
         (rows, cols, locs, pathFinder)
