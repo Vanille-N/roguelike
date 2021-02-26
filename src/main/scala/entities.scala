@@ -113,11 +113,11 @@ abstract class Organism (
     }
 
     // Pathfinding parameters
-    def focus: Pos
-    def behavior: Behavior
+    var behavior: () => Tuple2[Pos, Behavior] = null
 
     def step (room: Room): Boolean = { // boolean indicates if the organism can still move
-        val options = room.pathFinder.next(this.position, this.focus, this.behavior)
+        val behaviorCurrent = behavior()
+        val options = room.pathFinder.next(this.position, behaviorCurrent._1, behaviorCurrent._2)
         val allowed = options.map(moveIsAllowed(room, _)).filter(x => x != null)
         // choose where to go: higher decisiveness leads to better decisions
         val mv = Rng.priorityChoice(allowed, stats.decisiveness.current / 100.0)
@@ -173,20 +173,15 @@ class Virus ( // friendly
     override def isFriendly = true
     var name = "virus"
 
-    def focus: Pos = {
-        this.position.room.body.player.position
-    }
-    val behavior: Behavior = SEEK
+    behavior = {() => { (this.position.room.body.player.position, SEEK) }}
 }
 
 class Cell ( // hostile
     stats: StatSet,
     skills: SkillSet,
     val name: String,
-    val behavior: Behavior = FLEE,
+    val defaultBehavior: Behavior = FLEE,
     itemDrop: Distribution[MakeItem] = Buffer(),
 ) extends Organism (stats, skills, itemDrop) {
-    def focus: Pos = {
-        this.position.room.body.player.position
-    }
+    behavior = {() => { (this.position.room.body.organismsBarycenter(1), defaultBehavior ) }}
 }
