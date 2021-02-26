@@ -52,7 +52,7 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         val q = new Queue[Tuple3[Int, Int, Int]]
         q.enqueue(Tuple3(i, j, 0))
         dists(i)(j) = 0
-        println("Calculating distances from (" + i + "," + j + ")")
+        /**DEBUG println("Calculating distances from (" + i + "," + j + ")") OVER**/
         while (!q.isEmpty) {
             val (k, l, dist) = q.dequeue
             // println("Reached (" + k + "," + l + ")")
@@ -70,12 +70,14 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
                 }
             }
         }
+        /**DEBUG
         for (i <- 0 to rows - 1) {
             for (j <- 0 to cols - 1) {
                 print(dists(i)(j) + " ")
             }
             println()
         }
+        OVER**/
         distance(i)(j) = dists
     }
     def getDistance (iCurrent: Int, jCurrent: Int, iTarget: Int, jTarget: Int): Int = {

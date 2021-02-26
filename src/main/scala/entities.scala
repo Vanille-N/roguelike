@@ -93,7 +93,7 @@ abstract class Organism (
     // What to do when attacked
     def attackedBy (ennemy: Organism) {
         if (ennemy.stats.power.residual > 0) {
-            println(this, "attacked by", ennemy)
+            /**DEBUG println(this, "attacked by", ennemy) OVER**/
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
                 this.stats.health.residual -=
                     Rng.uniform(5, 10) * ennemy.stats.power.residual / this.stats.resistance.residual

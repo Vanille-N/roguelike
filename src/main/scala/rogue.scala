@@ -95,7 +95,7 @@ class BodyPart extends Reactor {
 
     // main loop
     def step {
-        println("next turn")
+        /**DEBUG println("next turn") OVER**/
         organisms.foreach(o => o.stats.syncCurrent)
         val () = { // update barycenter
             var count: Array[Int] = Array(0, 0)

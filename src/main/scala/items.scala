@@ -126,7 +126,7 @@ abstract class Item (var position: Pos) {
 
     var targetStat: StatType = NONE
     def action (o: Organism, t: Organism): Unit = {
-        println(this + " is being used")
+        /**DEBUG println(this + " is being used") OVER**/
         payCost(o)
         damageUpdate
         def apply_damage (x: Stat) {
