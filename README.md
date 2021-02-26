@@ -46,6 +46,7 @@ In particular the player can
 - take items from all selected viruses to put them in a special inventory
 - give an item to a specific organism
 - destroy an item
+- change the behavior of viruses to either follow the cursor or go to a specific position
 - ask for information on all organisms on a specific tile
 
 Not all of these can be counted as truly separate actions, but we have deemed them enough to satisfy the "two actions in addition to movement and picking up items" constraint.
