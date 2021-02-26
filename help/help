@@ -29,6 +29,10 @@ If there is no conflicts, one may use an uppercase reperesentant of a key as com
   └───────────────────────────────────────────────────────┘
 
 For more, use
-    help set
     help commands
+    help set
     help select
+    help directions
+    help list
+    help item
+    help repeat

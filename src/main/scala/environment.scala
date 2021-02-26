@@ -224,7 +224,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             })
         }
         if (items.size > 0) {
-            items.foreach(i => {s += "  Item" +  i + "\n"})
+            items.foreach(i => {s += "  Item " +  i + "\n"})
         }
         if (organisms(0).size + organisms(1).size == 0) {
             s += "  empty\n"

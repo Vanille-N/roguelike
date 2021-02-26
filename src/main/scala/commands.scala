@@ -64,7 +64,7 @@ abstract class CommandManager (room: Room) {
         val splited_command = commandSplit(command)
         if (splited_command.length > 1 && splited_command(1) == "help") {
             appendLogs("Help can be found running `help [.]`,\n\twhere [.] is", ln_after=false)
-            help_menus.foreach ( o => 
+            help_menus.foreach ( o =>
                 appendLogs("\n\t| " + o)
                 )
             return "";
@@ -134,7 +134,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
         def selection_select: String = {
             splited_command.length match {
                 case 1 => {
-                    appendLogs("What kind of selection do you want to make?\n\t1-> rectangle / rectangular\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle / circular\n\t\t| the center and a point on the perimeter will be asked")
+                    appendLogs("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked")
                     return "select"
                 }
                 case 3 | 5 => {
@@ -156,7 +156,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     val y2: Int = splited_command(5).toInt
                     room.body.organisms_selection = room.body.organisms_selection.empty
                     splited_command(1) match {
-                        case "1" | "rectangle" | "rectangular" => {// rectangular selection
+                        case "1" | "rectangle" | "rect" => {// rectangular selection
                             for(i <- x1 to x2) {
                                 for (j <- y1 to y2) {
                                     room.body.organisms_selection ++= room.locs(i, j).organisms(0)
@@ -164,7 +164,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                                 }
                             }
                         }
-                        case "2" | "circle" | "circular"       => {// circular selection
+                        case "2" | "circle" | "circ"       => {// circular selection
                             val R2: Int = (x1 - x2)^2 + (y1 - y2)^2
                             val R: Int = scala.math.sqrt(R2).ceil.toInt
                             for(i <- x1 - R to x1 + R) {
@@ -198,7 +198,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             appendLogs("The player has stolen the items of the selected friendly organisms")
             return ""
         }
-        
+
         def selection_filter: String = {
             splited_command.length match {
                 case 1 => {
@@ -293,7 +293,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
                         appendLogs ("Which field would you like to set? (SPD, HP, POW, DEF, DEC)")
                         return("set " + splited_command(1))
                     } else {
-                        appendLogs ("What is the target value of the field " + splited_command(2) + " for the organism " + splited_command(1)  +"?")
+                        appendLogs ("What is the target value of the field " + splited_command(2) + " for the organism " + splited_command(1) + "?")
                         last_checked_arg += 1
                         return ( "set " + splited_command(1) + " " + splited_command(2) )
                     }
@@ -571,7 +571,7 @@ class HelpCommand (room: Room) extends CommandManager (room) {
 class Command (val room: Room) {
     def appendLogs (
             str: String,
-            ln_after: Boolean = true, 
+            ln_after: Boolean = true,
             ln_before: Boolean = false
             ): Unit = {
         if (ln_after && ln_before) room.body.logs.text += "\n" + str + "\n"
@@ -632,7 +632,7 @@ class Command (val room: Room) {
     }
 
     def locsClicked ( p: Pos ): Unit = {
-        if(current_command == "") {
+        if (current_command == "") {
             appendLogs (p.listContents)
         } else {
             room.body.cmdline.text += " " + p.i + " " + p.j
@@ -650,7 +650,7 @@ class Command (val room: Room) {
     }
 
     def commandRequest(command: String): Unit = {
-        if(command.split("\\s+").head == "abort") {
+        if (command.split("\\s+").head == "abort") {
             appendLogs("Aborting ...")
             current_command = ""
             room.body.cmdline.text = ""
@@ -682,4 +682,3 @@ class Command (val room: Room) {
 }
 
 // Une petite ligne pour une sœur disparue: `boundTypeFun(getCommandType(main_command.split(" ")(0)))(main_command)()`
-

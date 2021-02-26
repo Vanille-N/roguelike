@@ -262,6 +262,8 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     cost_factor = 10
     damage_factor = 20
     targetStat = HP
+
+    override def toString = "Alcohol"
 }
 
 // Tue tous les organismes et altère les spawners
@@ -281,6 +283,8 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
         super.step
         // position = position.jump(mv_vert, mv_horiz)
     }
+
+    override def toString = "Knife"
 }
 
 
@@ -307,6 +311,8 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
             }
         }
     }
+
+    override def toString = "Movement"
 }
 
 // Tue tous les organisms, et détériore les spawners dès que ramassée
@@ -329,6 +335,8 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
     cost_factor = 10
     damage_factor = -5
     targetStat = SPD
+
+    override def toString = "Heat"
 }
 
 
@@ -342,6 +350,8 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
     cost_factor = 10
     targetStat = HP
     damage_factor = 20
+
+    override def toString = "Membrane"
 }
 
 // Renforce les virus
@@ -352,6 +362,8 @@ class Spike (pos: Pos) extends Item (pos) {
     cost_factor = 3
     targetStat = POW
     damage_factor = 20
+
+    override def toString = "Spike"
 }
 
 // Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
@@ -362,6 +374,8 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     cost_factor = 20
     targetStat = SPD
     damage_factor = 20
+
+    override def toString = "Leak"
 }
 
 // vim: set expandtab tabstop=4 shiftwidth=4 :

@@ -1,15 +1,16 @@
 Available commands :
-  | set [...]             -> help set
-  | list
+  | set [...]              -> help set
+  | list                   -> help list
   | play
   | stop
   | show organism_id
   | step
-  | Up
-  | Down
-  | Right
-  | Left
+  | Up                     -> help directions
+  | Down                   -> help directions
+  | Right                  -> help directions
+  | Left                   -> help directions
   | help [...]
   | clear
   | select                 -> help select
   | selection [...]        -> help select
+  | item                   -> help item
