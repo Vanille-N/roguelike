@@ -40,6 +40,7 @@ class BodyPart extends Reactor {
     }
     var organisms: Set[Organism] = Set()
     var items: Set[Item] = Set()
+    var organismsBarycenter: Array[Pos] = Array(null, null)
 
     var organisms_selection: Set[Organism] = Set()
 
@@ -95,6 +96,20 @@ class BodyPart extends Reactor {
     def step {
         println("next turn")
         organisms.foreach(o => o.stats.syncCurrent)
+        val () = { // update barycenter
+            var count: Array[Int] = Array(0, 0)
+            val i = Array(0, 0)
+            val j = Array(0, 0)
+            for (o <- organisms) {
+                val idx = if (o.isFriendly) 1 else 0
+                i(idx) += o.position.i
+                j(idx) += o.position.j
+                count(idx) += 1
+            }
+            for (idx <- 0 to 1) {
+                organismsBarycenter(idx) = room.locs(i(idx) / count(idx).max(1), j(idx) / count(idx).max(1))
+            }
+        }
         var active = true
         // loop until no one can move anymore
         while (active) {
