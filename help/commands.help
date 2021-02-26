@@ -14,3 +14,4 @@ Available commands :
   | select                 -> help select
   | selection [...]        -> help select
   | item                   -> help item
+  | behavior [...]         -> help behavior
