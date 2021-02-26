@@ -56,19 +56,17 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         while (!q.isEmpty) {
             val (k, l, dist) = q.dequeue
             // println("Reached (" + k + "," + l + ")")
-            for (dk <- -1 to 1; dl <- -1 to 1) {
-                if ((dk, dl) != (0, 0)) {
-                    val nk = k + dk
-                    val nl = l + dl
-                    // println("Considering (" + nk + "," + nl + ")")
-                    if (
-                        0 <= nk && nk < rows && 0 <= nl && nl < cols // valid position
-                        && dists(nk)(nl) == -1 // not reached yet
-                        && (!envt(k)(l) || envt(nk)(nl))
-                    ) {
-                        dists(nk)(nl) = dist + 1
-                        q.enqueue(Tuple3(nk, nl, dist + 1))
-                    }
+            for ((dk, dl) <- List((-1,0), (1,0), (0,-1), (0,1))) {
+                val nk = k + dk
+                val nl = l + dl
+                // println("Considering (" + nk + "," + nl + ")")
+                if (
+                    0 <= nk && nk < rows && 0 <= nl && nl < cols // valid position
+                    && dists(nk)(nl) == -1 // not reached yet
+                    && (!envt(k)(l) || envt(nk)(nl))
+                ) {
+                    dists(nk)(nl) = dist + 1
+                    q.enqueue(Tuple3(nk, nl, dist + 1))
                 }
             }
         }
