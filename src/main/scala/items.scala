@@ -260,8 +260,8 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
                 l.notification
                 for (orga <- l.organisms.toList) {
                     for (o <- orga.toList) {
-                        if(o != owner) {
-                            o.stats.health.residual = (o.stats.health.residual - damage)
+                        if (o != null && o != owner && o.skills.immunity.get < 5) {
+                            o.stats.health.residual -= damage
                         }
                     }
                 }
@@ -305,7 +305,9 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
         for (l <- LocsPicking) {
             l.notification
             for (orga <- l.organisms.toList) {
-                for (o <- orga.toList) { o.stats.health.residual = (0) }
+                for (o <- orga.toList) {
+                    if (o.skills.immunity.get < 5) o.stats.health.residual = 0
+                }
             }
         }
         move

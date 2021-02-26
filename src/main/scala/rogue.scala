@@ -119,15 +119,12 @@ class BodyPart extends Reactor {
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
         }
+        // items progress
+        items.foreach(_.step)
         // viruses age
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
-        })
-        // move
-        items.foreach(i => {
-            print(".")
-            i.step
         })
         room.locs.map(_.trySpawn(organisms.size))
         room.locs.map(_.updateVisuals)

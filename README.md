@@ -80,3 +80,12 @@ Its layout is as follows:
 `i`: indicates the presence of an item if a `'i'` character is displayed
 
 There is no limit to the number of organisms or items that can be on a specific tile at the same time.
+
+## Future improvements
+
+We have plans to add
+- more room layouts, levels composed of possibly several rooms
+- a mechanism (possibly an item to pick up) that gives access to the next level
+- a more diverse population of cells
+- consumable items that give temporary or permanent stat boosts
+- consumable items that give immunity to other items or organisms
