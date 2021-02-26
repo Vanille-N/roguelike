@@ -26,6 +26,9 @@ case class displayContents (p: Pos) extends Event
 class BodyPart extends Reactor {
     var globalPanel : GridBagPanel = null
 
+    val progressbar = new ProgressBar {
+        visible = true
+    }
     val cmdline = new TextField {
         columns = 32
         font = new Font("courier", 0, 17)
@@ -77,7 +80,8 @@ class BodyPart extends Reactor {
                 c
             }
             add(grid, constraints(0, 0, gridheight=3, weightx=0.6, weighty=1.0, fill=GridBagPanel.Fill.Both))
-            add(cmdline, constraints(1, 2, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
+            add(cmdline, constraints(1, 3, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
+            add(progressbar, constraints(0, 3, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
             add(new ScrollPane(logs) { preferredSize = new Dimension(30, 50) }, constraints(1, 1, weightx=0.3, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(Button("Close") { sys.exit(0) }, constraints(1, 0, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
             focusable = true;
@@ -131,6 +135,20 @@ class BodyPart extends Reactor {
         })
         room.locs.map(_.trySpawn(organisms.size))
         room.locs.map(_.updateVisuals)
+        // update the progress bar
+        var friendly: Int = 0
+        var total: Int = 0
+        organisms.foreach(o => {
+            if(o.isFriendly) {
+                friendly += o.stats.speed.current
+                total += o.stats.speed.current
+            } else {
+                total += o.stats.speed.current
+            }
+        })
+        if(total == 0) progressbar.value = 100 * friendly / total
+        else progressbar.value = 0
+        logs.text += "\n\nfrienfly = " + friendly + "\ntotal = " + total + "\nprogressbar.value = " + progressbar.value + "\n"
     }
 
     // User clicks on dungeon cell or item button ou type a command

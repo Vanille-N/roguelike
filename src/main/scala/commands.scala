@@ -361,7 +361,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 case 2 => {
                     splited_command(1) match {
                         case "add"    => { appendLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcool\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane"); return "item_add" }
-                        case "rm"     => return "item_rm"
+                        case "rm"     => { appendLogs("What item do you want to remove from the game? (l to list them)"); return "item_rm" }
                         case "pickUp" => return "item_pickup"
                         case "level"  => return "item_level"
                         case "list"   => return items_list
@@ -374,10 +374,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
         def items_list: String = {
             var i: Int = 0
+            appendLogs("   ---------   Printing " + room.body.items.size +  " elements   ---------")
             for ( o <- room.body.items.toList ) {
                 appendLogs(i + "-\t" + o)
                 i += 1
             }
+            appendLogs("   ---------   End of the printing   ---------")
             return ""
         }
 
@@ -421,7 +423,15 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         def items_rm: String = {
             splited_command.length match {
                 case 1 => { appendLogs("What item do you want to remove from the game? (l to list them)"); "item_rm" }
-                case _ => { room.body.items -= getItemById(splited_command(1).toInt); return "" }
+                case _ => {
+                    if (splited_command(1) == "l") {
+                        items_list
+                        return unSplitCommand(splited_command)
+                    } else {
+                        room.body.items -= getItemById(splited_command(1).toInt)
+                        return ""
+                    }
+                }
             }
         }
 
