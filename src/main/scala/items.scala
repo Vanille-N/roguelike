@@ -1,4 +1,5 @@
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Buffer
 import Math._
 
 /* Items interface
@@ -155,6 +156,7 @@ abstract class Item (var position: Pos) {
     def levelDown: Unit = { level -= 1 }
 
     def setPos (p: Pos) = {
+        if (position != null) position.items -= this
         position = p
         p.setItem(this)
     }
@@ -202,8 +204,13 @@ object MakeItem extends Enumeration {
 // Partition the Items according to their application area:
 // Action on local area + straight movement
 abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
-    var mv_vert: Int = 1
-    var mv_horiz: Int = 1
+    var (mv_vert, mv_horiz): Tuple2[Int, Int] = Rng.weightedChoice(Buffer(
+        (0.1, (1,0)), (0.1, (0,1)), (0.1, (-1,0)), (0.1, (0,-1)),
+        (0.1, (1,1)), (0.1, (1,-1)), (0.1, (-1,1)), (0.1, (-1,-1)),
+        (0.05, (2,1)), (0.05, (-2,1)), (0.05, (-1,2)), (0.05, (-2,-1)),
+    )).get
+    var moveProba: Double = 0.2
+    var durability: Int = 3
 
     var radius: Int = 0
     def setRadius (r: Int): Unit = { radius = r }
@@ -212,7 +219,11 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         var lst = ListBuffer[Pos]()
         for (i <- position.i - radius to position.i + radius) {
             for (j <- position.j - radius to position.j + radius) {
-                if(pow(position.i - i, 2) + pow(position.j - j, 2) <= radius) { lst += position.room.locs(i, j) }
+                if (0 <= i && i < position.room.rows && 0 <= j && j < position.room.cols) {
+                    if(pow(position.i - i, 2) + pow(position.j - j, 2) <= radius) {
+                        lst += position.room.locs(i, j)
+                    }
+                }
             }
         }
         lst
@@ -228,18 +239,36 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         super.action (o, t)
     }
 
+    def move: Unit = {
+        if (!Rng.choice(moveProba)) return
+        val newPos = position.jump(mv_vert, mv_horiz)
+        if (newPos != null) { setPos(newPos); return }
+        durability -= 1
+        if (durability <= 0) {
+            destroy
+        } else {
+            val tmp = mv_vert
+            mv_vert = -mv_horiz
+            mv_horiz = tmp
+        }
+    }
+
     override def step: Unit = {
         if (pickable == false) {
             damageUpdate
             for (l <- LocsPicking) {
                 l.notification
                 for (orga <- l.organisms.toList) {
-                    for (o <- orga.toList) { if(o != owner) { o.stats.health.residual = (o.stats.health.residual - damage) } }
+                    for (o <- orga.toList) {
+                        if(o != owner) {
+                            o.stats.health.residual = (o.stats.health.residual - damage)
+                        }
+                    }
                 }
             }
         }
         super.step
-        // position = position.jump(mv_vert, mv_horiz)
+        move
     }
 }
 
@@ -250,7 +279,6 @@ abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
         drop
     }
 }
-
 
 
 /* --- * SpatialActionItem * ---*/
@@ -280,8 +308,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
                 for (o <- orga.toList) { o.stats.health.residual = (0) }
             }
         }
-        super.step
-        // position = position.jump(mv_vert, mv_horiz)
+        move
     }
 
     override def toString = "Knife"

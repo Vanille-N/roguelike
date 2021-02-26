@@ -351,7 +351,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
 
 class ItemsCommand (room: Room) extends CommandManager (room) {
 
-    val acceptedCommands: List[String] = List("item_add", "item", "item_rm", "item_pickup", "item_level")
+    val acceptedCommands: List[String] = List("item_add", "item", "item_rm", "item_pickup", "item_level", "item_list")
     help_menus = "item" :: Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
@@ -362,7 +362,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                     splited_command(1) match {
                         case "add"    => { appendLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcool\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane"); return "item_add" }
                         case "rm"     => return "item_rm"
-                        case "pickUp" => return "item_pickup"
+                        case "pickup" => return "item_pickup"
                         case "level"  => return "item_level"
                         case "list"   => return items_list
                         case _        => { appendLogs("Error: command `" + splited_command(1) + "` unknown"); return "" }
