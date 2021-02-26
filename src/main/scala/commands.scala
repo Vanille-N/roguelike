@@ -51,6 +51,11 @@ abstract class CommandManager (room: Room) {
     ** Definitions of the Command-interception methods
     */
     def commandSplit (command: String): Array[String] = { command.split("\\s+") }
+    def unSplitCommand(arr: Array[String]): String = {
+        var out: String = ""
+        arr.foreach(elt => out += elt + " ")
+        return out
+    }
 
     def acceptCommand (str: String): Boolean = {      // True if the command is handled (rq: multi-line def => com' alignment looks better)
         acceptedCommands.exists(x => x == str.split("\\s+").head)
@@ -122,12 +127,108 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
 
 
 class SelectionCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List()
+    val acceptedCommands: List[String] = List("select", "take", "filter", "flush", "selection_print")
     help_menus = Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
+        def selection_select: String = {
+            splited_command.length match {
+                case 1 => {
+                    appendLogs("What kind of selection do you want to make?\n\t1-> rectangle / rectangular\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle / circular\n\t\t| the center and a point on the perimeter will be asked")
+                    return "select"
+                }
+                case 3 | 5 => {
+                    appendLogs ("Illegal number of parameters (plausible error: coordinates must be passed as `i j`, not `i`, `j`.)\n\tAborting.")
+                    return ""
+                }
+                case 2 => {
+                    appendLogs ("What is the first cell to mark?")
+                    return unSplitCommand(splited_command)
+                }
+                case 4 => {
+                    appendLogs ("What is the second cell to mark?")
+                    return unSplitCommand(splited_command)
+                }
+                case 6 => {
+                    val x1: Int = splited_command(2).toInt
+                    val y1: Int = splited_command(3).toInt
+                    val x2: Int = splited_command(4).toInt
+                    val y2: Int = splited_command(5).toInt
+                    room.body.organisms_selection = room.body.organisms_selection.empty
+                    splited_command(1) match {
+                        case "1" | "rectangle" | "rectangular" => {// rectangular selection
+                            for(i <- x1 to x2) {
+                                for (j <- y1 to y2) {
+                                    room.body.organisms_selection ++= room.locs(i, j).organisms(0)
+                                    room.body.organisms_selection ++= room.locs(i, j).organisms(1)
+                                }
+                            }
+                        }
+                        case "2" | "circle" | "circular"       => {// circular selection
+                            val R2: Int = (x1 - x2)^2 + (y1 - y2)^2
+                            val R: Int = scala.math.sqrt(R2).ceil.toInt
+                            for(i <- x1 - R to x1 + R) {
+                                for (j <- y1 - R to y1 + R) {
+                                    if (0 <= i && i < room.rows && 0 <= j && j < room.cols && ((x1 - i )^2 + (y1 - j)^2) <= R2 ) {
+                                        room.body.organisms_selection ++= room.locs(i, j).organisms(0)
+                                        room.body.organisms_selection ++= room.locs(i, j).organisms(1)
+                                    }
+                                }
+                            }
+                        }
+                        case _ => { appendLogs("Internal error: unknown selection type.") }
+                    }
+                    appendLogs("Selection complete: " + room.body.organisms_selection.size + " elements")
+                    return ""
+                }
+                case _ => {
+                    appendLogs("Too much arguments... Aborting. :/")
+                    return ""
+                }
+            }
+        }
+
+        def selection_take: String = {
+            room.body.organisms_selection.foreach(o => {
+                if(o.isFriendly) {
+                    room.body.player.inventory ++= o.items
+                    o.items.empty
+                }
+            })
+            appendLogs("The player has stolen the items of the selected friendly organisms")
+            return ""
+        }
+        
+        def selection_filter: String = {
+            splited_command.length match {
+                case 1 => {
+                    appendLogs("What family of organism do you want to keep ? (virus|cell)")
+                    return "filter"
+                }
+                case 2 => {
+                    if (splited_command(1) == "cell") room.body.organisms_selection = room.body.organisms_selection.filter ( o => !o.isFriendly )
+                    else room.body.organisms_selection = room.body.organisms_selection.filter ( o => o.isFriendly )
+                    appendLogs("Filter applied to the selection.")
+                }
+                case _ => { appendLogs("Illegal number of arguments") }
+            }
+            return ""
+        }
+
+        def selection_print: String = {
+            appendLogs("Printing " + room.body.organisms_selection.size + " elements:")
+            room.body.organisms_selection.foreach ( o => appendLogs("" + o) )
+            appendLogs("   ---   End of the selection   ---", ln_before = true)
+            return ""
+        }
+
         splited_command(0) match {
-            case _       => { appendLogs("Error: Command `" + splited_command(0) + "` unknown") }
+            case "select" => { return selection_select }
+            case "take"   => { return selection_take }
+            case "filter" => { return selection_filter }
+            case "flush"  => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
+            case "selection_print"  => { return selection_print }
+            case _        => { appendLogs("Error: Command `" + splited_command(0) + "` unknown") }
         }
         return ""
     }
@@ -511,7 +612,8 @@ class Command (val room: Room) {
         (Key.S,          "stop"),
         (Key.Space,      "toggle"),
         (Key.O,          "list"),
-        (Key.N,          "step_multiple")
+        (Key.N,          "step_multiple"),
+        (Key.Enter,      "click_cell")
     )
     var aliases: Map[String, String] = Map ()
 
@@ -553,6 +655,8 @@ class Command (val room: Room) {
             current_command = ""
             room.body.cmdline.text = ""
             return
+        } else if (command == "click_cell") {
+            locsClicked (room.body.player.position)
         } else {
             if(current_command != "") current_command += " " + command
             else current_command = command
@@ -576,4 +680,6 @@ class Command (val room: Room) {
         room.body.cmdline.text = ""
     }
 }
+
+// Une petite ligne pour une sœur disparue: `boundTypeFun(getCommandType(main_command.split(" ")(0)))(main_command)()`
 
