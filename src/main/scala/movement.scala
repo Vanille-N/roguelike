@@ -1,13 +1,5 @@
-import Math._
 import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Set
 import scala.collection.mutable.Queue
-import scala.swing._
-import javax.swing.BorderFactory._
-import java.awt.Font
-import java.lang.System
-import event._
 
 import Direction._
 

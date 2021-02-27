@@ -6,9 +6,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import scala.io.Source
 import scala.swing._
-import java.awt.Font
-import java.lang.System
 import event._
+
 import Direction._
 
 /*

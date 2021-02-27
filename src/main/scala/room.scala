@@ -1,15 +1,4 @@
-import Math._
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Set
 import scala.swing._
-import javax.swing.BorderFactory._
-import java.awt.Font
-import java.lang.System
-import event._
-import java.io.FileNotFoundException
-import java.io.IOException
 import scala.io.Source
 
 /* Room
@@ -80,7 +69,6 @@ extends Reactor with Publisher {
     }
 
     def isValid (i: Int, j: Int): Boolean = {
-        0 <= i && i < rows
-        && 0 <= j && j < cols
+        0 <= i && i < rows && 0 <= j && j < cols
     }
 }

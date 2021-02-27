@@ -1,14 +1,8 @@
-import Math._
 import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
 import scala.swing._
-import java.awt.Font
-import java.lang.System
-import scala.util.control._
-import event._
+
 import Direction._
 import Behavior._
-
 import Rng.Distribution
 import MakeItem._
 
