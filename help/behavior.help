@@ -1,7 +1,7 @@
 Fine-tuning the behavior of viruses
 $ behavior
-$ behavior_cursor
-$ behavior_target [...]
+$ behavior-cursor
+$ behavior-target [...]
 
 behavior
     you will be prompted select 1/cursor
@@ -9,11 +9,11 @@ behavior
     execution towards either behavior_cursor
     or behavior_target
 
-behavior_cursor
+behavior-cursor
     all selected viruses will now go towards
     the cursor
 
-behavior_target
+behavior-target
     you will be prompted to click on a tile
     selected viruses will now go towards that
     tile
