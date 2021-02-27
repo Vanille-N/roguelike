@@ -1,10 +1,4 @@
-import Math._
 import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
-import scala.swing._
-import java.awt.Font
-import java.lang.System
-import event._
 
 import Rng.Distribution
 import MakeItem.MakeItem
@@ -116,6 +110,7 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     )
 }
 
+// ties a spawner to a location
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
     def spawn {

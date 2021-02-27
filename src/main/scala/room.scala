@@ -1,20 +1,15 @@
-import Math._
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Set
 import scala.swing._
-import javax.swing.BorderFactory._
-import java.awt.Font
-import java.lang.System
-import event._
-import java.io.FileNotFoundException
-import java.io.IOException
 import scala.io.Source
+
+/* Room
+ * - initialize from text file
+ * - create spawners
+ */
 
 // The whole room
 class Room (val body: BodyPart, fbase: String)
 extends Reactor with Publisher {
+    // cell spawners
     val wallSpawner = new DefaultWallCellSpawner()
     val redCellSpawner = new DefaultRedCellSpawner()
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
@@ -22,13 +17,15 @@ extends Reactor with Publisher {
 
     // initialization from src file
     val (rows, cols, locs, pathFinder) = {
-        val src = Source.fromFile("assets/" + fbase + ".room")
+        val src = Source.fromFile("assets/" + fbase + ".room") // no error handling because filename is hardcoded
+        // first line is dimensions
         val lines = src.getLines
         val dimensions = lines.next.split(" ")
         val rows = dimensions(0).toInt
         val cols = dimensions(1).toInt
+        // next is an array of chars
         val locs = new Grid(this, rows, cols)
-        val availability = Array.ofDim[Boolean](rows, cols)
+        val availability = Array.ofDim[Boolean](rows, cols) // give this to the PathFinder
         for (i <- 0 to rows - 1; j <- 0 to cols - 1) availability(i)(j) = true
         for (i <- 0 to rows - 1) {
             val line = lines.next
@@ -42,7 +39,7 @@ extends Reactor with Publisher {
                 }
             }
         }
-        for (i <- 0 to rows - 1; j <- 0 to cols - 1) locs(i, j).forceSpawn
+        for (i <- 0 to rows - 1; j <- 0 to cols - 1) locs(i, j).forceSpawn // spawners activate at the start
         src.close
         val pathFinder = new PathFinder(availability, rows, cols)
         (rows, cols, locs, pathFinder)
@@ -69,5 +66,9 @@ extends Reactor with Publisher {
     def addItem (i: Item, p: Pos) = {
         body.items.add(i)
         i.setPos(p)
+    }
+
+    def isValid (i: Int, j: Int): Boolean = {
+        0 <= i && i < rows && 0 <= j && j < cols
     }
 }

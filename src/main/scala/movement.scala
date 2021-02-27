@@ -1,13 +1,5 @@
-import Math._
 import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Set
 import scala.collection.mutable.Queue
-import scala.swing._
-import javax.swing.BorderFactory._
-import java.awt.Font
-import java.lang.System
-import event._
 
 import Direction._
 
@@ -16,6 +8,7 @@ import Direction._
  * - behavior of organisms moving towards/away from the cursor
  */
 
+// cursor controled by the player
 class Player (var position: Pos) {
     def placeOnMap (p: Pos) {
         position = p
@@ -23,7 +16,7 @@ class Player (var position: Pos) {
     }
     placeOnMap(position)
 
-    def move (dir: Direction): Boolean = {
+    def move (dir: Direction): Boolean = { // moves without concern for walls
         val newPosition = position.tryAdd(dir)
         if (newPosition != null) {
             position.isFocused = false
@@ -32,7 +25,7 @@ class Player (var position: Pos) {
         } else false
     }
 
-    var inventory: Set[Item] = Set()
+    var inventory: Set[Item] = Set() // items held by the player (taken from viruses)
 }
 
 object Behavior extends Enumeration {
@@ -42,6 +35,11 @@ object Behavior extends Enumeration {
 }
 import Behavior._
 
+// creates a 4D array in which distances are lazily calculated
+// when asked to compute distance to (i,j) from (k,l) it looks to see if
+// distances to (i,j) were already calculated
+// yes -> return distance(i)(j)(k)(l)
+// no -> BFS to calculate all distance(i)(j)(_)(_)
 class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int) {
     val distance = Array.ofDim[Array[Array[Int]]](rows, cols)
     for (i <- 0 to rows - 1; j <- 0 to cols - 1) distance(i)(j) = null
@@ -52,14 +50,11 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         val q = new Queue[Tuple3[Int, Int, Int]]
         q.enqueue(Tuple3(i, j, 0))
         dists(i)(j) = 0
-        /**DEBUG println("Calculating distances from (" + i + "," + j + ")") OVER**/
         while (!q.isEmpty) {
             val (k, l, dist) = q.dequeue
-            // println("Reached (" + k + "," + l + ")")
             for ((dk, dl) <- List((-1,0), (1,0), (0,-1), (0,1))) {
                 val nk = k + dk
                 val nl = l + dl
-                // println("Considering (" + nk + "," + nl + ")")
                 if (
                     0 <= nk && nk < rows && 0 <= nl && nl < cols // valid position
                     && dists(nk)(nl) == -1 // not reached yet
@@ -81,7 +76,6 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
         distance(i)(j) = dists
     }
     def getDistance (iCurrent: Int, jCurrent: Int, iTarget: Int, jTarget: Int): Int = {
-        // println("Checking (" + iTarget + "," + jTarget + ")")
         if (distance(iTarget)(jTarget) == null) {
             calcDistances(iTarget, jTarget)
         }

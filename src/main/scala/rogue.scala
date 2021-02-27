@@ -1,12 +1,6 @@
-import Math._
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
 import scala.collection.mutable.Set
 import scala.swing._
-import java.awt.Font
-import java.lang.System
 import event._
-import Direction._
 
 /* Main game loop
  * - global application layout
@@ -17,11 +11,7 @@ import Direction._
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
 
-// BodyPart coordinates the gameplay. Mover is a thread that takes a target
-// for the player and makes one move towards that target every 100ms. Mover
-// stops if something "important" happens in between (such as a monster
-// hitting the player), which is why a lot of the functions in the actor/
-// item/floor code returns booleans.
+/* -- Main environment -- */
 
 class BodyPart extends Reactor {
     var globalPanel : GridBagPanel = null
@@ -29,30 +19,31 @@ class BodyPart extends Reactor {
     val progressbar = new ProgressBar {
         visible = true
     }
-    val cmdline = new TextField {
+    val cmdline = new TextField { // type commands to execute actions
         columns = 32
         font = new Font("courier", 0, 17)
         background = Scheme.darkGray
         foreground = Scheme.white
     }
-    val logs = new TextArea {
+    val logs = new TextArea { // see result of commands and other information
         font = new Font("courier", 0, 15)
         background = Scheme.darkGray
         foreground = Scheme.white
         editable = false
     }
-    var organisms: Set[Organism] = Set()
-    var items: Set[Item] = Set()
+    var organisms: Set[Organism] = Set() // all alive
+    var items: Set[Item] = Set() // all existing
     var organismsBarycenter: Array[Pos] = Array(null, null)
 
     var organisms_selection: Set[Organism] = Set()
     var repeat: Int = 1
 
-    val room = new Room(this, "cross")
+    val room = new Room(this, "cross") // string decides room layout from assets/*.room
 
     val player = new Player(room.locs(10, 10))
 
-    var command = new Command (room)
+    var command = new Command(room)
+    command.help_command.executeCommand("help")
 
     var isPlaying: Boolean = false
 
@@ -118,7 +109,6 @@ class BodyPart extends Reactor {
         var active = true
         // loop until no one can move anymore
         while (active) {
-            // println("Still some active cells")
             active = false
             organisms.foreach(o => active = o.step(room) || active)
             room.locs.map(_.battle)
@@ -126,12 +116,15 @@ class BodyPart extends Reactor {
         // items progress
         items.foreach(_.step)
         // viruses age
+        // + synchronize effects of items and damage
+        // + remove all organisms that should die
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) o.stats.health.residual -= 1
             o.sync
         })
-        room.locs.map(_.trySpawn(organisms.size))
-        room.locs.map(_.updateVisuals)
+        room.locs.map(_.trySpawn(organisms.size)) // sometimes spawn new organisms
+        room.locs.map(_.updateVisuals) // update display
+
         // update the progress bar
         var friendly: Int = 0
         var total: Int = 0
