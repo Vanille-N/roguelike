@@ -23,7 +23,7 @@ object Rng extends Random {
         base + (variability * this.nextGaussian).round.toInt
     }
 
-    type Distribution[T] = Buffer[Tuple2[Double, T]]
+    type Distribution[T] = Buffer[Tuple2[Double, T]] // probability distribution over T (typically T=Item or T=Direction)
     def null_flatten[T] (item: Option[T]) : Option[T] = {
         item match {
             case None => None

@@ -116,6 +116,7 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     )
 }
 
+// ties a spawner to a location
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
     def spawn {
