@@ -27,7 +27,7 @@ abstract class Item (var position: Pos) {
     var pickable: Boolean = true
     var owner: Organism = null
 
-    def pickUp (o: Organism): Boolean = {
+    def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
             owner = o
             pickable = false
@@ -35,13 +35,13 @@ abstract class Item (var position: Pos) {
             true
         } else false
     }
-    def drop: Unit = {
+    def drop: Unit = { // owner -> tile
         if (owner != null) position = owner.position
         owner = null
         pickable = true
         position.items += this
     }
-    def destroy {
+    def destroy { // remove from global item index
         if (owner != null) {
             owner.items -= this
             owner.position.room.body.items -= this
@@ -61,7 +61,7 @@ abstract class Item (var position: Pos) {
 
     def updateCost: Unit = { cost = cost_factor * level }
 
-    def isUsable (o: Organism): Boolean = {
+    def isUsable (o: Organism): Boolean = { // check if organism has enough stat points to pay the activation cost
         updateCost
         def is_enough (x: Stat) : Boolean = {
             x.residual - cost > 0
@@ -81,7 +81,7 @@ abstract class Item (var position: Pos) {
         }
     }
 
-    def unpayCost (o: Organism) {
+    def unpayCost (o: Organism) { // cancel stat reduction for activation cost
         updateCost
         def augment (x: Stat) {
             x.residual += cost
@@ -100,7 +100,7 @@ abstract class Item (var position: Pos) {
             case NONE => {}
         }
     }
-    def payCost (o: Organism) {
+    def payCost (o: Organism) { // apply stat reduction for activation cost
         updateCost
         def reduce (x: Stat) {
             x.residual -= cost
@@ -125,7 +125,7 @@ abstract class Item (var position: Pos) {
     def damageUpdate: Unit = { damage = damage_factor * level }
 
     var targetStat: StatType = NONE
-    def action (o: Organism, t: Organism): Unit = {
+    def action (o: Organism, t: Organism): Unit = { // execute the effect of the item
         /**DEBUG println(this + " is being used") OVER**/
         payCost(o)
         damageUpdate
@@ -150,7 +150,12 @@ abstract class Item (var position: Pos) {
 
     def superAction (o: Organism): Unit = {}
 
-    def use (o: Organism, t: Organism) = { if(isUsable(o)) { action(o, t); destroy } }
+    def use (o: Organism, t: Organism) = {
+        if(isUsable(o)) {
+            action(o, t)
+            destroy // one-time use only
+        }
+    }
 
     def levelUp: Unit = { level += 1 }
     def levelDown: Unit = { level -= 1 }
@@ -160,7 +165,7 @@ abstract class Item (var position: Pos) {
         position = p
         p.setItem(this)
     }
-    // Game evolution
+    // Game evolution: after each turn items move/are used
     def step: Unit = {
         if (owner != null && isUsable(owner)
         && Rng.choice(level / max_lvl)
@@ -170,6 +175,7 @@ abstract class Item (var position: Pos) {
     }
 }
 
+// item builder to not store actual items in item drop probability distributions
 object MakeItem extends Enumeration {
     type MakeItem = Value
     val KNIFE = Value
@@ -202,7 +208,7 @@ object MakeItem extends Enumeration {
 }
 
 // Partition the Items according to their application area:
-// Action on local area + straight movement
+// Action on local area + straight movement (bounces on walls)
 abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
     var (mv_vert, mv_horiz): Tuple2[Int, Int] = Rng.weightedChoice(Buffer(
         (0.1, (1,0)), (0.1, (0,1)), (0.1, (-1,0)), (0.1, (0,-1)),
@@ -215,7 +221,7 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
     var radius: Int = 0
     def setRadius (r: Int): Unit = { radius = r }
 
-    def LocsPicking: ListBuffer[Pos] = {
+    def LocsPicking: ListBuffer[Pos] = { // positions affected by the item
         var lst = ListBuffer[Pos]()
         for (i <- position.i - radius to position.i + radius) {
             for (j <- position.j - radius to position.j + radius) {
@@ -253,7 +259,7 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         }
     }
 
-    override def step: Unit = {
+    override def step: Unit = { // damage to nearby area
         if (pickable == false) {
             damageUpdate
             for (l <- LocsPicking) {
@@ -282,7 +288,7 @@ abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
 
 
 /* --- * SpatialActionItem * ---*/
-// Affaiblit tout sur son passage
+// Weakens organisms it comes into contact with
 class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     setPos(position)
 
@@ -294,7 +300,7 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     override def toString = "Alcohol"
 }
 
-// Tue tous les organismes et altère les spawners
+// Kills organisms it crosses
 class Knife (pos: Pos) extends SpatialActionItem(pos) {
     setRadius(3)
     setPos(position)
@@ -319,7 +325,8 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
 
 
 /* --- * GlobalActionItem * ---*/
-// Déplace tous les organismes aléatoirement et détériore les spawners
+
+// Randomly moves all organisms around
 class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     setPos(position)
 
@@ -344,7 +351,7 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     override def toString = "Movement"
 }
 
-// Tue tous les organisms, et détériore les spawners dès que ramassée
+// Kills organisms when picked up
 class Javel (pos: Pos) extends GlobalActionItem(pos) {
     setPos(position)
 
@@ -356,7 +363,7 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
     }
 }
 
-// Améliore les spawners + ralentit les cellules;
+// Slows down cells
 class Heat (pos: Pos) extends GlobalActionItem(pos) {
     setPos(position)
 
@@ -371,7 +378,8 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
 
 
 /* --- * LocalActionItem * --- */
-// Améliore les cellules, renforce les virus (ils peuvent se faire passer pour des gentils maintenant => immUnité) ;; newhealth.residual = health.residual_factor * level + health.residual
+
+// Improves cells or viruses depending on who picked it up
 class MembraneReplacement (pos: Pos) extends Item (pos) {
     setPos(position)
 
@@ -383,7 +391,7 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
     override def toString = "Membrane"
 }
 
-// Renforce les virus
+// Strengthens viruses
 class Spike (pos: Pos) extends Item (pos) {
     setPos(position)
 
@@ -395,7 +403,7 @@ class Spike (pos: Pos) extends Item (pos) {
     override def toString = "Spike"
 }
 
-// Cell: spd++, hp--; virus: non utilisable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
+// Cell: spd++, hp--; Virus: unusable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
 class CytoplasmLeak (pos: Pos) extends Item (pos) {
     setPos(position)
 

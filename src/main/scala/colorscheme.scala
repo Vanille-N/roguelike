@@ -23,7 +23,7 @@ object Scheme {
         new Color(r.toInt, g.toInt, b.toInt)
     }
 
-    def set_blue_channel (c: Color, b: Int): Color = {
+    def setBlueChannel (c: Color, b: Int): Color = {
         new Color(c.getRed, c.getGreen, c.getBlue.max(b))
     }
 }

@@ -13,10 +13,9 @@ import event._
  * - visual feedback for tile contents
  * - interaction with organisms
  * - battle procedure
- * - initial layout of the room
  */
 
-object Direction extends Enumeration {
+object Direction extends Enumeration { // allowed moves for organisms
     type Direction = Value
     val UP = Value("up")
     val DOWN = Value("down")
@@ -41,11 +40,11 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var isFocused: Boolean = false // position of cursor
     // for all members of type Array[...] with two indexes, information
     // on friendly organisms is stored in (1) and hostile in (0)
-    // This explains the `if (isFriendly) 1 else 0` in what follows
-    var organisms: Array[Set[Organism]] = Array(Set(), Set())
-    var items: Set[Item] = Set()
-    var strength: Array[Int] = Array(0, 0)
-    var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord())
+    // This explains the `if (isFriendly) 1 else 0` in the rest of the file
+    var organisms: Array[Set[Organism]] = Array(Set(), Set()) // all organisms
+    var items: Set[Item] = Set() // all items that are on the floor
+    var strength: Array[Int] = Array(0, 0) // arbitrary measure of strength
+    var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord()) // are celles allowed to step over this tile ?
     var friendlySpawner: PhysicalSpawner = null
     var hostileSpawner: PhysicalSpawner = null
     var notifyLevel: Int = 0 // visual feedback for important events
@@ -56,21 +55,21 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
        items.add(i)
        notification
     }
-    def addOrganism (o: Organism) = {
+    def addOrganism (o: Organism) = { // organism enters the tile
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)
         strength(idx) += o.strength
         blocking(idx).addSkill(o.skills.blocking)
     }
-    def removeOrganism (o: Organism) = {
+    def removeOrganism (o: Organism) = { // organism exits the tile
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).remove(o)
         strength(idx) -= o.strength
         blocking(idx).removeSkill(o.skills.blocking)
     }
-    def kill (o: Organism) = {
+    def kill (o: Organism) = { // organism is dead
         removeOrganism(o)
-        room.body.organisms.remove(o)
+        room.body.organisms.remove(o) // also remove from global index
     }
 
     // Vector addition on positions may fail if the resulting position
@@ -79,14 +78,14 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         val dpos = Direction.toTuple(i)
         val newJ = this.j + dpos._1
         val newI = this.i + dpos._2
-        if (room.cols > newJ && room.rows > newI && 0 <= newJ && 0 <= newI) {
+        if (room.isValid(newI, newJ)) {
             room.locs(newI, newJ)
         } else null
     }
     def jump (vert: Int, horiz: Int) : Pos = {
         val newJ = this.j + horiz
         val newI = this.i + vert
-        if (room.cols > newJ && room.rows > newI && 0 <= newJ && 0 <= newI) {
+        if (room.isValid(newI, newJ)) {
             room.locs(newI, newJ)
         } else null
     }
@@ -131,7 +130,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         val totalStrength = strength(0) + strength(1)
         var t0 = if (totalStrength > 0) strength(0).toString else ""
         var t1 = if (totalStrength > 0) strength(1).toString else ""
-        if (hostileSpawner != null) {
+        if (hostileSpawner != null) { // '+' indicates a spawner
             t0 += "+"
             if (friendlySpawner == null && totalStrength == 0) t1 += "."
         }
@@ -139,12 +138,12 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             t1 += "+"
             if (hostileSpawner == null && totalStrength == 0) t0 += "."
         }
-        if (items.size != 0) t1 += "i"
-        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
+        if (items.size != 0) t1 += "i" // 'i' indicates an item
+        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
-        background = Scheme.set_blue_channel(background, notifyLevel)
-        notifyLevel = 3 * notifyLevel / 4
+        background = Scheme.setBlueChannel(background, notifyLevel)
+        notifyLevel = 3 * notifyLevel / 4 // exponential decay for notifications
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
         foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
@@ -206,7 +205,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                 size.height / 2))
     }
 
-    def listContents: String = {
+    def listContents: String = { // show all organisms on the tile
         var s = "At position (" + i + "," + j + ")\n"
         var k = 0
         if (organisms(1).size > 0) {

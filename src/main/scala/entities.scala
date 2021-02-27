@@ -22,7 +22,7 @@ import MakeItem._
 abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
-    val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops
+    val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops upon death
 ) {
     var position: Pos = null
     def isFriendly: Boolean = false
@@ -40,6 +40,7 @@ abstract class Organism (
     // Adjust the strength according to the health of the Organism
     def updateStrength: Int = {
         val oldStrength = strength
+        // these coefficients are arbitrary
         val healthCoeff = 20
         val powerCoeff= 30
         val speedCoeff = 5
@@ -105,10 +106,10 @@ abstract class Organism (
     }
 
     override def toString: String = {
-        val sk = skills.toString
+        val sk = skills.toString // show skills
         val st = "   STR:" + strength + (if (sk == "") "" else "   (" + sk + ")") + "\n" +
-        "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]"
-        val hold = if (items.size > 0) "\nholding {" + items.map(_.toString).mkString(",") + "}" else ""
+        "      [ HP:" + stats.health.current + " | ATK:" + stats.power.current + " | DEF:" + stats.resistance.current + " | SPD:" + stats.speed.current + " | DEC:" + stats.decisiveness.current + " ]" // show stats
+        val hold = if (items.size > 0) "\nholding {" + items.map(_.toString).mkString(",") + "}" else "" // show items
         name + st + hold
     }
 
@@ -135,15 +136,9 @@ abstract class Organism (
                 if (it.pickUp(this)) {
                     items += it
                     room.body.logs.text += "\nI " + this + " pick up the item, yay !"
-                } //else {
-                    //room.body.logs.text += "Nope"
-                //}
-            } //else {
-                //room.body.logs.text += "\nI " + this + " did not pick up the item !"
-            //}
-        } /*else {
-            room.body.logs.text += "\nno items: " + position.items
-        }*/
+                }
+            }
+        }
         true
     }
 

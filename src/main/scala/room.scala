@@ -70,4 +70,9 @@ extends Reactor with Publisher {
         body.items.add(i)
         i.setPos(p)
     }
+
+    def isValid (i: Int, j: Int): Boolean = {
+        0 <= i && i < rows
+        && 0 <= j && j < cols
+    }
 }
