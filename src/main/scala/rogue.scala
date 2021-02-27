@@ -40,6 +40,7 @@ class BodyPart extends Reactor {
     val player = new Player(room.locs(10, 10))
 
     var command = new Command(room)
+    command.help_command.executeCommand("help")
 
     var isPlaying: Boolean = false
 
