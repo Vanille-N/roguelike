@@ -1,0 +1,4 @@
+Usage: `show` [organism_id: Int]
+
+Prints the organism whose id number is `organism_id`. If the
+argument is not given, a  request will be prompted.

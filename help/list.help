@@ -1,3 +1,5 @@
 # List command
 
-The command `list` prints all organisms on the board
+The command `list` prints all organisms on the board.
+
+Alternative command: `item list`
