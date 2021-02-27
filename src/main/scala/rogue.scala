@@ -136,7 +136,10 @@ class BodyPart extends Reactor {
                 total += o.stats.speed.current
             }
         })
-        if(total == 0) progressbar.value = 100 * friendly / total
+        if(total > 0) {
+            progressbar.value = friendly
+            progressbar.max = total
+        }
         else progressbar.value = 0
         logs.text += "\n\nfrienfly = " + friendly + "\ntotal = " + total + "\nprogressbar.value = " + progressbar.value + "\n"
     }
