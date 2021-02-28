@@ -141,7 +141,7 @@ class BodyPart extends Reactor {
             progressbar.max = total
         }
         else progressbar.value = 0
-        logs.text += "\n\nfrienfly = " + friendly + "\ntotal = " + total + "\nprogressbar.value = " + progressbar.value + "\n"
+        //logs.text += "\n\nfrienfly = " + friendly + "\ntotal = " + total + "\nprogressbar.value = " + progressbar.value + "\n"
     }
 
     // User clicks on dungeon cell or item button ou type a command

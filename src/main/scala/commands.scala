@@ -7,6 +7,7 @@ import java.io.IOException
 import scala.io.Source
 import scala.swing._
 import event._
+import scala.language.postfixOps
 
 import Direction._
 
@@ -56,8 +57,70 @@ abstract class CommandManager (room: Room) {
         arr.foreach(elt => out += elt + " ")
         return out
     }
-    def command_syntax_check(parsed_command: Array[String], syntax:Array[String]): Boolean = {
-        /**/
+    def command_syntax_check(parsed_command: Array[String], syntax:Array[Tuple2[Boolean, String]]): Boolean = {// This function checks whether a command's syntax is correct or not
+        /*
+        ** The tuples are of the form (b: Boolean, s: String) with:
+        **  | b: Boolean -> Can the command stop here (temporally)
+        **  | s: String -> type  of the argument.
+        **              | "[abc]" denotes the letters 'a', 'b' or 'c'
+        **              | "'abc" denotes the word "abc"
+        **              | "N" denotes any integer
+        **              | "N:n->m;" denotes any integer between the integer n and the integer m (numerical values, no variables allowed)
+        **              | it is possible to mix these the options with '|'.
+        **                  | e.g.: have "[l]|N" to denote either the letter 'l', or any number.
+        */
+
+        // 1- Checking the global form of the command.
+        if (parsed_command.length > syntax.length) return false// the length of a command should not exceed the maximal size of the described command.
+        if ( !(syntax(parsed_command.length - 1)_1) ) return false// the command should not stop where it did :/
+
+        var acceptable: Array[String] = Array()// stores the different expressions of the form "[.]", "'.", "N" or "N:.->.;" separated by '|'
+        // 2- Checking each parameter / field.
+        for (i <- 0 to parsed_command.length - 1) {
+            acceptable = (syntax(i)_2).split("\\|")
+            ////println("\ni = " + i + "\tacceptable.length = " +  acceptable.length)
+            if ( !acceptable.exists (
+                elt =>// elt is a string of the forms described above.
+                {
+                    //println("\telement = " + elt)
+                    var result: Boolean = true
+                    elt(0) match {
+                        case '[' => {
+                            var acceptable_letters: Set[Char] = Set()
+                            elt.substring(1,elt.length - 1).foreach(letter => acceptable_letters += letter)
+                            parsed_command(i).foreach(l => result = result && acceptable_letters.contains(l))
+                        }
+                        case 'N' => {
+                            //println("\tChecking for a number.")
+                            // First, check that we have a number
+                            result = parsed_command(i).forall ( letter => List('0', '1', '2', '3', '4', '5', '6', '7', '8', '9').contains(letter) )
+
+                            //if(result) println("\t\tI have a number.")
+
+                            // Then, if there are boundaries, check them.
+                            if(result && elt.length > 1  && elt(1) == ':') {
+                                val minimum: Int = elt.substring ( 2, elt.indexOf("->") ).toInt
+                                val maximum: Int = elt.substring ( elt.indexOf("->") + 2, elt.length - 1 ).toInt
+                                var n: Int = 0// stores the value of the eventual number.
+                                parsed_command(i).foreach ( letter => {
+                                    n *= 10
+                                    n += letter.toString.toInt
+                                })
+                                result = n >= minimum && n <= maximum
+                                //if(result) println("\t\t\t... in the correct range")
+                            }
+                        }
+                        case _ => {
+                            //println("\tChecking for a word:")
+                            result = parsed_command(i) == elt
+                            //if(result) println("\t\tOk: " + elt + " == " + parsed_command(i))
+                            //else println("\t\tnOk: " + elt + " != " + parsed_command(i))
+                        }
+                    }
+                    result
+                }
+                )) return false
+        }
         return true
     }
 
@@ -141,8 +204,26 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
     help_menus = "select" :: "selection" :: "take" :: "filter" :: "flush" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
+        appendLogs(prompt + unSplitCommand(splited_command_arg))
         var splited_command: Array[String] = splited_command_arg// necessary because the arguments are non mutable variables
         def selection_select: String = {
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                    (true,  "select"                   ),
+                    (true,  "N:1->2;"                  ),
+                    (false, "N:1->" + (room.rows) + ";"),
+                    (true,  "N:1->" + (room.cols) + ";"),
+                    (false, "N:1->" + (room.rows) + ";"),
+                    (true,  "N:1->" + (room.cols) + ";")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked")
@@ -211,6 +292,19 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
         }
 
         def selection_filter: String = {// only keep friendly or unfriendly organisms in the current selection
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                    (true,  "filter"    ),
+                    (true,  "virus|cell")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs("What family of organism do you want to keep ? (virus|cell)")
@@ -282,6 +376,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
     import Behavior._
 
     def realExecuteCommand (splited_command: Array[String]): String = {
+        appendLogs(prompt + unSplitCommand(splited_command))
         def behavior: String = {
             splited_command.length match {
                 case 1 => {
@@ -356,6 +451,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
     help_menus = "list" :: "set" :: "show" :: Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
+        appendLogs(prompt + unSplitCommand(splited_command))
         def getOrganismById (id: Int): Organism = {
             val lily : List[Organism] = room.body.organisms.toList
             if(id > lily.length) { null }
@@ -380,6 +476,21 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
         }
 
         def organisms_set: String = {// Allows the user to set a stat field of any organism to any integer value.
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "set"),
+                        (true, "l|N:0->" + room.body.organisms.size + ";"),
+                        (true, "SPD|HP|POW|DEF|DEC"),
+                        (true, "N")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             last_checked_arg match {// last_checked_arg defines the last approved argument for the function.
                 case 0 => {
                     splited_command.length match {
@@ -438,6 +549,19 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
         }
 
         def organisms_show: String = {// Shows the stats field of a particular organism.
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                    (true,  "show"                                    ),
+                    (true,  "N:0->" + (room.body.organisms.size) + ";")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs("Which organism would you like to see ?")
@@ -471,6 +595,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
     help_menus = "item" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
+        appendLogs(prompt + unSplitCommand(splited_command_arg))
         var splited_command: Array[String] = splited_command_arg// necessary as the arguments of a function are non mutable
         def items_item: String = {// main redirection command to defines equivalence in the call of a specific function (eg.: item list <-> item_list)
             splited_command.length match {
@@ -534,6 +659,21 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def items_add: String = {// Add an item to the board.
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "add"),
+                        (false, "N:1->" + (room.rows) + ";"),
+                        (false, "N:1->" + (room.cols) + ";"),
+                        (true, "N:1->8;")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => { appendLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcohol\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane"); return "item-add" }
                 case 2 => { appendLogs("Where do you want to spawn the new item? (click or respond by `i j` in the cmdline)."); return "item-add " + splited_command(1) }
@@ -558,6 +698,19 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def items_rm: String = {// Remove an item from the board
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, ""),
+                        (true, "l|N:0->" + room.body.items.size + ";")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => { appendLogs("What item do you want to remove from the game? (l to list them)"); "item_rm" }
                 case _ => {
@@ -649,6 +802,20 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def items_give: String = {// Give an item from the inventory to an organism
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "item_give"),
+                        (true, "l|N:0->" + room.body.player.inventory.size + ";"),
+                        (true, "l|N:0->" + room.body.organisms + ";")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs ("Which item of the inventory would you like to give? (`l` to list the items)")
@@ -686,7 +853,41 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def items_level: String = {
-            /*TODO! */""
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "item_level"),
+                        (true, "l|N:0->" + room.body.items.size + ";"),
+                        (true, "N:0->5;")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
+            splited_command.length match {
+                case 1 => {
+                    appendLogs("Of whose item do you want to whange the level ? (l to list)")
+                    return "item_level"
+                }
+                case 2 => {
+                    if(splited_command(1) == "l") {
+                        items_list
+                        return "item_level"
+                    } else {
+                        appendLogs("What new level do you want ? (integer from 0 to 5)")
+                        return unSplitCommand(splited_command)
+                    }
+                }
+                case 3 => {
+                    val target_item : Item = getItemById(splited_command(1).toInt)
+                    val target_level : Int = splited_command(2).toInt
+                    appendLogs("The item " + splited_command(1) + " is now level " + splited_command(2))
+                }
+            }
+            return ""
         }
 
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
@@ -824,8 +1025,8 @@ class Command (val room: Room) {
     var current_command: String = ""
 
     val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.
-        (Key.Semicolon,  "focus_cmdline"),
-        (Key.Colon  ,    "focus_cmdline"),
+        (Key.Semicolon,  "focus-cmdline"),
+        (Key.Colon  ,    "focus-cmdline"),
         (Key.Numpad0,    "0"),
         (Key.Numpad1,    "1"),
         (Key.Numpad2,    "2"),
@@ -881,7 +1082,8 @@ class Command (val room: Room) {
     }
 
     def keyPressed (c: Key.Value): Unit = {// Called when the user presses a key outside of the cmdline TextArea.
-        commandRequest(commandFromKey(c))
+        val command: String = commandFromKey(c)
+        if(command != "") commandRequest(command)
     }
 
     def unSplitCommand(arr: Array[String]): String = {
@@ -891,7 +1093,7 @@ class Command (val room: Room) {
     }
 
     def commandRequest(command: String): Unit = {
-        if (command.split("\\s+").length == 0) {// if the command is only composed of spaces, ignore it.
+        if (command == "" || command.split("\\s+").length == 0) {// if the command is only composed of spaces, ignore it.
             current_command = ""
             room.body.cmdline.text = ""
             return
