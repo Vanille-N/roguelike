@@ -394,6 +394,19 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
     def realExecuteCommand (splited_command: Array[String]): String = {
         appendLogs(prompt + unSplitCommand(splited_command))
         def behavior: String = {
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "behavior"),
+                        (true, "target|cursor|click|N:1->2;")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs("Where should they go ? (1 -> cursor, 2 -> click target)")
@@ -414,6 +427,18 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
         }
 
         def behavior_cursor: String = {
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "behavior-cursor")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             room.body.organisms_selection.foreach(o => {
                 if (o.isFriendly) {
                     o.behavior = { () => (room.body.player.position, SEEK) }
@@ -424,6 +449,20 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
         }
 
         def behavior_target: String = {
+            // Check if the command syntax is correct or not:
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                        (true, "behavior-target"),
+                        (false, "N:1->" + (room.rows - 1) + ";"),
+                        (true, "N:1->" + (room.cols - 1) + ";")
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+
+            // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
                     appendLogs("Which tile ?")
