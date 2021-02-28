@@ -491,41 +491,26 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
             }
 
             // The syntax is correct. Continue.
-            last_checked_arg match {// last_checked_arg defines the last approved argument for the function.
-                case 0 => {
-                    splited_command.length match {
-                        case 1 => {
-                            appendLogs("Which organism would you like to consider? (l to list available organisms)")
-                            return "set"
-                        }
-                        case 2 => {
-                            if(splited_command(1) == "l") {
-                                organisms_list
-                                appendLogs("Which organism would you like to consider? (l to list available organisms)")
-                                return "set"
-                            } else {
-                                appendLogs("Which field would you like to set? (SPD, HP, POW, DEF, DEC)")
-                                last_checked_arg += 1
-                                return ("set " + splited_command(1))
-                            }
-                        }
-                        case _ => {
-                            appendLogs("Interactive mode only for now :/")
-                            return ("set " + splited_command(1))
-                        }
-                    }
-                }
+            splited_command.length match {
                 case 1 => {
-                    if(splited_command.length == 2) {
-                        appendLogs ("Which field would you like to set? (SPD, HP, POW, DEF, DEC)")
-                        return("set " + splited_command(1))
-                    } else {
-                        appendLogs ("What is the target value of the field " + splited_command(2) + " for the organism " + splited_command(1) + "?")
-                        last_checked_arg += 1
-                        return ( "set " + splited_command(1) + " " + splited_command(2) )
-                    }
+                    appendLogs("Which organism would you like to consider? (l to list available organisms)")
+                    return "set"
                 }
                 case 2 => {
+                    if(splited_command(1) == "l") {
+                        organisms_list
+                        appendLogs("Which organism would you like to consider? (l to list available organisms)")
+                        return "set"
+                    } else {
+                        appendLogs("Which field would you like to set? (SPD, HP, POW, DEF, DEC)")
+                        return (unSplitCommand(splited_command))
+                    }
+                }
+                case 3 => {
+                    appendLogs("What is the target value ? (integer)")
+                    return (unSplitCommand(splited_command))
+                }
+                case 4 => {
                     val target_organism = getOrganismById(splited_command(1).toInt)
                     val target_field    = splited_command(2)
                     val target_value    = splited_command(3).toInt
