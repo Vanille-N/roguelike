@@ -86,7 +86,8 @@ abstract class CommandManager (room: Room) {
         // 2- Checking each parameter / field.
         for (i <- 0 to parsed_command.length - 1) {
             acceptable = (syntax(i)._2).split("\\|")
-            ////println("\ni = " + i + "\tacceptable.length = " +  acceptable.length)
+            //println("\ni = " + i + "\tacceptable.length = " +  acceptable.length)
+            reason_of_withdraw = ""
             if ( !acceptable.exists (
                 elt =>// elt is a string of the forms described above.
                 {
@@ -97,7 +98,7 @@ abstract class CommandManager (room: Room) {
                             var acceptable_letters: Set[Char] = Set()
                             elt.substring(1,elt.length - 1).foreach(letter => acceptable_letters += letter)
                             parsed_command(i).foreach(l => result = result && acceptable_letters.contains(l))
-                            reason_of_withdraw = "\n\t| word composed of the following letters: " + acceptable_letters.toString.substring(4, acceptable_letters.toString.length - 1)
+                            reason_of_withdraw += "\n\t| word composed of the following letters: " + acceptable_letters.toString.substring(4, acceptable_letters.toString.length - 1)
                         }
                         case 'N' => {
                             //println("\tChecking for a number.")
@@ -117,9 +118,9 @@ abstract class CommandManager (room: Room) {
                                 })
                                 result = n >= minimum && n <= maximum
                                 //if(result) println("\t\t\t... in the correct range")
-                                reason_of_withdraw = "\n\t| number (between " + minimum + " and " + maximum + " )"
+                                reason_of_withdraw += "\n\t| number (between " + minimum + " and " + maximum + " )"
                             } else {
-                                reason_of_withdraw = "\n\t| number"
+                                reason_of_withdraw += "\n\t| number"
                             }
                         }
                         case _ => {
@@ -127,7 +128,7 @@ abstract class CommandManager (room: Room) {
                             result = parsed_command(i) == elt
                             //if(result) println("\t\tOk: " + elt + " == " + parsed_command(i))
                             //else println("\t\tnOk: " + elt + " != " + parsed_command(i))
-                            reason_of_withdraw = "\n\t word `" + elt + "`"
+                            reason_of_withdraw += "\n\t| word `" + elt + "`"
                         }
                     }
                     result
