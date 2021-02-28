@@ -68,7 +68,6 @@ abstract class CommandManager (room: Room) {
         **              | "N:n->m;" denotes any integer between the integer n and the integer m (numerical values, no variables allowed)
         **              | it is possible to mix these the options with '|'.
         **                  | e.g.: have "[l]|N" to denote either the letter 'l', or any number.
-        **  | s': String -> error to throw if this Tuple is responsible for the command withdrawn
         */
 
         // 1- Checking the global form of the command.
