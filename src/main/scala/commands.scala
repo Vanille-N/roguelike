@@ -61,23 +61,31 @@ abstract class CommandManager (room: Room) {
         /*
         ** The tuples are of the form (b: Boolean, s: String) with:
         **  | b: Boolean -> Can the command stop here (temporally)
-        **  | s: String -> type  of the argument.
-        **              | "[abc]" denotes the letters 'a', 'b' or 'c'
+        **  | s: String ->  type  of the argument.
+        **              | "[abc]" denotes the letters 'a', 'b' or 'c' (any word in L((a + b + c)*) is accepted)
         **              | "'abc" denotes the word "abc"
         **              | "N" denotes any integer
         **              | "N:n->m;" denotes any integer between the integer n and the integer m (numerical values, no variables allowed)
         **              | it is possible to mix these the options with '|'.
         **                  | e.g.: have "[l]|N" to denote either the letter 'l', or any number.
+        **  | s': String -> error to throw if this Tuple is responsible for the command withdrawn
         */
 
         // 1- Checking the global form of the command.
-        if (parsed_command.length > syntax.length) return false// the length of a command should not exceed the maximal size of the described command.
-        if ( !(syntax(parsed_command.length - 1)_1) ) return false// the command should not stop where it did :/
+        if (parsed_command.length > syntax.length) {// the length of a command should not exceed the maximal size of the described command.
+            appendLogs("_/!\\_: The command exceeds the maximal length.")
+            return false
+        }
+        if ( !(syntax(parsed_command.length - 1)._1) ) {// the command should not stop where it did :/
+            appendLogs("_/!\\_: The command should not end on this parameter.")
+            return false
+        }
 
         var acceptable: Array[String] = Array()// stores the different expressions of the form "[.]", "'.", "N" or "N:.->.;" separated by '|'
+        var reason_of_withdraw: String = "Possibilities:"
         // 2- Checking each parameter / field.
         for (i <- 0 to parsed_command.length - 1) {
-            acceptable = (syntax(i)_2).split("\\|")
+            acceptable = (syntax(i)._2).split("\\|")
             ////println("\ni = " + i + "\tacceptable.length = " +  acceptable.length)
             if ( !acceptable.exists (
                 elt =>// elt is a string of the forms described above.
@@ -89,6 +97,7 @@ abstract class CommandManager (room: Room) {
                             var acceptable_letters: Set[Char] = Set()
                             elt.substring(1,elt.length - 1).foreach(letter => acceptable_letters += letter)
                             parsed_command(i).foreach(l => result = result && acceptable_letters.contains(l))
+                            reason_of_withdraw = "\n\t| word composed of the following letters: " + acceptable_letters.toString.substring(4, acceptable_letters.toString.length - 1)
                         }
                         case 'N' => {
                             //println("\tChecking for a number.")
@@ -108,6 +117,9 @@ abstract class CommandManager (room: Room) {
                                 })
                                 result = n >= minimum && n <= maximum
                                 //if(result) println("\t\t\t... in the correct range")
+                                reason_of_withdraw = "\n\t| number (between " + minimum + " and " + maximum + " )"
+                            } else {
+                                reason_of_withdraw = "\n\t| number"
                             }
                         }
                         case _ => {
@@ -115,11 +127,15 @@ abstract class CommandManager (room: Room) {
                             result = parsed_command(i) == elt
                             //if(result) println("\t\tOk: " + elt + " == " + parsed_command(i))
                             //else println("\t\tnOk: " + elt + " != " + parsed_command(i))
+                            reason_of_withdraw = "\n\t word `" + elt + "`"
                         }
                     }
                     result
                 }
-                )) return false
+                )) {
+                appendLogs("The " + (i+1) + {(i+1) match { case 1 => "-st" case 2 => "-nd" case 3 => "-rd" case _ => "-th"}} + " argument does not respect its form: " + reason_of_withdraw)
+                return false
+            }
         }
         return true
     }
@@ -481,7 +497,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "set"),
-                        (true, "l|N:0->" + room.body.organisms.size + ";"),
+                        (true, "l|N:0->" + (room.body.organisms.size - 1) + ";"),
                         (true, "SPD|HP|POW|DEF|DEC"),
                         (true, "N")
                     )
@@ -539,7 +555,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                     (true,  "show"                                    ),
-                    (true,  "N:0->" + (room.body.organisms.size) + ";")
+                    (true,  "N:0->" + (room.body.organisms.size - 1) + ";")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -688,7 +704,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, ""),
-                        (true, "l|N:0->" + room.body.items.size + ";")
+                        (true, "l|N:0->" + (room.body.items.size - 1) + ";")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -792,8 +808,8 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item_give"),
-                        (true, "l|N:0->" + room.body.player.inventory.size + ";"),
-                        (true, "l|N:0->" + room.body.organisms + ";")
+                        (true, "l|N:0->" + (room.body.player.inventory.size - 1) + ";"),
+                        (true, "l|N:0->" + (room.body.organisms.size - 1) + ";")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -843,7 +859,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item_level"),
-                        (true, "l|N:0->" + room.body.items.size + ";"),
+                        (true, "l|N:0->" + (room.body.items.size - 1) + ";"),
                         (true, "N:0->5;")
                     )
                 )) {
