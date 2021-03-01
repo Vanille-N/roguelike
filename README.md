@@ -11,6 +11,7 @@ Tested with sbt 1.4.6 running Scala 2.13.4 on Java 15.0.2
 
 ```sh
 $ git clone https://Vanille-N/roguelike
+$ git checkout v1.0
 $ cd roguelike
 $ sbt
 sbt:Roguelike> run
