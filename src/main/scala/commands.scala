@@ -704,9 +704,9 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-add"),
+                        (true, "N:1->8;"),
                         (false, "N:1->" + (room.rows) + ";"),
-                        (false, "N:1->" + (room.cols) + ";"),
-                        (true, "N:1->8;")
+                        (true, "N:1->" + (room.cols) + ";")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
