@@ -631,7 +631,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
 
 // The following class deals with the items management
 class ItemsCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List("item_add", "item", "item_rm", "item_pickup", "item_level", "item_list", "item_give")
+    val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give")
     help_menus = "item" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
@@ -644,28 +644,28 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                     splited_command(1) match {
                         case "add"    => {
                             splited_command = splited_command.tail
-                            splited_command(0) = "item_add"
+                            splited_command(0) = "item-add"
                             return items_add
                         }
                         case "rm"     => {
                             splited_command = splited_command.tail
-                            splited_command(0) = "item_rm"
+                            splited_command(0) = "item-rm"
                             return items_rm
                         }
                         case "pickup" =>  {
                             splited_command = splited_command.tail
-                            splited_command(0) = "item_pickup"
+                            splited_command(0) = "item-pickup"
                             return items_pickUp
                         }
                         case "level"  => {
                             splited_command = splited_command.tail
-                            splited_command(0) = "item_level"
+                            splited_command(0) = "item-level"
                             return items_level
                         }
                         case "list"   => return items_list
                         case "give"   => {
                             splited_command = splited_command.tail
-                            splited_command(0) = "item_give"
+                            splited_command(0) = "item-give"
                             return items_give
                         }
                         case _        => { appendLogs("Error: command `" + splited_command(1) + "` unknown"); return "" }
@@ -703,7 +703,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "add"),
+                        (true, "item-add"),
                         (false, "N:1->" + (room.rows) + ";"),
                         (false, "N:1->" + (room.cols) + ";"),
                         (true, "N:1->8;")
@@ -742,7 +742,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, ""),
+                        (true, "item-rm"),
                         (true, "l|N:0->" + (room.body.items.size - 1) + ";")
                     )
                 )) {
@@ -752,7 +752,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
             // The syntax is correct. Continue.
             splited_command.length match {
-                case 1 => { appendLogs("What item do you want to remove from the game? (l to list them)"); "item_rm" }
+                case 1 => { appendLogs("What item do you want to remove from the game? (l to list them)"); "item-rm" }
                 case _ => {
                     if (splited_command(1) == "l") {
                         items_list
@@ -846,7 +846,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "item_give"),
+                        (true, "item-give"),
                         (true, "l|N:0->" + (room.body.player.inventory.size - 1) + ";"),
                         (true, "l|N:0->" + (room.body.organisms.size - 1) + ";")
                     )
@@ -859,13 +859,13 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             splited_command.length match {
                 case 1 => {
                     appendLogs ("Which item of the inventory would you like to give? (`l` to list the items)")
-                    return "item_give"
+                    return "item-give"
                 }
                 case 2 => {
                     if ( splited_command(1) == "l") {
                         list_inventory
                         appendLogs ("Which item of the inventory would you like to give? (`l` to list the items)")
-                        return "item_give"
+                        return "item-give"
                     } else {
                         appendLogs ("What organism should revieve the item? (`l` to list the organisms)")
                         return unSplitCommand(splited_command)
@@ -897,7 +897,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "item_level"),
+                        (true, "item-level"),
                         (true, "l|N:0->" + (room.body.items.size - 1) + ";"),
                         (true, "N:0->5;")
                     )
@@ -910,12 +910,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             splited_command.length match {
                 case 1 => {
                     appendLogs("Of whose item do you want to whange the level ? (l to list)")
-                    return "item_level"
+                    return "item-level"
                 }
                 case 2 => {
                     if(splited_command(1) == "l") {
                         items_list
-                        return "item_level"
+                        return "item-level"
                     } else {
                         appendLogs("What new level do you want ? (integer from 0 to 5)")
                         return unSplitCommand(splited_command)
@@ -931,12 +931,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
-            case "item_add"    => { return items_add    }
-            case "item_rm"     => { return items_rm     }
-            case "item_pickup" => { return items_pickUp }
-            case "item_level"  => { return items_level  }
-            case "item_list"   => { return items_list   }
-            case "item_give"   => { return items_give   }
+            case "item-add"    => { return items_add    }
+            case "item-rm"     => { return items_rm     }
+            case "item-pickup" => { return items_pickUp }
+            case "item-level"  => { return items_level  }
+            case "item-list"   => { return items_list   }
+            case "item-give"   => { return items_give   }
             case "item"        => { return items_item   }
             case _             => { appendLogs("Error: Command `" + splited_command(0) + "` unknown"); return "" }
         }
