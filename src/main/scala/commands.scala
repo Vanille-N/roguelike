@@ -756,7 +756,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 case _ => {
                     if (splited_command(1) == "l") {
                         items_list
-                        return unSplitCommand(splited_command)
+                        return "item-rm"
                     } else {
                         room.body.items -= getItemById(splited_command(1).toInt)
                         return ""
@@ -875,7 +875,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                     if(splited_command(2) == "l") {
                         organisms_list
                         appendLogs ("What organism should revieve the item? (`l` to list the organisms)")
-                        return unSplitCommand(splited_command)
+                        return (splited_command(0) + splited_command(1))
                     } else {
                         val target_item: Item = getItemFromInventoryById(splited_command(1).toInt)
                         val target_organism: Organism = getOrganismById(splited_command(2).toInt)
