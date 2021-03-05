@@ -8,7 +8,6 @@ import event._
 import Direction._
 
 
-
 // The following  class deals with the movements of the player
 class DirectionsCommand(room: Room) extends CommandManager (room) {
     val acceptedCommands: List[String] = List("Up", "Down", "Left", "Right")
@@ -58,22 +57,6 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
 
 
 
-
-
-
-
-// accept every command and do nothing.
-class NullCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List()
-    override def acceptCommand (str: String): Boolean = { true }
-    help_menus = Nil
-
-    def realExecuteCommand (splited_command: Array[String]): String = {
-        appendLogs("Error: Command `" + splited_command(0) + "` unknown")
-        return ""
-    }
-}
-
 class OtherCommand (room: Room) extends CommandManager (room) {
     val acceptedCommands: List[String] = List("quit", "toggle", "stop", "play", "step", "step-multiple", "focus-cmdline", "focus-win", "q", "clear")
     help_menus = Nil
@@ -122,6 +105,20 @@ class OtherCommand (room: Room) extends CommandManager (room) {
             case "clear"         => { room.body.logs.text = ""; return "" }
             case _               => { appendLogs("Error: Command `" + splited_command(0) + "` unknown"); return "" }
         }
+        return ""
+    }
+}
+
+
+
+// accept every command and do nothing.
+class NullCommand (room: Room) extends CommandManager (room) {
+    val acceptedCommands: List[String] = List()
+    override def acceptCommand (str: String): Boolean = { true }
+    help_menus = Nil
+
+    def realExecuteCommand (splited_command: Array[String]): String = {
+        appendLogs("Error: Command `" + splited_command(0) + "` unknown")
         return ""
     }
 }
