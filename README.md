@@ -120,6 +120,13 @@ We thus decided on the following compromise.
     - commands can have their parameters entered interactively in several steps with instructions at each step
     - there is a comprehensive and modular help menu (enter command `"help"` or `"help <foo>"`)
 
+### Commands
+
+When a command is executed, it is seen by the command line as a string (which only grows in the case of an interactive execution),
+and as an array (composed of the spaced-separated words) for the `Execution*` commands.
+
+Thus, matching the length of this array gives every information an `Execution*` command needs to know where the interactive commands stopped.
+
 ------
 
 ## Future improvements
