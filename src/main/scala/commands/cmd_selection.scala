@@ -11,12 +11,12 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                    (true,  "select"                   ),
-                    (true,  "N:1->2;"                  ),
-                    (false, "N:1->" + (room.rows) + ";"),
-                    (true,  "N:1->" + (room.cols) + ";"),
-                    (false, "N:1->" + (room.rows) + ";"),
-                    (true,  "N:1->" + (room.cols) + ";")
+                    (true,  "select"                            ),
+                    (true,  "N:1->2;|rectangle|rect|circ|circle"),
+                    (false, s"N:1->${room.rows};"               ),
+                    (true,  s"N:1->${room.cols};"               ),
+                    (false, s"N:1->${room.rows};"               ),
+                    (true,  s"N:1->${room.cols};"               )
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -25,23 +25,19 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
 
             // The syntax is correct. Continue.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is `select`
                     appendLogs("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked")
                     return "select"
                 }
-                case 3 | 5 => {
-                    appendLogs ("Illegal number of parameters (plausible error: coordinates must be passed as `i j`, not `i`, `j`.)\n\tAborting.")
-                    return ""
-                }
-                case 2 => {
+                case 2 => {// command is `select <type>`
                     appendLogs ("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)")
                     return unSplitCommand(splited_command)
                 }
-                case 4 => {
+                case 4 => {// command is `select <type> <coord_i coord_j>`
                     appendLogs ("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)")
                     return unSplitCommand(splited_command)
                 }
-                case 6 => {
+                case 6 => {// command is `select <type> <coord_i coord_j> <coord_i coord_j>`
                     val x1: Int = splited_command(2).toInt
                     val y1: Int = splited_command(3).toInt
                     val x2: Int = splited_command(4).toInt
@@ -70,7 +66,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                         }
                         case _ => { appendLogs("Internal error: unknown selection type.") }
                     }
-                    appendLogs("Selection complete: " + room.body.organisms_selection.size + " elements\n\nUse `selection-print` to print the selection")
+                    appendLogs(s"Selection complete: ${room.body.organisms_selection.size} elements\n\nUse `selection-print` to print the selection")
                     return ""
                 }
                 case _ => {
@@ -121,36 +117,43 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
         }
 
         def selection_print: String = {// Prints the current selection
-            appendLogs("   ---   Printing " + room.body.organisms_selection.size + " elements:   ---")
+            appendLogs(s"   ---   Printing ${room.body.organisms_selection.size} elements:   ---")
             room.body.organisms_selection.foreach ( o => appendLogs("" + o) )
-            appendLogs("   ---   End of the selection   ---", ln_before = true)
+            appendLogs(s"   ---   End of the selection (${room.body.organisms_selection.size} elements)   ---", ln_before = true)
             return ""
         }
 
         def selection_selection: String = {// Hub to decide which function is to be executed.
-            splited_command.length match {
-                case 1 => {
-                    appendLogs("Wrong usage of command `selection`\n\t`-> check `help selection` to find out why :)")
-                    return ""
+            if(!command_syntax_check(
+                splited_command,
+                Array(
+                    (false, "selection"),
+                    (true,  "select|take|filter|flush|print"),
+                    (true,  "N:1->2;|rectangle|rect|circ|circle|virus|cell"),
+                    (false, s"N:1->${room.rows};"                          ),
+                    (true,  s"N:1->${room.cols};"                          ),
+                    (false, s"N:1->${room.rows};"                          ),
+                    (true,  s"N:1->${room.cols};"                          )
+                    )
+                )) {
+                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                return ""
+            }
+            splited_command(1) match {
+                case "select" => {
+                    splited_command = splited_command.tail
+                    return selection_select
                 }
-                case _ => {
-                    splited_command(1) match {
-                        case "select" => {
-                            splited_command = splited_command.tail
-                            return selection_select
-                        }
-                        case "take"   => return selection_take
-                        case "filter" => {
-                            splited_command = splited_command.tail
-                            return selection_select
-                        }
-                        case "flush"  => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
-                        case "print"  => return selection_print
-                        case _        => {
-                            appendLogs("Error: command `" + splited_command(1) + "` unknown. Aborting.")
-                            return ""
-                        }
-                    }
+                case "take"   => return selection_take
+                case "filter" => {
+                    splited_command = splited_command.tail
+                    return selection_select
+                }
+                case "flush"  => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
+                case "print"  => return selection_print
+                case _        => {// unnecessary
+                    appendLogs(s"Error: command `${splited_command(1)}` unknown. Aborting.")
+                    return ""
                 }
             }
             return ""
@@ -163,7 +166,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             case "filter"           => { return selection_filter }
             case "flush"            => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
             case "selection-print"  => { return selection_print }
-            case _                  => { appendLogs("Error: Command `" + splited_command(0) + "` unknown") }
+            case _                  => { appendLogs(s"Error: Command `${splited_command(0)}` unknown") }
         }
         return ""
     }

@@ -65,9 +65,9 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "behavior-target"),
-                        (false, "N:1->" + (room.rows - 1) + ";"),
-                        (true, "N:1->" + (room.cols - 1) + ";")
+                        (true,  "behavior-target"),
+                        (false, s"N:1->${room.rows - 1};"),
+                        (true,  s"N:1->${room.cols - 1};")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -104,7 +104,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             case "behavior" => { return behavior }
             case "behavior-cursor" => { return behavior_cursor }
             case "behavior-target" => { return behavior_target }
-            case _ => { appendLogs("Error: Command `" + splited_command(0) + "` unknown") }
+            case _ => { appendLogs(s"Error: Command `${splited_command(0)}` unknown") }
         }
         return ""
     }

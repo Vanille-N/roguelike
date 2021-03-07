@@ -45,12 +45,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
         def items_list: String = {// List the current list of items on the board
             var i: Int = 0
-            appendLogs("   ---------   Printing " + room.body.items.size +  " elements   ---------")
+            appendLogs(s"   ---------   Printing ${room.body.items.size} elements   ---------")
             for ( o <- room.body.items.toList ) {
                 appendLogs(i + "-\t" + o)
                 i += 1
             }
-            appendLogs("   ---------   End of the printing   ---------")
+            appendLogs(s"   ---------   End of the printing (${room.body.items.size} elements)   ---------")
             return ""
         }
 
@@ -72,10 +72,10 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             if(!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "item-add"),
-                        (true, "N:1->8;"),
-                        (false, "N:1->" + (room.rows) + ";"),
-                        (true, "N:1->" + (room.cols) + ";")
+                        (true,  "item-add"),
+                        (true,  "N:1->8;"),
+                        (false, s"N:1->${room.rows};"),
+                        (true,  s"N:1->${room.cols};")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -112,7 +112,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-rm"),
-                        (true, "l|N:0->" + (room.body.items.size - 1) + ";")
+                        (true, s"l|N:0->${room.body.items.size - 1};")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -145,7 +145,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                                     val it = room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
                                     if (it.pickUp(o)) {
                                         o.items += it
-                                        room.body.logs.text += "\nI " + o + " pick up the item, yay !"
+                                        room.body.logs.text += s"\nI $o pick up the item, yay !"
                                     }
                                 }
                             )
@@ -158,7 +158,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                             val it = room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
                             if (it.pickUp(o)) {
                                 o.items += it
-                                room.body.logs.text += "\nI " + o + " pick up the item, yay !"
+                                room.body.logs.text += s"\nI $o pick up the item, yay !"
                             }
                         }
                     )
@@ -170,12 +170,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
         def list_inventory: Unit = {// List the inventory of the player
             var i: Int = 0
-            appendLogs("   ---------   Printing " + room.body.player.inventory.size +  " elements   ---------")
+            appendLogs(s"   ---------   Printing ${room.body.player.inventory.size} elements   ---------")
             for ( o <- room.body.player.inventory.toList ) {
                 appendLogs(i + "-\t" + o)
                 i += 1
             }
-            appendLogs("   ---------   End of the printing   ---------")
+            appendLogs(s"   ---------   End of the printing (${room.body.player.inventory.size} elements))   ---------")
         }
 
         def getItemFromInventoryById (id: Int): Item = {
@@ -201,13 +201,13 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def organisms_list: Unit = {
-            appendLogs("   ---   Printing " + room.body.organisms.size + " organisms:   ---")
+            appendLogs(s"   ---   Printing ${room.body.organisms.size} organisms:   ---")
             var i: Int = 0
             for ( o <- room.body.organisms.toList ) {
                 appendLogs(i + "-\t" + o)
                 i += 1
             }
-            appendLogs("   ---   End of the list.   ---", ln_before = true)
+            appendLogs(s"   ---   End of the list (${room.body.organisms.size} organisms).   ---", ln_before = true)
         }
 
         def items_give: String = {// Give an item from the inventory to an organism
@@ -216,8 +216,8 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-give"),
-                        (true, "l|N:0->" + (room.body.player.inventory.size - 1) + ";"),
-                        (true, "l|N:0->" + (room.body.organisms.size - 1) + ";")
+                        (true, s"l|N:0->${room.body.player.inventory.size - 1};"),
+                        (true, s"l|N:0->${room.body.organisms.size - 1};")
                     )
                 )) {
                 appendLogs("The command does not fit its syntax :/\n\tAborting.")
@@ -267,7 +267,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-level"),
-                        (true, "l|N:0->" + (room.body.items.size - 1) + ";"),
+                        (true, s"l|N:0->${room.body.items.size - 1};"),
                         (true, "N:0->5;")
                     )
                 )) {
@@ -293,7 +293,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                 case 3 => {
                     val target_item : Item = getItemById(splited_command(1).toInt)
                     val target_level : Int = splited_command(2).toInt
-                    appendLogs("The item " + splited_command(1) + " is now level " + splited_command(2))
+                    appendLogs(s"The item ${splited_command(1)} is now level ${splited_command(2)}")
                 }
             }
             return ""
@@ -307,7 +307,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             case "item-list"   => { return items_list   }
             case "item-give"   => { return items_give   }
             case "item"        => { return items_item   }
-            case _             => { appendLogs("Error: Command `" + splited_command(0) + "` unknown"); return "" }
+            case _             => { appendLogs(s"Error: Command `${splited_command(0)}` unknown"); return "" }
         }
         return ""
     }

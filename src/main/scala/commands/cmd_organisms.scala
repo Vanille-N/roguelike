@@ -26,7 +26,7 @@ class OrganismsCommand (room: Room) extends CommandManager (room) {
                 appendLogs(i + "-\t" + o)
                 i += 1
             }
-            appendLogs("   ---   End of the list.   ---", ln_before = true)
+            appendLogs("   ---   End of the list ( " + room.body.organisms.size +"organisms).   ---", ln_before = true)
         }
 
         def organisms_set: String = {// Allows the user to set a stat field of any organism to any integer value.

@@ -19,7 +19,7 @@ class DirectionsCommand(room: Room) extends CommandManager (room) {
             case "Down"  => { room.body.player.move(DOWN)  }
             case "Left"  => { room.body.player.move(LEFT)  }
             case "Right" => { room.body.player.move(RIGHT) }
-            case _       => { appendLogs("Error: Direction `" + splited_command(0) + "` unknown") }
+            case _       => { appendLogs(s"Error: Direction `${splited_command(0)}` unknown") }
         }
         room.locs.map(_.updateVisuals)// Update the map that the user sees.
         return ""
@@ -49,7 +49,7 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
             case "-"            => { room.body.repeat -= 1; return "" }
             case "repeat-reset" => { room.body.repeat = 1; return "" }
             case "repeat"       => { if (splited_command.length == 1) room.body.repeat = 1 else room.body.repeat = splited_command(1).toInt; return "" }
-            case _       => { appendLogs("Error: Command `" + splited_command(0) + "` unknown") }
+            case _       => { appendLogs(s"Error: Command `${splited_command(0)}` unknown") }
         }
         return ""
     }
@@ -118,7 +118,7 @@ class NullCommand (room: Room) extends CommandManager (room) {
     help_menus = Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
-        appendLogs("Error: Command `" + splited_command(0) + "` unknown")
+        appendLogs(s"Error: Command `${splited_command(0)}` unknown")
         return ""
     }
 }
