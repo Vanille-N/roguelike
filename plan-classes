@@ -1,0 +1,14 @@
+@startuml
+class BodyPart {
+    room
+    organisms
+    items
+    player
+    command
+    panel
+}
+
+class Room {}
+
+BodyPart -> Room
+@enduml

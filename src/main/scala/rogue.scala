@@ -18,6 +18,9 @@ class BodyPart extends Reactor {
 
     val progressbar = new ProgressBar {
         visible = true
+        focusable = false
+        background = Scheme.red
+        foreground = Scheme.green
     }
     val cmdline = new TextField { // type commands to execute actions
         columns = 32
@@ -30,6 +33,7 @@ class BodyPart extends Reactor {
         background = Scheme.darkGray
         foreground = Scheme.white
         editable = false
+        focusable = false
     }
     var organisms: Set[Organism] = Set() // all alive
     var items: Set[Item] = Set() // all existing
@@ -141,6 +145,8 @@ class BodyPart extends Reactor {
             progressbar.max = total
         }
         else progressbar.value = 0
+
+        // progressbar.text = s"${organisms.filter(_.isFriendly).size} vs. ${organisms.filter(!_.isFriendly)}"
     }
 
     // User clicks on dungeon cell or item button ou type a command
