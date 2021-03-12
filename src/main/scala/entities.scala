@@ -129,7 +129,7 @@ abstract class Organism (
                 //room.body.logs.text += "Try to pick up"
                 if (it.pickUp(this)) {
                     items += it
-                    room.body.logs.text += "\nI " + this + " pick up the item, yay !"
+                    room.body.logs.text += s"\nI $this pick up the item, yay !"
                 }
             }
         }

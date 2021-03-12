@@ -1,12 +1,17 @@
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Buffer
 import Math._
+import scala.swing._
+import event._
 
 /* Items interface
  * - interaction with an organism's stats
  * - pickup/drop
  * - usage
  */
+
+case class DyingItem (i: Item) extends Event
+case class NewItem (i: Item) extends Event
 
 // What stat is targeted by an item
 object StatType extends Enumeration {
@@ -42,6 +47,7 @@ abstract class Item (var position: Pos) {
         position.items += this
     }
     def destroy { // remove from global item index
+        //publish (DyingItem(this))
         if (owner != null) {
             owner.items -= this
             owner.position.room.body.items -= this
@@ -201,6 +207,7 @@ object MakeItem extends Enumeration {
             case NONE => null
         }
         if (item != null) {
+            //publish(NewItem(this))
             item.drop
             pos.room.body.items += item
         }
