@@ -1,9 +1,14 @@
 import scala.swing._
 
-class WinCondition(val body: BodyPart) extends Reactor with Publisher {
+abstract class WinCondition(val body: BodyPart)
+extends Reactor with Publisher {
     def win {
+        body.logs.text = ""
+        body.logs.text += "\n===================\n"
+        Thread.sleep(1000)
         publish(new levelClear())
     }
+    def explanation: String
 }
 
 class WinByPosition(body: BodyPart)
