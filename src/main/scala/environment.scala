@@ -12,6 +12,8 @@ import event._
  * - battle procedure
  */
 
+case class Notification(pos: Pos) extends Event
+
 object Direction extends Enumeration { // allowed moves for organisms
     type Direction = Value
     val UP = Value("up")
@@ -121,6 +123,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     // visual effects
     def notification {
         notifyLevel = 255
+        publish(Notification(this))
     }
     def updateVisuals {
         // text
