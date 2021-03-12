@@ -50,6 +50,12 @@ extends Reactor with Publisher {
 
     var command = new Command(room)
     command.help_command.executeCommand("help")
+    
+    val winCondition = level.makeWinCondition(this)
+    logs.text += "==============================\n"
+    logs.text += "             GOAL\n"
+    logs.text += winCondition.explanation
+    logs.text += "\n==============================\n"
 
     var isPlaying: Boolean = false
 
@@ -147,6 +153,7 @@ extends Reactor with Publisher {
             progressbar.max = total
         }
         else progressbar.value = 0
+        publish(LoopStep())
 
         // progressbar.text = s"${organisms.filter(_.isFriendly).size} vs. ${organisms.filter(!_.isFriendly)}"
     }
