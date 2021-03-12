@@ -11,10 +11,12 @@ import event._
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
 case class levelClear() extends Event
+case class LoopStep() extends Event
 
 /* -- Main environment -- */
 
-class BodyPart(val level: Level) extends Reactor {
+class BodyPart(val level: Level)
+extends Reactor with Publisher {
     var globalPanel : GridBagPanel = null
 
     val progressbar = new ProgressBar {
@@ -44,8 +46,6 @@ class BodyPart(val level: Level) extends Reactor {
     var repeat: Int = 1
 
     val room = level.makeRoom(this) // string decides room layout from assets/*.room
-    val winCondition = level.makeWinCondition(this)
-
     val player = new Player(room.locs(10, 10))
 
     var command = new Command(room)

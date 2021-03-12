@@ -29,8 +29,12 @@ extends WinCondition(body) {
 }
 
 class WinByPickup(body: BodyPart)
-extends WinCondition(body) {}
+extends WinCondition(body) {
+    def explanation = "Pick up three hidden items"
+}
 
 class WinByKillCount(body: BodyPart)
-extends WinCondition(body) {}
+extends WinCondition(body) {
+    def explanation = "Kill 500 hostile organisms"
+}
 
