@@ -78,7 +78,7 @@ class OtherCommand (room: Room) extends CommandManager (room) {
         }
         def other_stop : String = {// stop the automatic step by step.
             if(room.body.isPlaying) { runner.cancel(); room.body.isPlaying = false; "" }
-            else { "" }
+            else return ""
         }
         def other_toggle : String = {// toggle the step by step.
             if(room.body.isPlaying) { other_stop }
@@ -86,9 +86,7 @@ class OtherCommand (room: Room) extends CommandManager (room) {
         }
         def other_step: String = {// make a/n step
             if(splited_command.length == 1) { room.body.step }
-            else {
-                for(i <- 1 to (splited_command(1).toInt)) { room.body.step }
-            }
+            else { for(i <- 1 to (splited_command(1).toInt)) room.body.step; }
             return ""
         }
 

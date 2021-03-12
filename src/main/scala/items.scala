@@ -4,15 +4,6 @@ import Math._
 import scala.swing._
 import event._
 
-/* Items interface
- * - interaction with an organism's stats
- * - pickup/drop
- * - usage
- */
-
-case class DyingItem (i: Item) extends Event
-case class NewItem (i: Item) extends Event
-
 // What stat is targeted by an item
 object StatType extends Enumeration {
     type StatType = Value
@@ -27,27 +18,59 @@ object StatType extends Enumeration {
 }
 import StatType._
 
-abstract class Item (var position: Pos) {
+
+/* Items interface
+ * - interaction with an organism's stats
+ * - pickup/drop
+ * - usage
+ */
+
+/*
+* The DyingItem event is published whenever an item gets destroyed.
+* It must at least be listened by the body, which will relay the information.
+*/
+case class DyingItem (i: Item) extends Event
+/*
+* The NewItem event is published whenever an item gets dropped.
+* This happens at the creation of the item and when it is dropped by a
+* (potentially dying) organism
+*/
+case class NewItem (i: Item) extends Event
+
+case class PickedUpItem (i: Item, o: Organism) extends Event // an item has been picked up
+case class UsedItem(i: Item, o: Organism, st: StatType) extends Event // an item has been used over an Organism
+
+abstract class Item (var position: Pos) extends Publisher {
     // Item picking up -- dropping
     var pickable: Boolean = true
     var owner: Organism = null
 
     def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
+            position.room.body.deafTo(this)
+            o.listenTo(this)
             owner = o
             pickable = false
             position.items -= this
+            publish(PickedUpItem(this, o))
+            o.listenTo(this)
+            position = null
             true
         } else false
     }
     def drop: Unit = { // owner -> tile
-        if (owner != null) position = owner.position
+        if (owner != null) {
+            position = owner.position
+            owner.deafTo(this)
+        }
         owner = null
         pickable = true
         position.items += this
+        position.room.body.listenTo(this)
+        publish(NewItem(this))
     }
     def destroy { // remove from global item index
-        //publish (DyingItem(this))
+        publish (DyingItem(this))
         if (owner != null) {
             owner.items -= this
             owner.position.room.body.items -= this
@@ -159,6 +182,7 @@ abstract class Item (var position: Pos) {
     def use (o: Organism, t: Organism) = {
         if(isUsable(o)) {
             action(o, t)
+            publish(UsedItem(this, o, cost_type))
             destroy // one-time use only
         }
     }
@@ -207,7 +231,6 @@ object MakeItem extends Enumeration {
             case NONE => null
         }
         if (item != null) {
-            //publish(NewItem(this))
             item.drop
             pos.room.body.items += item
         }

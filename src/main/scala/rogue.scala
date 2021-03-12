@@ -162,8 +162,10 @@ extends Reactor with Publisher {
     reactions += {
         case displayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
         case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
-        case KeyPressed(_, c, _, _) =>  { command.keyPressed(c) }
+        case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
+        case DyingItem(i: Item) => { logs.text += s"\n * RIP $i, you were a wonderful item *\n"  }
+        case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n"  }
     }
 
 }
