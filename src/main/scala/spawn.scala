@@ -1,4 +1,6 @@
 import scala.collection.mutable.Buffer
+import scala.swing._
+import event._
 
 import Rng.Distribution
 import MakeItem.MakeItem
@@ -7,6 +9,9 @@ import MakeItem.MakeItem
  * - abstract definition
  * - instances of cells
  */
+
+case class newOrganism (o: Organism) extends Event
+case class DyingOrganism (o: Organism) extends Event
 
 abstract class Spawner (
     stats: StatSetGen,
