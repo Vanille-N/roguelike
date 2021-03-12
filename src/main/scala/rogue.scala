@@ -10,10 +10,11 @@ import event._
 
 case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
+case class levelClear() extends Event
 
 /* -- Main environment -- */
 
-class BodyPart extends Reactor {
+class BodyPart(val level: Level) extends Reactor {
     var globalPanel : GridBagPanel = null
 
     val progressbar = new ProgressBar {
@@ -38,7 +39,8 @@ class BodyPart extends Reactor {
     var organisms_selection: Set[Organism] = Set()
     var repeat: Int = 1
 
-    val room = new Room(this, "cross") // string decides room layout from assets/*.room
+    val room = level.makeRoom(this) // string decides room layout from assets/*.room
+    val winCondition = level.makeWinCondition(this)
 
     val player = new Player(room.locs(10, 10))
 
@@ -154,9 +156,26 @@ class BodyPart extends Reactor {
 }
 
 object main extends SimpleSwingApplication {
+    var levelNum = 1
+    var bodyPart: BodyPart = null
+    def makeBodyPart {
+        bodyPart = new BodyPart(new Level(levelNum))
+    }
+
     val top = new MainFrame {
         title = "BodyPart"
-        contents = ( new BodyPart ).newGame
+        contents = { makeBodyPart; bodyPart.newGame } 
         centerOnScreen()
+    }
+    listenTo(bodyPart.winCondition)
+    
+    def nextLevel {
+        levelNum += 1
+        makeBodyPart
+        top.contents = bodyPart.newGame
+    }
+
+    reactions += {
+        case levelClear => nextLevel
     }
 }
