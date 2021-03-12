@@ -86,7 +86,6 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             splited_command.length match {
                 case 1 => { appendLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcohol\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane"); return "item-add" }
                 case 2 => { appendLogs("Where do you want to spawn the new item? (click or respond by `i j` in the cmdline)."); return "item-add " + splited_command(1) }
-                case 3 => { appendLogs("Syntax error, chack `help` for more details"); return "" }
                 case 4 => {
                     val i: Int = splited_command(2).toInt
                     val j: Int = splited_command(3).toInt
@@ -100,6 +99,8 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                         case "7" => new CytoplasmLeak(room.locs(i, j))
                         case "8" => new MembraneReplacement(room.locs(i, j))
                     }
+                    room.body.items += new_itm
+                    room.body.listenTo(new_itm)
                     new_itm.drop
                     ""
                 }
@@ -127,7 +128,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                         items_list
                         return "item-rm"
                     } else {
-                        room.body.items -= getItemById(splited_command(1).toInt)
+                        getItemById(splited_command(1).toInt).destroy
                         return ""
                     }
                 }

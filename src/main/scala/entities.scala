@@ -5,6 +5,7 @@ import Direction._
 import Behavior._
 import Rng.Distribution
 import MakeItem._
+import StatType._
 
 
 /* Entities: all living things
@@ -17,7 +18,7 @@ abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
     val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops upon death
-) {
+) extends Reactor {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
@@ -151,6 +152,13 @@ abstract class Organism (
             val idx = if (isFriendly) 1 else 0
             position.strength(idx) += this.updateStrength
         }
+    }
+
+    reactions += {
+        case DyingItem(i: Item) => { position.room.body.logs.text += "Dying item:(\n" }
+        case UsedItem(i: Item, o:Organism, st: StatType) => { position.room.body.logs.text += "Used item:(\n" }
+        case PickedUpItem(i: Item, o: Organism) => { position.room.body.logs.text += "Picked up item:(\n" }
+        case _ => {}
     }
 }
 
