@@ -42,20 +42,15 @@ extends Reactor with Publisher {
     var items: Set[Item] = Set() // all existing
     var organismsBarycenter: Array[Pos] = Array(null, null)
 
-    var organisms_selection: Set[Organism] = Set()
+    var organisms_selection: Array[Set[Organism]] = Array(Set(), Set())
     var repeat: Int = 1
 
     val room = level.makeRoom(this) // string decides room layout from assets/*.room
     val player = new Player(room.locs(10, 10))
 
     var command = new Command(room)
-    command.help_command.executeCommand("help")
     
     val winCondition = level.makeWinCondition(this)
-    logs.text += "==============================\n"
-    logs.text += "             GOAL\n"
-    logs.text += winCondition.explanation
-    logs.text += "\n==============================\n"
     listenTo(command)
     listenTo(command.direction_command)
     listenTo(command.digits_command)
@@ -167,6 +162,11 @@ extends Reactor with Publisher {
         }
         case ClearLogs() => { logs.text = "" }
     }
+    command.help_command.executeCommand("help")
+    logs.text += "==============================\n"
+    logs.text += "             GOAL\n"
+    logs.text += winCondition.explanation
+    logs.text += "\n==============================\n"
 
 }
 
