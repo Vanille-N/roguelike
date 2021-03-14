@@ -9,6 +9,7 @@ extends Reactor with Publisher {
         publish(new levelClear())
     }
     def explanation: String
+    def completion: Int
 }
 
 class WinByPosition(body: BodyPart)
@@ -16,6 +17,10 @@ extends WinCondition(body) {
     val pos = body.room.locs(25, 25)
     def explanation = "To complete this level, conquer the marked tile\n(stay for 50 turns on it with a strength >100)"
     var count = 0
+    def completion: Int = {
+        count * 100 / turnCount
+    }
+
     listenTo(body)
     reactions += {
         case LoopStep() => {
@@ -31,10 +36,12 @@ extends WinCondition(body) {
 class WinByPickup(body: BodyPart)
 extends WinCondition(body) {
     def explanation = "Pick up three hidden items"
+    def completion: Int = 0
 }
 
 class WinByKillCount(body: BodyPart)
 extends WinCondition(body) {
     def explanation = "Kill 500 hostile organisms"
+    def completion: Int = 0
 }
 
