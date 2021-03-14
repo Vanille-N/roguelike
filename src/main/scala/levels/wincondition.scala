@@ -15,8 +15,11 @@ extends Reactor with Publisher {
 class WinByPosition(body: BodyPart)
 extends WinCondition(body) {
     val pos = body.room.locs(25, 25)
-    def explanation = "To complete this level, conquer the marked tile\n(stay for 50 turns on it with a strength >100)"
+    val strengthThreshold = 100
+    val turnCount = 50
+    def explanation = "To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
     var count = 0
+    
     def completion: Int = {
         count * 100 / turnCount
     }
@@ -25,9 +28,9 @@ extends WinCondition(body) {
     reactions += {
         case LoopStep() => {
             pos.notification
-            if (pos.strength(1) > 100) {
+            if (pos.strength(1) > strengthThreshold) {
                 count += 1
-                if (count == 50) win
+                if (count == turnCount) win
             } else count = 0
         }
     }
