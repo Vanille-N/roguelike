@@ -19,7 +19,7 @@ class DirectionsCommand(room: Room) extends CommandManager (room) {
             case "Down"  => { room.body.player.move(DOWN)  }
             case "Left"  => { room.body.player.move(LEFT)  }
             case "Right" => { room.body.player.move(RIGHT) }
-            case _       => { appendLogs(s"Error: Direction `${splited_command(0)}` unknown") }
+            case _       => { publish(HeyPrint(s"Error: Direction `${splited_command(0)}` unknown")) }
         }
         room.locs.map(_.updateVisuals)// Update the map that the user sees.
         return ""
@@ -49,7 +49,7 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
             case "-"            => { room.body.repeat -= 1; return "" }
             case "repeat-reset" => { room.body.repeat = 1; return "" }
             case "repeat"       => { if (splited_command.length == 1) room.body.repeat = 1 else room.body.repeat = splited_command(1).toInt; return "" }
-            case _       => { appendLogs(s"Error: Command `${splited_command(0)}` unknown") }
+            case _       => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
     }
@@ -100,8 +100,8 @@ class OtherCommand (room: Room) extends CommandManager (room) {
             case "focus-cmdline" => { room.body.cmdline.requestFocusInWindow(); return "" }
             case "focus-win"     => { room.body.globalPanel.requestFocusInWindow(); return "" }
             case "q"             => { room.body.globalPanel.requestFocusInWindow(); return "" }
-            case "clear"         => { room.body.logs.text = ""; return "" }
-            case _               => { appendLogs("Error: Command `" + splited_command(0) + "` unknown"); return "" }
+            case "clear"         => { publish(ClearLogs()); return "" }
+            case _               => { publish(HeyPrint("Error: Command `" + splited_command(0) + "` unknown")); return "" }
         }
         return ""
     }
@@ -116,7 +116,7 @@ class NullCommand (room: Room) extends CommandManager (room) {
     help_menus = Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
-        appendLogs(s"Error: Command `${splited_command(0)}` unknown")
+        publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown"))
         return ""
     }
 }

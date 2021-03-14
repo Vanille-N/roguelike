@@ -4,7 +4,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
     help_menus = "select" :: "selection" :: "take" :: "filter" :: "flush" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
-        appendLogs(prompt + unSplitCommand(splited_command_arg))
+        publish(HeyPrint(prompt + unSplitCommand(splited_command_arg)))
         var splited_command: Array[String] = splited_command_arg// necessary because the arguments are non mutable variables
         def selection_select: String = {
             // Check if the command syntax is correct or not:
@@ -19,22 +19,22 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (true,  s"N:1->${room.cols};"               )
                     )
                 )) {
-                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
 
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {// command is `select`
-                    appendLogs("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked")
+                    publish(HeyPrint("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked"))
                     return "select"
                 }
                 case 2 => {// command is `select <type>`
-                    appendLogs ("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)")
+                    publish(HeyPrint("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
                 case 4 => {// command is `select <type> <coord_i coord_j>`
-                    appendLogs ("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)")
+                    publish(HeyPrint("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
                 case 6 => {// command is `select <type> <coord_i coord_j> <coord_i coord_j>`
@@ -64,13 +64,13 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                                 }
                             }
                         }
-                        case _ => { appendLogs("Internal error: unknown selection type.") }
+                        case _ => { publish(HeyPrint("Internal error: unknown selection type.")) }
                     }
-                    appendLogs(s"Selection complete: ${room.body.organisms_selection.size} elements\n\nUse `selection-print` to print the selection")
+                    publish(HeyPrint(s"Selection complete: ${room.body.organisms_selection.size} elements\n\nUse `selection-print` to print the selection"))
                     return ""
                 }
                 case _ => {
-                    appendLogs("Too much arguments... Aborting. :/")
+                    publish(HeyPrint("Too much arguments... Aborting. :/"))
                     return ""
                 }
             }
@@ -83,7 +83,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     o.items.empty
                 }
             })
-            appendLogs("The player has stolen the items of the selected friendly organisms")
+            publish(HeyPrint("The player has stolen the items of the selected friendly organisms"))
             return ""
         }
 
@@ -96,30 +96,30 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (true,  "virus|cell")
                     )
                 )) {
-                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
 
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
-                    appendLogs("What family of organism do you want to keep ? (virus|cell)")
+                    publish(HeyPrint("What family of organism do you want to keep ? (virus|cell)"))
                     return "filter"
                 }
                 case 2 => {
                     if (splited_command(1) == "cell") room.body.organisms_selection = room.body.organisms_selection.filter ( o => !o.isFriendly )
                     else room.body.organisms_selection = room.body.organisms_selection.filter ( o => o.isFriendly )
-                    appendLogs("Filter applied to the selection.")
+                    publish(HeyPrint("Filter applied to the selection."))
                 }
-                case _ => { appendLogs("Illegal number of arguments") }
+                case _ => { publish(HeyPrint("Illegal number of arguments")) }
             }
             return ""
         }
 
         def selection_print: String = {// Prints the current selection
-            appendLogs(s"   ---   Printing ${room.body.organisms_selection.size} elements:   ---")
-            room.body.organisms_selection.foreach ( o => appendLogs("" + o) )
-            appendLogs(s"   ---   End of the selection (${room.body.organisms_selection.size} elements)   ---", ln_before = true)
+            publish(HeyPrint(s"   ---   Printing ${room.body.organisms_selection.size} elements:   ---"))
+            room.body.organisms_selection.foreach ( o => publish(HeyPrint("" + o)) )
+            publish(HeyPrint(s"   ---   End of the selection (${room.body.organisms_selection.size} elements)   ---", ln_before = true))
             return ""
         }
 
@@ -136,7 +136,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (true,  s"N:1->${room.cols};"                          )
                     )
                 )) {
-                appendLogs("The command does not fit its syntax :/\n\tAborting.")
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
             splited_command(1) match {
@@ -152,7 +152,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                 case "flush"  => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
                 case "print"  => return selection_print
                 case _        => {// unnecessary
-                    appendLogs(s"Error: command `${splited_command(1)}` unknown. Aborting.")
+                    publish(HeyPrint(s"Error: command `${splited_command(1)}` unknown. Aborting."))
                     return ""
                 }
             }
@@ -166,7 +166,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             case "filter"           => { return selection_filter }
             case "flush"            => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
             case "selection-print"  => { return selection_print }
-            case _                  => { appendLogs(s"Error: Command `${splited_command(0)}` unknown") }
+            case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
     }

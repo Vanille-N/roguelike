@@ -25,7 +25,7 @@ extends Reactor with Publisher {
         background = Scheme.red
         foreground = Scheme.green
     }
-    val cmdline = new TextField { // type commands to execute actions
+    val cmdline = new TextField { // type commands to execute action
         columns = 32
         font = new Font("courier", 0, 17)
         background = Scheme.darkGray
@@ -56,6 +56,16 @@ extends Reactor with Publisher {
     logs.text += "             GOAL\n"
     logs.text += winCondition.explanation
     logs.text += "\n==============================\n"
+    listenTo(command)
+    listenTo(command.direction_command)
+    listenTo(command.digits_command)
+    listenTo(command.selection_command)
+    listenTo(command.organisms_command)
+    listenTo(command.items_command)
+    listenTo(command.behavior_command)
+    listenTo(command.help_command)
+    listenTo(command.other_command)
+    listenTo(command.null_command)
 
     var isPlaying: Boolean = false
 
@@ -149,6 +159,13 @@ extends Reactor with Publisher {
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
         case DyingItem(i: Item) => { logs.text += s"\n * RIP $i, you were a wonderful item *\n"  }
         case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n"  }
+        case HeyPrint(str: String, ln_after: Boolean, ln_before: Boolean) => {
+            if (ln_after && ln_before) logs.text += "\n" + str + "\n"
+            else if (ln_after) logs.text += str + "\n"
+            else if (ln_before) logs.text += "\n" + str
+            else logs.text += str
+        }
+        case ClearLogs() => { logs.text = "" }
     }
 
 }

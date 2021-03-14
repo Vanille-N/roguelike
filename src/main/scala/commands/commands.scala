@@ -3,6 +3,9 @@ import event._
 
 import Direction._
 
+case class HeyPrint (str: String, ln_after: Boolean = true, ln_before: Boolean = false) extends Event
+case class ClearLogs() extends Event
+
 /*
 *  The Command class defines several CommandManager inherited classes
 *  | these handle a certain type of commands
@@ -15,19 +18,7 @@ import Direction._
 
 
 
-abstract class CommandManager (room: Room) {
-    /*
-    ** Appends a string to the log TextArea of room.body
-    */
-    def appendLogs (str: String, ln_after: Boolean = true, ln_before: Boolean = false): Unit = {
-        if (ln_after && ln_before) room.body.logs.text += "\n" + str + "\n"
-        else if (ln_after) room.body.logs.text += str + "\n"
-        else if (ln_before) room.body.logs.text += "\n" + str
-        else room.body.logs.text += str
-    }
-
-
-
+abstract class CommandManager (room: Room) extends Publisher {
     /*
     ** useful variables
     */
@@ -64,11 +55,11 @@ abstract class CommandManager (room: Room) {
 
         // 1- Checking the global form of the command.
         if (parsed_command.length > syntax.length) {// the length of a command should not exceed the maximal size of the described command.
-            appendLogs("_/!\\_: The command exceeds the maximal length.")
+            publish(HeyPrint("_/!\\_: The command exceeds the maximal length."))
             return false
         }
         if ( !(syntax(parsed_command.length - 1)._1) ) {// the command should not stop where it did :/
-            appendLogs("_/!\\_: The command should not end on this parameter.")
+            publish(HeyPrint("_/!\\_: The command should not end on this parameter."))
             return false
         }
 
@@ -125,7 +116,7 @@ abstract class CommandManager (room: Room) {
                     result
                 }
                 )) {
-                appendLogs("The " + (i+1) + {(i+1) match { case 1 => "-st" case 2 => "-nd" case 3 => "-rd" case _ => "-th"}} + " argument does not respect its form: " + reason_of_withdraw)
+                publish(HeyPrint(s"The ${i+1} ${(i+1) match { case 1 => "-st" case 2 => "-nd" case 3 => "-rd" case _ => "-th"} }  argument does not respect its form: $reason_of_withdraw"))
                 return false
             }
         }
@@ -141,9 +132,9 @@ abstract class CommandManager (room: Room) {
     def executeCommand (command: String): String = {
         val splited_command = commandSplit(command)
         if (splited_command.length > 1 && splited_command(1) == "help") {
-            appendLogs("Help can be found running `help [.]`,\n\twhere [.] is", ln_after=false)
+            publish(HeyPrint("Help can be found running `help [.]`,\n\twhere [.] is", ln_after=false))
             help_menus.foreach ( o =>
-                appendLogs("\n\t| " + o)
+                publish(HeyPrint("\n\t| " + o))
                 )
             return "";
         } else return realExecuteCommand(splited_command)
@@ -162,18 +153,7 @@ abstract class CommandManager (room: Room) {
 // --------- main command manager ---------
 
 
-class Command (val room: Room) {
-    def appendLogs (
-            str: String,
-            ln_after: Boolean = true,
-            ln_before: Boolean = false
-            ): Unit = {
-        if (ln_after && ln_before) room.body.logs.text += "\n" + str + "\n"
-        else if (ln_after) room.body.logs.text += str + "\n"
-        else if (ln_before) room.body.logs.text += "\n" + str
-        else room.body.logs.text += str
-    }
-
+class Command (val room: Room) extends Publisher {
     // defines the active command at any given time.
     var current_command: String = ""
 
@@ -228,7 +208,7 @@ class Command (val room: Room) {
 
     def locsClicked ( p: Pos ): Unit = {
         if (current_command == "") {// no current command -> display the location's content
-            appendLogs (p.listContents)
+            publish(HeyPrint (p.listContents))
         } else {// there is a current command, append the coordinates of the location to the command line.
             room.body.cmdline.text += " " + p.i + " " + p.j
         }
@@ -248,11 +228,11 @@ class Command (val room: Room) {
     def commandRequest(command: String): Unit = {
         if (command == "" || command.split("\\s+").length == 0) {// if the command is only composed of spaces, ignore it.
             current_command = ""
-            room.body.cmdline.text = ""
+            publish(ClearLogs())
             return
         }
         else if (command.split("\\s+").head == "abort") {// if the line starts with abort, abort the current command.
-            appendLogs("Aborting ...")
+            publish(HeyPrint("Aborting ..."))
             current_command = ""
             room.body.cmdline.text = ""
             return
