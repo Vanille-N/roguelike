@@ -17,7 +17,7 @@ extends WinCondition(body) {
     val pos = body.room.locs(25, 25)
     val strengthThreshold = 100
     val turnCount = 50
-    def explanation = "To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
+    def explanation = s"To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
     var count = 0
     
     def completion: Int = {
