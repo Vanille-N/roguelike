@@ -137,25 +137,8 @@ extends Reactor with Publisher {
         room.locs.map(_.trySpawn(organisms.size)) // sometimes spawn new organisms
         room.locs.map(_.updateVisuals) // update display
 
-        // update the progress bar
-        var friendly: Int = 0
-        var total: Int = 0
-        organisms.foreach(o => {
-            if(o.isFriendly) {
-                friendly += o.stats.speed.current
-                total += o.stats.speed.current
-            } else {
-                total += o.stats.speed.current
-            }
-        })
-        if(total > 0) {
-            progressbar.value = friendly
-            progressbar.max = total
-        }
-        else progressbar.value = 0
         publish(LoopStep())
-
-        // progressbar.text = s"${organisms.filter(_.isFriendly).size} vs. ${organisms.filter(!_.isFriendly)}"
+        progressbar.value = winCondition.completion
     }
 
     // User clicks on dungeon cell or item button ou type a command
