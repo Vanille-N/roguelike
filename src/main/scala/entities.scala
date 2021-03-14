@@ -18,7 +18,7 @@ abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
     val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops upon death
-) extends Reactor {
+) extends Reactor with Publisher  {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
@@ -127,10 +127,9 @@ abstract class Organism (
         if (position.items.size > 0) {
             if (Rng.choice(stats.decisiveness.current / 100.0)) {
                 val it = position.items.head
-                //room.body.logs.text += "Try to pick up"
                 if (it.pickUp(this)) {
                     items += it
-                    room.body.logs.text += s"\nI $this pick up the item, yay !"
+                    publish(HeyPrint(s"I $this pick up the item, yay !"))
                 }
             }
         }
@@ -155,9 +154,9 @@ abstract class Organism (
     }
 
     reactions += {
-        case DyingItem(i: Item) => { position.room.body.logs.text += "Dying item:(\n" }
-        case UsedItem(i: Item, o:Organism, st: StatType) => { position.room.body.logs.text += "Used item:(\n" }
-        case PickedUpItem(i: Item, o: Organism) => { position.room.body.logs.text += "Picked up item:(\n" }
+        case DyingItem(i: Item) => { publish(HeyPrint("Dying item:(\n")) }
+        case UsedItem(i: Item, o:Organism, st: StatType) => { publish(HeyPrint("Used item:(\n")) }
+        case PickedUpItem(i: Item, o: Organism) => { publish(HeyPrint("Picked up item:(\n")) }
         case _ => {}
     }
 }
