@@ -42,13 +42,14 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     val y1: Int = splited_command(3).toInt
                     val x2: Int = splited_command(4).toInt
                     val y2: Int = splited_command(5).toInt
-                    room.body.organisms_selection = room.body.organisms_selection.empty
+                    room.body.organisms_selection(0) = room.body.organisms_selection(0).empty
+                    room.body.organisms_selection(1) = room.body.organisms_selection(1).empty
                     splited_command(1) match {
                         case "1" | "rectangle" | "rect" => {// rectangular selection
                             for(i <- x1 to x2) {
                                 for (j <- y1 to y2) {
-                                    room.body.organisms_selection ++= room.locs(i, j).organisms(0)
-                                    room.body.organisms_selection ++= room.locs(i, j).organisms(1)
+                                    room.body.organisms_selection(0) ++= room.locs(i, j).organisms(0)
+                                    room.body.organisms_selection(1) ++= room.locs(i, j).organisms(1)
                                 }
                             }
                         }
@@ -58,15 +59,15 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                             for(i <- x1 - R to x1 + R) {
                                 for (j <- y1 - R to y1 + R) {
                                     if (0 <= i && i < room.rows && 0 <= j && j < room.cols && ((x1 - i )^2 + (y1 - j)^2) <= R2 ) {
-                                        room.body.organisms_selection ++= room.locs(i, j).organisms(0)
-                                        room.body.organisms_selection ++= room.locs(i, j).organisms(1)
+                                        room.body.organisms_selection(0) ++= room.locs(i, j).organisms(0)
+                                        room.body.organisms_selection(1) ++= room.locs(i, j).organisms(1)
                                     }
                                 }
                             }
                         }
                         case _ => { publish(HeyPrint("Internal error: unknown selection type.")) }
                     }
-                    publish(HeyPrint(s"Selection complete: ${room.body.organisms_selection.size} elements\n\nUse `selection-print` to print the selection"))
+                    publish(HeyPrint(s"Selection complete: ${room.body.organisms_selection(0).size + room.body.organisms_selection(1).size} elements\n\nUse `selection-print` to print the selection"))
                     return ""
                 }
                 case _ => {
@@ -77,11 +78,9 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
         }
 
         def selection_take: String = {// take every items of the current selected organisms
-            room.body.organisms_selection.foreach(o => {
-                if(o.isFriendly) {
-                    room.body.player.inventory ++= o.items
-                    o.items.empty
-                }
+            room.body.organisms_selection(0).foreach(o => {
+                room.body.player.inventory ++= o.items
+                o.items.empty
             })
             publish(HeyPrint("The player has stolen the items of the selected friendly organisms"))
             return ""
@@ -107,8 +106,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     return "filter"
                 }
                 case 2 => {
-                    if (splited_command(1) == "cell") room.body.organisms_selection = room.body.organisms_selection.filter ( o => !o.isFriendly )
-                    else room.body.organisms_selection = room.body.organisms_selection.filter ( o => o.isFriendly )
+                    if (splited_command(1) == "cell") room.body.organisms_selection(0) = room.body.organisms_selection(0).empty
+                    else room.body.organisms_selection(1) = room.body.organisms_selection(1).empty
                     publish(HeyPrint("Filter applied to the selection."))
                 }
                 case _ => { publish(HeyPrint("Illegal number of arguments")) }
@@ -117,9 +116,10 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
         }
 
         def selection_print: String = {// Prints the current selection
-            publish(HeyPrint(s"   ---   Printing ${room.body.organisms_selection.size} elements:   ---"))
-            room.body.organisms_selection.foreach ( o => publish(HeyPrint("" + o)) )
-            publish(HeyPrint(s"   ---   End of the selection (${room.body.organisms_selection.size} elements)   ---", ln_before = true))
+            publish(HeyPrint(s"   ---   Printing ${room.body.organisms_selection(0).size + room.body.organisms_selection(1).size} elements:   ---"))
+            room.body.organisms_selection(0).foreach ( o => publish(HeyPrint("" + o)) )
+            room.body.organisms_selection(1).foreach ( o => publish(HeyPrint("" + o)) )
+            publish(HeyPrint(s"   ---   End of the selection (${room.body.organisms_selection(0).size + room.body.organisms_selection(1).size} elements)   ---", ln_before = true))
             return ""
         }
 
@@ -149,7 +149,10 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     splited_command = splited_command.tail
                     return selection_select
                 }
-                case "flush"  => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
+                case "flush"  => {
+                    room.body.organisms_selection(1) = room.body.organisms_selection(1).empty
+                    room.body.organisms_selection(0) = room.body.organisms_selection(0).empty
+                    return "" }
                 case "print"  => return selection_print
                 case _        => {// unnecessary
                     publish(HeyPrint(s"Error: command `${splited_command(1)}` unknown. Aborting."))
@@ -164,7 +167,11 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             case "select"           => { return selection_select }
             case "take"             => { return selection_take }
             case "filter"           => { return selection_filter }
-            case "flush"            => { room.body.organisms_selection --= room.body.organisms_selection; return "" }
+            case "flush"            => {
+                room.body.organisms_selection(1) = room.body.organisms_selection(1).empty
+                room.body.organisms_selection(0) = room.body.organisms_selection(0).empty
+                return ""
+            }
             case "selection-print"  => { return selection_print }
             case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
         }

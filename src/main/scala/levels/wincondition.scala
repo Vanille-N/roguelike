@@ -3,7 +3,7 @@ import scala.swing._
 abstract class WinCondition(val body: BodyPart)
 extends Reactor with Publisher {
     def win {
-        body.logs.text = ""
+        publish(ClearLogs())
         body.logs.text += "\n===================\n"
         Thread.sleep(1000)
         publish(new levelClear())

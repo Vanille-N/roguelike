@@ -51,10 +51,9 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             }
 
             // The syntax is correct. Continue.
-            room.body.organisms_selection.foreach(o => {
-                if (o.isFriendly) {
-                    o.behavior = { () => (room.body.player.position, SEEK) }
-                }
+            room.body.organisms_selection(1).foreach(o => {
+                o.behavior = { () => (room.body.player.position, SEEK) }
+                if(!o.isFriendly) publish(HeyPrint("fshksfh ksqdh fks hfk "))
             })
             publish(HeyPrint("The friendly organisms have changed their target"))
             return ""
@@ -87,10 +86,9 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                 case 3 => {
                     val i = splited_command(1).toInt
                     val j = splited_command(2).toInt
-                    room.body.organisms_selection.foreach(o => {
-                        if (o.isFriendly) {
-                            o.behavior = { () => (room.locs(i, j), SEEK) }
-                        }
+                    room.body.organisms_selection(1).foreach(o => {
+                        o.behavior = { () => (room.locs(i, j), SEEK) }
+                        if(!o.isFriendly) publish(HeyPrint("dskjfh kdsjhf klf flkqs"))
                     })
                     publish(HeyPrint("The friendly organisms have changed their target"))
                     return ""
