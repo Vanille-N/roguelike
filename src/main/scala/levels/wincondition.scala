@@ -58,7 +58,21 @@ extends WinCondition(body) {
 
 class WinByKillCount(body: BodyPart)
 extends WinCondition(body) {
-    def explanation = "Kill 500 hostile organisms"
-    def completion: Int = 0
+    val killCount = 100
+    def explanation = s"Kill $killCount hostile organisms"
+    var count = 0
+
+    def completion: Int = {
+        count * 100 / killCount
+    }
+    listenTo(body.room)
+    reactions += {
+        case OrganismDeath(o, _) => {
+            if (!o.isFriendly) {
+                count += 1
+                if (count == killCount) win
+            }
+        }
+    }
 }
 
