@@ -38,8 +38,22 @@ extends WinCondition(body) {
 
 class WinByPickup(body: BodyPart)
 extends WinCondition(body) {
-    def explanation = "Pick up three hidden items"
-    def completion: Int = 0
+    val pickupCount = 10
+    def explanation = s"Pick up $pickupCount hidden items"
+    var count = 0
+    
+    def completion: Int = {
+        count * 100 / pickupCount
+    }
+    listenTo(body)
+    reactions += {
+        case PickedUpKey(o) => {
+            if (o.isFriendly) {
+                count += 1
+                if (count == pickupCount) win
+            }
+        }
+    }
 }
 
 class WinByKillCount(body: BodyPart)
