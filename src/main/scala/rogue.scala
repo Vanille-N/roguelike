@@ -12,6 +12,7 @@ case class leftClicked (o: Object) extends Event
 case class displayContents (p: Pos) extends Event
 case class levelClear() extends Event
 case class LoopStep() extends Event
+case class PickedUpKey(o: Organism) extends Event
 
 /* -- Main environment -- */
 
@@ -158,7 +159,10 @@ extends Reactor with Publisher {
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
         case DyingItem(i: Item) => { logs.text += s"\n * RIP $i, you were a wonderful item *\n"  }
-        case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n"  }
+        case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n" }
+        case PickedUpItem(i, o) => { 
+            if (i.isInstanceOf[Key]) publish(PickedUpKey(o))
+        }
         case HeyPrint(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logs.text += "\n" + str + "\n"
             else if (ln_after) logs.text += str + "\n"
@@ -186,8 +190,10 @@ object main extends SimpleSwingApplication {
     
     def nextLevel {
         levelNum += 1
+        println("Entering level " + levelNum)
         makeBodyPart
         top.contents = bodyPart.newGame
+        listenTo(bodyPart.winCondition)
     }
 
     reactions += {
