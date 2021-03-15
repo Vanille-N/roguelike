@@ -1,5 +1,6 @@
 import scala.collection.mutable.Buffer
 import scala.swing._
+import event._
 
 import Direction._
 import Behavior._
@@ -13,6 +14,8 @@ import StatType._
  * - movement utilities
  * - interaction with items (pickup, drop)
  */
+
+case class OrganismDeath(o: Organism, p: Pos) extends Event
 
 abstract class Organism (
     val stats: StatSet,
@@ -142,6 +145,7 @@ abstract class Organism (
         stats.syncCurrent
         if (stats.health.current <= 0) {
             position.kill(this)
+            position.room.publish(OrganismDeath(this, position))
             // died, maybe drop an item upon death
             Rng.weightedChoice(itemDrop) match {
                 case None => ()
