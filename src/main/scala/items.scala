@@ -47,12 +47,12 @@ abstract class Item (var position: Pos) extends Publisher {
 
     def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
+            publish(PickedUpItem(this, o))
             position.room.body.deafTo(this)
             o.listenTo(this)
             owner = o
             pickable = false
             position.items -= this
-            publish(PickedUpItem(this, o))
             o.listenTo(this)
             position = null
             true
@@ -216,6 +216,7 @@ object MakeItem extends Enumeration {
     val SPIKE = Value
     val LEAK = Value
     val MEMBRANE = Value
+    val KEY = Value
     val NONE = Value
 
     def build_item (it: MakeItem, pos: Pos) {
@@ -228,6 +229,7 @@ object MakeItem extends Enumeration {
             case SPIKE => new Spike(pos)
             case LEAK => new CytoplasmLeak(pos)
             case MEMBRANE => new MembraneReplacement(pos)
+            case KEY => new Key(pos)
             case NONE => null
         }
         if (item != null) {

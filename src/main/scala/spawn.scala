@@ -87,6 +87,7 @@ class DefaultRedCellSpawner extends CellSpawner(
         (0.1, JAVEL),
         (0.1, MEMBRANE),
         (0.1, ALCOHOL),
+        (0.05, KEY),
     )
 }
 
