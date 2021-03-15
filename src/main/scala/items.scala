@@ -445,4 +445,18 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     override def toString = "Leak"
 }
 
+class Key (pos: Pos) extends Item(pos) {
+    override def pickUp (o: Organism): Boolean = {
+        o.position.room.listenTo(this)
+        publish(PickedUpItem(this, o))
+        destroy
+        false
+    }
+    override def step {
+        super.step
+        if (position != null) position.notification
+    }
+}
+
+
 // vim: set expandtab tabstop=4 shiftwidth=4 :
