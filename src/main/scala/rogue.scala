@@ -167,11 +167,7 @@ extends Reactor with Publisher {
         case ClearLogs() => { logs.text = "" }
     }
     command.help_command.executeCommand("help")
-    logs.text += "==============================\n"
-    logs.text += "             GOAL\n"
-    logs.text += winCondition.explanation
-    logs.text += "\n==============================\n"
-
+    logs.text += winCondition.message
 }
 
 object main extends SimpleSwingApplication {
@@ -189,6 +185,7 @@ object main extends SimpleSwingApplication {
     listenTo(bodyPart.winCondition)
     
     def nextLevel {
+        deafTo(bodyPart.winCondition)
         levelNum += 1
         println("Entering level " + levelNum)
         makeBodyPart

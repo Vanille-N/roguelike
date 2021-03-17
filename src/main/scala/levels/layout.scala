@@ -13,6 +13,7 @@ class Level (val num: Int) {
             case 1 => new WinByPosition(body)
             case 2 => new WinByPickup(body)
             case 3 => new WinByKillCount(body)
+            case 4 => new WinLock
         }
     }
 }

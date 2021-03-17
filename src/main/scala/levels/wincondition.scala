@@ -4,12 +4,18 @@ abstract class WinCondition(val body: BodyPart)
 extends Reactor with Publisher {
     def win {
         publish(ClearLogs())
-        body.logs.text += "\n===================\n"
         Thread.sleep(1000)
         publish(new levelClear())
     }
     def explanation: String
     def completion: Int
+
+    def message: String = {
+        "==============================\n" +
+        "             GOAL             \n" +
+                     explanation           +
+      "\n==============================\n"
+    }
 }
 
 class WinByPosition(body: BodyPart)
