@@ -76,3 +76,16 @@ extends WinCondition(body) {
     }
 }
 
+class WinLock ()
+extends WinCondition(null) {
+    def explanation = ""
+    def completion = 100
+    override def win {}
+    override def message = {
+        "========================\n" +
+        "#   CONGRATULATIONS    #\n" +
+        "#    Game Cleared      #\n" +
+        "========================\n"
+    }
+}
+
