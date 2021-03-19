@@ -1,4 +1,5 @@
 import ArtefactType._
+import scala.collection.mutable.Map
 
 // The following class deals with the artefacts management
 class ArtefactsCommand (room: Room) extends CommandManager (room) {
@@ -25,10 +26,41 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
         )
 
         def artefacts_artefact: String = {
-            ""
+            splited_command.length match {
+                case 1 => { publish(HeyPrint("Wrong usage of command `artefact`\n\t-> check `help artefact` to find out :)")); return "" }
+                case _ => {
+                    splited_command(1) match {
+                        case "list" => {artefacts_list; return ""}
+                        case "rm" => {
+                            splited_command = splited_command.tail
+                            splited_command(0) = "artefact-rm"
+                            return artefacts_rm
+                        }
+                        case "add" => {
+                            splited_command = splited_command.tail
+                            splited_command(0) = "artefact-add"
+                            return artefacts_add
+                        }
+                    }
+                }
+            }
         }
 
         def artefacts_add: String = {
+            if(!command_syntax_check (
+                splited_command,
+                Array(
+                    (true, "artefact-add"),
+                    (true, s"l|N:0->${available_classes.size - 1};"),
+                    (true, s"l|N:0->${available_types.size - 1};"),
+                    (true, "N:0->5;"),
+                    (false, s"N:1->${room.rows};"),
+                    (true,  s"N:1->${room.cols};")
+                    )
+                )) {
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                return ""
+            }
             splited_command.length match {
                 case 1 => {
                     publish(HeyPrint(s"Which type of artefact would you like to add ?(l to list)"))
@@ -38,13 +70,13 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                     splited_command(1) match {
                         case "l" => {
                             var liste: String = ""
-                            for (i <- 0 to available_classes.size) liste += s"\n\t$i -> ${available_classes(i)}"
+                            for (i <- 0 to (available_classes.size-1)) liste += s"\n\t$i -> ${available_classes(i)}"
                             publish(HeyPrint(s"$liste\n\nWhich type of artefact would you like to add ?(l to list)"))
                             return "artefact-add"
                         }
                         case _ => {
                             publish(HeyPrint("What should the artefact do ? (l to list)"))
-                            return "artefact-add ${splited_command(1)}"
+                            return unSplitCommand(splited_command)
                         }
                     }
                 }
@@ -52,8 +84,8 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                     splited_command(2) match {
                         case "l" => {
                             var liste: String = ""
-                            for (i <- 0 to available_types.size) {
-                                liste += available_types(i)
+                            for (i <- 0 to available_types.size - 1) {
+                                liste += s"\n\t$i -> ${available_types(i)}"
                             }
                             publish(HeyPrint(s"${liste}\n\nWhat should the artefact do ? (l to list)"))
                             return s"artefact-add ${splited_command(1)}"
@@ -93,18 +125,61 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
         }
 
         def artefacts_rm: String = {
+            val artefacts: Map[Int, Artefact] = Map()
+            var i: Int = 0
+            room.locs.map(_.artefacts.foreach(
+                a => {
+                    artefacts += (i -> a)
+                    i += 1
+                    }
+                ))
+            if(!command_syntax_check(
+                splited_command,
+                Array (
+                    (true, "artefact-rm"),
+                    (true, s"l|N:0->${artefacts.size - 1};")
+                    )
+                )) {
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                return ""
+            }
+            splited_command.length match {
+                case 1 =>
+                        publish(HeyPrint("Which artefact would you like to destroy ?(l to list)"))
+                        return "artefact-rm"
+                case 2 => {
+                    if(splited_command(1) == "l") {
+                        artefacts_list
+                        publish(HeyPrint("Which artefact would you like to destroy ?(l to list)"))
+                        return "artefact-rm"
+                    } else {
+                        artefacts(splited_command(1).toInt).position.artefacts -= artefacts(splited_command(1).toInt)
+                        publish(HeyPrint(s"Artefact ${artefacts(splited_command(1).toInt).toString} destroyed"))
+                    }
+                }
+            }
             ""
         }
 
-        def artefacts_list: String = {
-            ""
+        def artefacts_list: Unit = {
+            val artefacts: Map[Int, String] = Map()
+            var i: Int = 0
+            room.locs.map(_.artefacts.foreach(
+                a => {
+                    artefacts += (i -> a.toString)
+                    i += 1
+                    }
+                ))
+            publish(HeyPrint(s"   ---------   Printing ${artefacts.size} elements   ---------"))
+            for (i <- 0 to artefacts.size - 1) publish(HeyPrint(s"\n\t$i -> ${artefacts(i)}"))
+            publish(HeyPrint(s"   ---------   End of the printing of ${artefacts.size} elements   ---------"))
         }
 
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
             case "artefact"      => { return artefacts_artefact }
             case "artefact-add"  => { return artefacts_add }
             case "artefact-rm"   => { return artefacts_rm }
-            case "artefact-list" => { return artefacts_list }
+            case "artefact-list" => { artefacts_list; return "" }
             case _               => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
         }
         return ""

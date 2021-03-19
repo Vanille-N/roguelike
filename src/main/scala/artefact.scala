@@ -78,6 +78,8 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
         for (i <- findItems) action(i)
         publish(StepForward())
     }
+
+    override def toString = "Classical artefact"
 }
 
 class Murderer (
@@ -93,6 +95,8 @@ class Murderer (
         }
         super.step
     }
+
+    override def toString = "Murderer artefact"
 }
 
 class ForceUsage (
@@ -111,6 +115,8 @@ class ForceUsage (
         }
         super.step
     }
+
+    override def toString = "ForceUsage artefact"
 }
 
 class Temptation (
@@ -128,6 +134,8 @@ class Temptation (
         }
         super.step
     }
+
+    override def toString = "Temptation artefact"
 }
 
 class Unattach (
@@ -143,5 +151,7 @@ class Unattach (
         }
         super.step
     }
+
+    override def toString = "Unattach artefact"
 }
 
