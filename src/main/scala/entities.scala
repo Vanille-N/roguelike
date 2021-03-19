@@ -1,4 +1,5 @@
 import scala.collection.mutable.Buffer
+import scala.collection.mutable.Set
 import scala.swing._
 import event._
 
