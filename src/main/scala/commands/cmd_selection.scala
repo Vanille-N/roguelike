@@ -12,7 +12,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                     (true,  "select"                            ),
-                    (true,  "N:1->2;|rectangle|rect|circ|circle"),
+                    (true,  "N:1->2;|rectangle|rect|circ|circle|all"),
                     (false, s"N:1->${room.rows};"               ),
                     (true,  s"N:1->${room.cols};"               ),
                     (false, s"N:1->${room.rows};"               ),
@@ -26,10 +26,17 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {// command is `select`
-                    publish(HeyPrint("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked"))
+                    publish(HeyPrint("What kind of selection do you want to make?\n\t1-> rectangle\n\t\t| the top-left corner or bottom-right corner will be asked\n\t2-> circle\n\t\t| the center and a point on the perimeter will be asked\n\t3-> all"))
                     return "select"
                 }
                 case 2 => {// command is `select <type>`
+                    if (splited_command(1) == "all" || splited_command(1) == "3") {
+                        for (i <- 1 to room.rows-1; j <- 1 to room.cols-1) {
+                            room.body.organisms_selection(0) ++= room.locs(i, j).organisms(0)
+                            room.body.organisms_selection(1) ++= room.locs(i, j).organisms(1)
+                        }
+                        return ""
+                    }
                     publish(HeyPrint("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
