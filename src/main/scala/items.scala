@@ -1,5 +1,7 @@
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Buffer
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.Set
 import Math._
 import scala.swing._
 import event._
@@ -193,7 +195,7 @@ abstract class Item (var position: Pos) extends Publisher {
     def setPos (p: Pos) = {
         if (position != null) position.items -= this
         position = p
-        p.setItem(this)
+        if (p != null) p.setItem(this)
     }
     // Game evolution: after each turn items move/are used
     def step: Unit = {
@@ -238,6 +240,7 @@ object MakeItem extends Enumeration {
         }
     }
 }
+import MakeItem._
 
 // Partition the Items according to their application area:
 // Action on local area + straight movement (bounces on walls)
@@ -457,6 +460,57 @@ class Key (pos: Pos) extends Item(pos) {
     override def step {
         super.step
         if (position != null) position.notification
+    }
+
+    override def toString = "Key"
+}
+
+class CompactInventory() {
+    var contents: HashMap[MakeItem, Int] = new HashMap()
+    
+    def add(i: Item) {
+        val id: MakeItem.MakeItem = i match {
+            case _:Alcohol => ALCOHOL
+            case _:BodyMovement => MOVE
+            case _:Javel => JAVEL
+            case _:Heat => HEAT
+            case _:Spike => SPIKE
+            case _:CytoplasmLeak => LEAK
+            case _:MembraneReplacement => MEMBRANE
+            case _ => MakeItem.NONE
+        }
+        if (id != MakeItem.NONE) {
+            if (contents.contains(id)) {
+                contents(id) += 1
+            } else {
+                contents(id) = 1
+            }
+        }
+    }
+
+    def compress (inventory: Set[Item]): CompactInventory = {
+        inventory.foreach(add(_))
+        this
+    }
+
+    def decompress: Set[Item] = {
+        var inventory: Set[Item] = Set()
+        for ((it, num) <- contents) {
+            for (j <- 1 to num) {
+                val instance = it match {
+                    case ALCOHOL => new Alcohol(null)
+                    case MOVE => new BodyMovement(null)
+                    case JAVEL => new Javel(null)
+                    case HEAT => new Heat(null)
+                    case SPIKE => new Spike(null)
+                    case LEAK => new CytoplasmLeak(null)
+                    case MEMBRANE => new MembraneReplacement(null)
+                    case _ => null
+                }
+                if (instance != null) inventory.add(instance)
+            }
+        }
+        inventory
     }
 }
 
