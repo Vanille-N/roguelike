@@ -1,5 +1,6 @@
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.Queue
+import scala.collection.mutable.Set
 
 import Direction._
 

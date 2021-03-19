@@ -16,7 +16,7 @@ case class PickedUpKey(o: Organism) extends Event
 
 /* -- Main environment -- */
 
-class BodyPart(val level: Level)
+class BodyPart(val level: Level, inventory: CompactInventory = new CompactInventory)
 extends Reactor with Publisher {
     var globalPanel : GridBagPanel = null
 
@@ -48,6 +48,7 @@ extends Reactor with Publisher {
 
     val room = level.makeRoom(this) // string decides room layout from assets/*.room
     val player = new Player(room.locs(10, 10))
+    player.inventory = inventory.decompress
 
     var command = new Command(room)
     
@@ -147,6 +148,11 @@ extends Reactor with Publisher {
         progressbar.value = winCondition.completion
     }
 
+    // what to carry from a level to the next
+    def migrate: CompactInventory = {
+        (new CompactInventory).compress(player.inventory)
+    }
+
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case displayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
@@ -173,8 +179,10 @@ extends Reactor with Publisher {
 object main extends SimpleSwingApplication {
     var levelNum = 1
     var bodyPart: BodyPart = null
+    var saveInventory = new CompactInventory()
+
     def makeBodyPart {
-        bodyPart = new BodyPart(new Level(levelNum))
+        bodyPart = new BodyPart(new Level(levelNum), saveInventory)
     }
 
     val top = new MainFrame {
@@ -185,12 +193,14 @@ object main extends SimpleSwingApplication {
     listenTo(bodyPart.winCondition)
     
     def nextLevel {
+        saveInventory = bodyPart.migrate
         deafTo(bodyPart.winCondition)
         levelNum += 1
         println("Entering level " + levelNum)
         makeBodyPart
         top.contents = bodyPart.newGame
         listenTo(bodyPart.winCondition)
+        // bodyPart.globalPanel.requestFocusInWindow()
     }
 
     reactions += {
