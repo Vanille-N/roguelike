@@ -196,6 +196,7 @@ class Command (val room: Room) extends Publisher {
     val organisms_command = new OrganismsCommand(room)
     val items_command     = new ItemsCommand(room)
     val behavior_command  = new BehaviorCommand(room)
+    val artefacts_command = new ArtefactsCommand(room)
     val help_command      = new HelpCommand(room)
     val other_command     = new OtherCommand(room)
     val null_command      = new NullCommand(room)
@@ -228,7 +229,7 @@ class Command (val room: Room) extends Publisher {
     def commandRequest(command: String): Unit = {
         if (command == "" || command.split("\\s+").length == 0) {// if the command is only composed of spaces, ignore it.
             current_command = ""
-            publish(ClearLogs())
+            //publish(ClearLogs())
             return
         }
         else if (command.split("\\s+").head == "abort") {// if the line starts with abort, abort the current command.
@@ -250,6 +251,7 @@ class Command (val room: Room) extends Publisher {
             organisms_command,
             items_command,
             behavior_command,
+            artefacts_command,
             help_command,
             other_command,
             null_command,

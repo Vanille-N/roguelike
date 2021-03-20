@@ -42,6 +42,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     // This explains the `if (isFriendly) 1 else 0` in the rest of the file
     var organisms: Array[Set[Organism]] = Array(Set(), Set()) // all organisms
     var items: Set[Item] = Set() // all items that are on the floor
+    var artefacts: Set[Artefact] = Set() // all items that are on the floor
     var strength: Array[Int] = Array(0, 0) // arbitrary measure of strength
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord()) // are celles allowed to step over this tile ?
     var friendlySpawner: PhysicalSpawner = null

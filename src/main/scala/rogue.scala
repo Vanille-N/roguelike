@@ -65,6 +65,7 @@ extends Reactor with Publisher {
     listenTo(command.organisms_command)
     listenTo(command.items_command)
     listenTo(command.behavior_command)
+    listenTo(command.artefacts_command)
     listenTo(command.help_command)
     listenTo(command.other_command)
     listenTo(command.null_command)
@@ -138,6 +139,7 @@ extends Reactor with Publisher {
             room.locs.map(_.battle)
         }
         // items progress
+        room.locs.map(_.artefacts.foreach(_.step))
         items.foreach(_.step)
         // viruses age
         // + synchronize effects of items and damage
