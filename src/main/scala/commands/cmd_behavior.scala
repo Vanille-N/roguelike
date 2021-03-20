@@ -53,7 +53,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             // The syntax is correct. Continue.
             room.body.organisms_selection(1).foreach(o => {
                 o.behavior = { () => (room.body.player.position, SEEK) }
-                if(!o.isFriendly) publish(HeyPrint("fshksfh ksqdh fks hfk "))
+                if(!o.isFriendly) publish(HeyPrint("fshksfh ksqdh fks hfk ")) // debug garbage
             })
             publish(HeyPrint("The friendly organisms have changed their target"))
             return ""

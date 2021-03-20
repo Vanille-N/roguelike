@@ -1,4 +1,4 @@
-class Level (val num: Int) {
+class Level (val num: Int, val max: Int) {
     def makeRoom (body: BodyPart): Room = {
         val layoutName = num match {
             case 1 => "plain"

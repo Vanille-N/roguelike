@@ -43,7 +43,7 @@ abstract class CommandManager (room: Room) extends Publisher {
     def command_syntax_check(parsed_command: Array[String], syntax:Array[Tuple2[Boolean, String]]): Boolean = {// This function checks whether a command's syntax is correct or not
         /*
         ** The tuples are of the form (b: Boolean, s: String) with:
-        **  | b: Boolean -> Can the command stop here (temporally)
+        **  | b: Boolean -> Can the command stop here (temporarily)
         **  | s: String ->  type  of the argument.
         **              | "[abc]" denotes the letters 'a', 'b' or 'c' (any word in L((a + b + c)*) is accepted)
         **              | "'abc" denotes the word "abc"
