@@ -14,6 +14,11 @@ case class levelClear() extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
 
+case class LevelLoad(num: Int) extends Event
+case class GameLoad(file: String) extends Event
+case class GameSave(file: String) extends Event
+case class SaveList() extends Event
+
 /* -- Main environment -- */
 
 class BodyPart(val level: Level, inventory: CompactInventory = new CompactInventory)
@@ -178,11 +183,13 @@ extends Reactor with Publisher {
 
 object main extends SimpleSwingApplication {
     var levelNum = 1
+    var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
     var saveInventory = new CompactInventory()
 
+    def updateMaxLevel { maxLevelNum = levelNum.max(maxLevelNum) }
     def makeBodyPart {
-        bodyPart = new BodyPart(new Level(levelNum), saveInventory)
+        bodyPart = new BodyPart(new Level(levelNum, maxLevelNum), saveInventory)
     }
 
     val top = new MainFrame {
@@ -196,6 +203,7 @@ object main extends SimpleSwingApplication {
         saveInventory = bodyPart.migrate
         deafTo(bodyPart.winCondition)
         levelNum += 1
+        updateMaxLevel
         println("Entering level " + levelNum)
         makeBodyPart
         top.contents = bodyPart.newGame
