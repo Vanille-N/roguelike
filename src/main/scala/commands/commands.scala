@@ -197,6 +197,7 @@ class Command (val room: Room) extends Publisher {
     val items_command     = new ItemsCommand(room)
     val behavior_command  = new BehaviorCommand(room)
     val artefacts_command = new ArtefactsCommand(room)
+    val level_command     = new LevelCommand(room)
     val help_command      = new HelpCommand(room)
     val other_command     = new OtherCommand(room)
     val null_command      = new NullCommand(room)
@@ -252,6 +253,7 @@ class Command (val room: Room) extends Publisher {
             items_command,
             behavior_command,
             artefacts_command,
+            level_command,
             help_command,
             other_command,
             null_command,
