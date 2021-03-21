@@ -15,3 +15,6 @@ Available commands :
   | selection [...]        -> help select
   | item                   -> help item
   | behavior [...]         -> help behavior
+  | level N                -> help level
+  | load FILE              -> help level
+  | save FILE              -> help level
