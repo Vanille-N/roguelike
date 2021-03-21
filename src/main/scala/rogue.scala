@@ -170,7 +170,7 @@ extends Reactor with Publisher {
         }
         case ClearLogs() => { logs.text = "" }
     }
-    command.help_command.executeCommand("help")
+    command.commandRequest("help")
     logs.text += winCondition.message
 }
 
