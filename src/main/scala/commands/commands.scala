@@ -190,17 +190,19 @@ class Command (val room: Room) extends Publisher {
     var aliases: Map[String, String] = Map ()// defines aliases (not used yet)
 
     // creates the different classes to deal with commands
-    val direction_command = new DirectionsCommand(room)
-    val digits_command    = new DigitsCommand(room)
-    val selection_command = new SelectionCommand(room)
-    val organisms_command = new OrganismsCommand(room)
-    val items_command     = new ItemsCommand(room)
-    val behavior_command  = new BehaviorCommand(room)
-    val artefacts_command = new ArtefactsCommand(room)
-    val level_command     = new LevelCommand(room)
-    val help_command      = new HelpCommand(room)
-    val other_command     = new OtherCommand(room)
-    val null_command      = new NullCommand(room)
+    val subCommands: List[CommandManager] = List(
+        new DirectionsCommand(room),
+        new DigitsCommand(room),
+        new SelectionCommand(room),
+        new OrganismsCommand(room),
+        new ItemsCommand(room),
+        new BehaviorCommand(room),
+        new ArtefactsCommand(room),
+        new LevelCommand(room),
+        new HelpCommand(room),
+        new OtherCommand(room),
+        new NullCommand(room),
+    )
 
 
     def commandFromKey (key: Key.Value) : String = {   // Get a string command from the use of a key
@@ -245,21 +247,11 @@ class Command (val room: Room) extends Publisher {
             else current_command = command
         }
         //appendLogs("current := `" + current_command + "`")
-        var toBeExecuted: (String => String) = List(
-            direction_command,
-            digits_command,
-            selection_command,
-            organisms_command,
-            items_command,
-            behavior_command,
-            artefacts_command,
-            level_command,
-            help_command,
-            other_command,
-            null_command,
-        ).filter(_.acceptCommand(current_command))
-        .head // never fails since the filtered list contains at least null_command which accepts everything
-        .executeCommand
+        var toBeExecuted: (String => String) =
+            subCommands
+            .filter(_.acceptCommand(current_command))
+            .head // never fails since the filtered list contains at least null_command which accepts everything
+            .executeCommand
 
         current_command = toBeExecuted(current_command)
         room.body.cmdline.text = ""

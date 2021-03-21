@@ -59,16 +59,7 @@ extends Reactor with Publisher {
     
     val winCondition = level.makeWinCondition(this)
     listenTo(command)
-    listenTo(command.direction_command)
-    listenTo(command.digits_command)
-    listenTo(command.selection_command)
-    listenTo(command.organisms_command)
-    listenTo(command.items_command)
-    listenTo(command.behavior_command)
-    listenTo(command.artefacts_command)
-    listenTo(command.help_command)
-    listenTo(command.other_command)
-    listenTo(command.null_command)
+    command.subCommands.foreach(listenTo(_))
 
     var isPlaying: Boolean = false
 
