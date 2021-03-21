@@ -92,7 +92,7 @@ abstract class CommandManager (room: Room) extends Publisher {
                             // Then, if there are boundaries, check them.
                             if(result && elt.length > 1  && elt(1) == ':') {
                                 val minimum: Int = elt.substring ( 2, elt.indexOf("->") ).toInt
-                                val maximum: Int = elt.substring ( elt.indexOf("->") + 2, elt.length - 1 ).toInt
+                                val maximum: Int = elt.substring ( elt.indexOf("->") + 2, elt.length ).toInt
                                 var n: Int = 0// stores the value of the eventual number.
                                 parsed_command(i).foreach ( letter => {
                                     n *= 10
