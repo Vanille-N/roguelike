@@ -70,7 +70,9 @@ class LevelCommand (room: Room) extends CommandManager (room) {
             case "level" => { return level_load }
             case "save" => { return game_save }
             case "load" => { return game_load }
+            case _ => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
         }
+        return ""
     }
 }
 
