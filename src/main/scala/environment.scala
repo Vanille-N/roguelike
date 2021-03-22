@@ -199,7 +199,7 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
 
     reactions += {
         case MouseClicked(_, _ ,0, _ , _ ) =>
-            { publish(leftClicked(this)) }
+            { publish(LeftClicked(this)) }
         case UIElementResized(_) =>
             font = new Font("default", Font.BOLD,
                 (size.width / strength(0).toString.length.max(strength(1).toString.length).max(3)).min(

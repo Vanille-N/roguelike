@@ -8,9 +8,9 @@ import event._
  * - move/battle/spawn coordination
  */
 
-case class leftClicked (o: Object) extends Event
-case class displayContents (p: Pos) extends Event
-case class levelClear() extends Event
+case class LeftClicked (o: Object) extends Event
+case class DisplayContents (p: Pos) extends Event
+case class LevelClear() extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
 
@@ -153,15 +153,13 @@ extends Reactor with Publisher {
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case displayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
-        case leftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
+        case DisplayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
+        case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
         case DyingItem(i: Item) => { logs.text += s"\n * RIP $i, you were a wonderful item *\n"  }
         case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n" }
-        case PickedUpItem(i, o) => { 
-            if (i.isInstanceOf[Key]) publish(PickedUpKey(o))
-        }
+        case PickedUpItem(i, o) => { if (i.isInstanceOf[Key]) publish(PickedUpKey(o)) }
         case HeyPrint(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logs.text += "\n" + str + "\n"
             else if (ln_after) logs.text += str + "\n"
@@ -205,6 +203,6 @@ object main extends SimpleSwingApplication {
     }
 
     reactions += {
-        case levelClear => nextLevel
+        case LevelClear() => nextLevel
     }
 }

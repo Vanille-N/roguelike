@@ -10,7 +10,7 @@ import MakeItem.MakeItem
  * - instances of cells
  */
 
-case class newOrganism (o: Organism) extends Event
+case class NewOrganism (o: Organism) extends Event
 case class DyingOrganism (o: Organism) extends Event
 
 abstract class Spawner (

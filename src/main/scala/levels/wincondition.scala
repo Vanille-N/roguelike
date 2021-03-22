@@ -5,7 +5,7 @@ extends Reactor with Publisher {
     def win {
         publish(ClearLogs())
         Thread.sleep(1000)
-        publish(new levelClear())
+        publish(new LevelClear())
     }
     def explanation: String
     def completion: Int
