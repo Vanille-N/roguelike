@@ -14,6 +14,7 @@ extends Reactor with Publisher {
     val redCellSpawner = new DefaultRedCellSpawner()
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
     val virusSpawner = new DefaultVirusSpawner()
+    val neuronSpawner = new DefaultNeuronSpawner()
 
     // initialization from src file
     val (rows, cols, locs, pathFinder) = {
@@ -36,6 +37,7 @@ extends Reactor with Publisher {
                     case '#' => { wallSpawner.spawn(locs(i, j)); availability(i)(j) = false }
                     case 'R' => locs(i, j).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.03, 7))
                     case 'W' => locs(i, j).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.02, 5))
+                    case 'N' => locs(i, j).setHostileSpawner(new PhysicalSpawner(neuronSpawner, 0.01, 1))
                 }
             }
         }
@@ -48,7 +50,7 @@ extends Reactor with Publisher {
     locs.map(listenTo(_))
 
     reactions += {
-        case leftClicked(c: Pos) => { publish(displayContents(c)) }
+        case LeftClicked(c: Pos) => { publish(DisplayContents(c)) }
     }
 
     def makeWall (p: Pos, q: Pos) = {
