@@ -116,6 +116,24 @@ class DefaultWhiteCellSpawner extends CellSpawner(
     )
 }
 
+class DefaultNeuronSpawner extends CellSpawner(
+    stats = new StatSetGen(
+        speed = new StatGen(5, 1),
+        health = new StatGen(500, 50),
+        power = new StatGen(5, 1),
+        resistance = new StatGen(100, 10),
+        decisiveness = new StatGen(100, 10),
+    ),
+    name = "neuron",
+) {
+    import MakeItem._
+    override def itemDrop = Buffer(
+        (0.5, SPIKE),
+        (0.3, MEMBRANE),
+        (0.2, KEY),
+    )
+}
+
 // ties a spawner to a location
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
