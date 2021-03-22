@@ -58,7 +58,6 @@ extends Reactor with Publisher {
     var command = new Command(room)
     
     val winCondition = level.makeWinCondition(this)
-    listenTo(command)
     command.subCommands.foreach(listenTo(_))
 
     var isPlaying: Boolean = false
@@ -189,20 +188,26 @@ object main extends SimpleSwingApplication {
         centerOnScreen()
     }
     listenTo(bodyPart.winCondition)
+    bodyPart.command.subCommands.foreach(listenTo(_))
     
     def nextLevel {
         saveInventory = bodyPart.migrate
         deafTo(bodyPart.winCondition)
+        bodyPart.command.subCommands.foreach(deafTo(_))
         levelNum += 1
         updateMaxLevel
         println("Entering level " + levelNum)
         makeBodyPart
         top.contents = bodyPart.newGame
         listenTo(bodyPart.winCondition)
+        bodyPart.command.subCommands.foreach(listenTo(_))
         // bodyPart.globalPanel.requestFocusInWindow()
     }
 
     reactions += {
         case LevelClear() => nextLevel
+        case LevelLoad(k) => { println(s"Load level $k") }
+        case GameLoad(f) => { println(s"Load game $f") }
+        case GameSave(f) => { println(s"Save game $f") }
     }
 }
