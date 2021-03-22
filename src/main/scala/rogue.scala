@@ -146,7 +146,7 @@ extends Reactor with Publisher {
     }
 
     // what to carry from a level to the next
-    def migrate: CompactInventory = {
+    def migrateInventory: CompactInventory = {
         (new CompactInventory).compress(player.inventory)
     }
 
@@ -190,23 +190,27 @@ object main extends SimpleSwingApplication {
     listenTo(bodyPart.winCondition)
     bodyPart.command.subCommands.foreach(listenTo(_))
     
-    def nextLevel {
-        saveInventory = bodyPart.migrate
+    def loadLevel {
         deafTo(bodyPart.winCondition)
         bodyPart.command.subCommands.foreach(deafTo(_))
-        levelNum += 1
-        updateMaxLevel
-        println("Entering level " + levelNum)
+        println(s"Entering level $levelNum")
         makeBodyPart
         top.contents = bodyPart.newGame
         listenTo(bodyPart.winCondition)
         bodyPart.command.subCommands.foreach(listenTo(_))
-        // bodyPart.globalPanel.requestFocusInWindow()
     }
 
     reactions += {
-        case LevelClear() => nextLevel
-        case LevelLoad(k) => { println(s"Load level $k") }
+        case LevelClear() => {
+            saveInventory = bodyPart.migrateInventory // inventory is only transfered if level is cleared
+            levelNum += 1
+            updateMaxLevel
+            loadLevel
+        }
+        case LevelLoad(k) => {
+            levelNum = k
+            loadLevel
+        }
         case GameLoad(f) => { println(s"Load game $f") }
         case GameSave(f) => { println(s"Save game $f") }
     }
