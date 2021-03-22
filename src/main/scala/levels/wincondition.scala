@@ -18,11 +18,12 @@ extends Reactor with Publisher {
     }
 }
 
-class WinByPosition(body: BodyPart)
-extends WinCondition(body) {
-    val pos = body.room.locs(25, 25)
-    val strengthThreshold = 100
-    val turnCount = 50
+class WinByPosition(
+    body: BodyPart, i: Int, j: Int,
+    strengthThreshold: Int,
+    turnCount: Int,
+) extends WinCondition(body) {
+    val pos = body.room.locs(i, j)
     def explanation = s"To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
     var count = 0
     
@@ -42,9 +43,11 @@ extends WinCondition(body) {
     }
 }
 
-class WinByPickup(body: BodyPart)
-extends WinCondition(body) {
-    val pickupCount = 10
+import scala.reflect.ClassTag
+class WinByPickup(
+    body: BodyPart,
+    pickupCount: Int,
+) extends WinCondition(body) {
     def explanation = s"Pick up $pickupCount hidden items"
     var count = 0
     
@@ -62,10 +65,12 @@ extends WinCondition(body) {
     }
 }
 
-class WinByKillCount(body: BodyPart)
-extends WinCondition(body) {
-    val killCount = 100
-    def explanation = s"Kill $killCount hostile organisms"
+class WinByKillCount(
+    body: BodyPart,
+    name: String = "",
+    killCount: Int,
+) extends WinCondition(body) {
+    def explanation = s"Kill $killCount ${if (name == "") "hostile" else name} organisms"
     var count = 0
 
     def completion: Int = {
@@ -74,7 +79,7 @@ extends WinCondition(body) {
     listenTo(body.room)
     reactions += {
         case OrganismDeath(o, _) => {
-            if (!o.isFriendly) {
+            if (!o.isFriendly && (name == "" || o.name == name)) {
                 count += 1
                 if (count == killCount) win
             }
