@@ -51,6 +51,7 @@ abstract class CommandManager (room: Room) extends Publisher {
         **              | "N:n->m;" denotes any integer between the integer n and the integer m (numerical values, no variables allowed)
         **              | it is possible to mix these the options with '|'.
         **                  | e.g.: have "[l]|N" to denote either the letter 'l', or any number.
+        **              | "any" denotes an accepted word.
         */
 
         // 1- Checking the global form of the command.
@@ -107,7 +108,7 @@ abstract class CommandManager (room: Room) extends Publisher {
                         }
                         case _ => {
                             //println("\tChecking for a word:")
-                            result = parsed_command(i) == elt
+                            result = parsed_command(i) == elt || elt == "any"
                             //if(result) println("\t\tOk: " + elt + " == " + parsed_command(i))
                             //else println("\t\tnOk: " + elt + " != " + parsed_command(i))
                             reason_of_withdraw += "\n\t| word `" + elt + "`"

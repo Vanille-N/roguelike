@@ -48,7 +48,14 @@ extends Reactor with Publisher {
     var items: Set[Item] = Set() // all existing
     var organismsBarycenter: Array[Pos] = Array(null, null)
 
-    var organisms_selection: Array[Set[Organism]] = Array(Set(), Set())
+    /* selection_organisms is an array of tuples.
+    ** | Each tuple is of thr form:
+    ** | | ._1 -> friendly organisms (viruses)
+    ** | | ._2 -> non friendly organisms (cells)
+    */
+    var selection_organisms: Array[Tuple2[Set[Organism],Set[Organism]]] = Array(Tuple2(Set(), Set()))
+    var selection_names: Array[String] = Array("_")
+    var selection_current: String = "_"
     var repeat: Int = 1
 
     val room = level.makeRoom(this) // string decides room layout from assets/*.room
