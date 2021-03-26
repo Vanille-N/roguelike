@@ -53,20 +53,20 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                 return "";
             }
             splited_command.length match {
-                case 3 => {// new <selection name>
+                case 3 => {// selection new <selection name>
                     publish(HeyPrint(
                         "What kind of selection dou you want to make ?\n\t1 -> rectangle\n\t\t|top left and\n\t\t|bottom right locations asked\n\t2 -> circle\n\t\t|center cell and\n\t\t|a cell on the circle asked"))
                     return unSplitCommand(splited_command)
                 }
-                case 4 => {// new <selection name> (rectangle|circle)
+                case 4 => {// new <selection name> (rectangle|circle|rect|circ|1|2)
                     publish(HeyPrint("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
-                case 6 => {// new <selection name> (rectangle|circle) <coord_i coord_j>
+                case 6 => {// new <selection name> (rectangle|circle|rect|circ|1|2) <coord_i coord_j>
                     publish(HeyPrint("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
-                case 8 => {// new <selection name> (rectangle|circle) <coord_i coord_j> <coord_i coord_j>
+                case 8 => {// new <selection name> (rectangle|circle|rect|circ|1|2) <coord_i coord_j> <coord_i coord_j>
                     val i1: Int = splited_command(4).toInt
                     val j1: Int = splited_command(5).toInt
                     val i2: Int = splited_command(6).toInt
@@ -117,11 +117,32 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (false, "switch"),
                     (true, "any")
                 ))) return ""
-            if(room.body.selection_names.indexOf(splited_command(1)) < 0) {
+            if(room.body.selection_names.indexOf(splited_command(2)) < 0) {
                 room.body.selection_names.:+(splited_command(2))
                 room.body.selection_organisms.:+(Tuple2(Set(), Set()))
             }
-            room.body.selection_current = splited_command(1)
+            room.body.selection_current = splited_command(2)
+            ""
+        }
+
+        def selection_destroy: String = {
+            if(!command_syntax_check(splited_command,
+                Array (
+                    (false, "selection"),
+                    (false, "destroy"),
+                    (true, selection_possibilities)
+                ))) return ""
+            if(room.body.selection_names.indexOf(splited_command(2)) >= 0) {
+                val ind: Int = room.body.selection_names.indexOf(splited_command(2))
+                var new_selection_names: Array[String] = Array()
+                var new_selection_organisms: Array[Tuple2[Set[Organism], Set[Organism]]] = Array()
+                for (i <- room.body.selection_names.indices.filter(_ != ind) ) {
+                    new_selection_names.:+(room.body.selection_names(i))
+                    new_selection_organisms.:+(room.body.selection_organisms(i))
+                }
+                room.body.selection_names = new_selection_names
+                room.body.selection_organisms = new_selection_organisms
+            }
             ""
         }
 
@@ -155,13 +176,14 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                         case "new" => return selection_new
                         case "print" => return selection_print
                         case "switch" => return selection_switch
+                        case "destroy" => return selection_destroy
                         case "list" => return selection_list
                         case _ => return ""
                     }
                 }
                 case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
             }
-        } catch {case _: Throwable => publish(HeyPrint(s"Error: Command `${unSplitCommand(splited_command)}` failed.")); return "" }
+        } //catch {case _: Throwable => publish(HeyPrint(s"Error: Command `${unSplitCommand(splited_command)}` failed.")); return "" }
     }
 }
 
