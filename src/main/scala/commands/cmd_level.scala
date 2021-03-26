@@ -34,6 +34,17 @@ class LevelCommand (room: Room) extends CommandManager (room) {
         }
 
         def game_load: String = {
+            if (!command_syntax_check(
+                splited_command,
+                Array(
+                    (true, "load"),
+                    (true, "[abcdefghijklmnopqrstuvwxyz_]|N"),
+                )
+            )) {
+                publish(HeyPrint("The command does not fit its syntax.\n\tCheck `help level`."))
+                return ""
+            }
+
             splited_command.length match {
                 case 1 => {
                     publish(HeyPrint("Enter name of save file to load (`l` to list)"))
