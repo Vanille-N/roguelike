@@ -1,0 +1,44 @@
+The following commands allow a player to make sets
+of cells.
+
+selection new <selection_name> [<selection_type>
+    [<coord_i coord_j> [<coord_i coord_j>]]]
+
+  each new bracket level means that these are not
+   required in the first command. You will be
+   prompted and guided to fill these.
+
+
+
+selection print
+
+  prints every selection.
+
+
+selection switch <selection_name>
+
+  switch the current selection to the selection
+   "<selection_name>"
+  If such selection does not exists, this commands
+  initialises a new selection after this name and
+  switch to it.
+
+
+
+selection current
+  
+  prints the name of the current selection ("_" at
+   the beginning of the game).
+
+
+
+selection destroy <selection_name>
+  
+  destroys the selection "<selection_name>"
+
+
+
+selection list
+
+  lists the content of every selection (and their
+   name).

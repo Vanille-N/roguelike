@@ -1,4 +1,9 @@
-Fine-tuning the behavior of viruses
+Fine-tuning the behavior of selected viruses.
+Only the viruses which are selected in the current
+selection are affected by this command.
+The current selection can be displayed through
+`selection current`.
+
 $ behavior
 $ behavior-cursor
 $ behavior-target [...]

@@ -137,8 +137,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                 var new_selection_names: Array[String] = Array()
                 var new_selection_organisms: Array[Tuple2[Set[Organism], Set[Organism]]] = Array()
                 for (i <- room.body.selection_names.indices.filter(_ != ind) ) {
-                    new_selection_names.:+(room.body.selection_names(i))
-                    new_selection_organisms.:+(room.body.selection_organisms(i))
+                    new_selection_names = new_selection_names.:+(room.body.selection_names(i))
+                    new_selection_organisms = new_selection_organisms.:+(room.body.selection_organisms(i))
                 }
                 room.body.selection_names = new_selection_names
                 room.body.selection_organisms = new_selection_organisms
@@ -169,13 +169,13 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             return ""
         }
 
-        try {
             splited_command(0) match {// main switch to know what function corresponds to the command at hand.
                 case "selection"        => {
                     splited_command(1) match {
                         case "new" => return selection_new
                         case "print" => return selection_print
                         case "switch" => return selection_switch
+                        case "current" => {publish(HeyPrint(s"The surrent selection is ${room.body.selection_current}")); return ""}
                         case "destroy" => return selection_destroy
                         case "list" => return selection_list
                         case _ => return ""
@@ -183,7 +183,6 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                 }
                 case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
             }
-        } //catch {case _: Throwable => publish(HeyPrint(s"Error: Command `${unSplitCommand(splited_command)}` failed.")); return "" }
     }
 }
 

@@ -1,16 +1,20 @@
 Modes:
   | console mode: allows to enter commands
-  ||> to enter: this mode, press ':' in key-driven mode.
+  ||> to enter: this mode, press ':' in key-driven
+      mode.
   ||> to exit: use the command 'q'
   |
-  | key-driven mode: allows to control the game through key presses
+  | key-driven mode: allows to control the game
+    through key presses
   ||> to enter: this mode, quit other modes
   |
-  | mouse mode: allows to get the content of a cell.
+  | mouse mode: allows to get the content of a
+    cell.
   ||> to exit: use the left-button of the mouse
 
 
-If there is no conflicts, one may use an uppercase reperesentant of a key as command.
+If there is no conflicts, one may use an uppercase
+reperesentant of a key as command.
 
   ┌───────────────────────────────────────────────────────┐
   │ (Command | key)   -> action                           │
