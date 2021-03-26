@@ -150,12 +150,12 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             val selection_id: Int = room.body.selection_names.indexOf(room.body.selection_current)
             var i: Int = 0
             try {
-                publish(HeyPrint(s"\t*********\tPrinting\t*********"))
+                publish(HeyPrint(s"\t*********\tPrinting ${room.body.selection_current}\t*********"))
                 for (o <- room.body.selection_organisms(selection_id)._1)
                     publish(HeyPrint(s"\t${i} -> $o"))
                 for (o <- room.body.selection_organisms(selection_id)._2)
                     publish(HeyPrint(s"\t${i} -> $o"))
-                publish(HeyPrint(s"\t*********\tEnd of printing\t*********"))
+                publish(HeyPrint(s"\t*********\tEnd of printing ${room.body.selection_current}\t*********"))
             } catch {case _ : Throwable => publish(HeyPrint("No such selection"))}
             ""
         }
