@@ -26,9 +26,17 @@ object GameLoader {
     }
 
     def tryLoadFile (f: String): CompactGame = {
+        if ((new File(s"assets/$f.save")).exists) {
+            loadFile(f)
+        } else {
+            null
+        }
     }
 
     def saveFile (f: String, game: CompactGame) {
+        println(game.level)
+        println(game.inventory)
+        println(s"<save to $f>")
     }
 
     def listSaveFiles: List[String] = {
