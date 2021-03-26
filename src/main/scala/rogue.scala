@@ -15,7 +15,7 @@ case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
 
 case class LevelLoad(num: Int) extends Event
-case class GameLoad(file: String) extends Event
+case class GameLoad(game: CompactGame) extends Event
 case class GameSave(file: String) extends Event
 case class SaveList() extends Event
 
@@ -171,6 +171,8 @@ extends Reactor with Publisher {
     logs.text += winCondition.message
 }
 
+import java.util.{Timer,TimerTask}
+
 object main extends SimpleSwingApplication {
     var levelNum = 1
     var maxLevelNum = levelNum
@@ -198,6 +200,13 @@ object main extends SimpleSwingApplication {
         top.contents = bodyPart.newGame
         listenTo(bodyPart.winCondition)
         bodyPart.command.subCommands.foreach(listenTo(_))
+        
+        val timer = new Timer
+        timer.schedule(new TimerTask() {
+            def run {
+                bodyPart.globalPanel.requestFocusInWindow
+            }
+        }, 1)
     }
 
     reactions += {
@@ -211,7 +220,14 @@ object main extends SimpleSwingApplication {
             levelNum = k
             loadLevel
         }
-        case GameLoad(f) => { println(s"Load game $f") }
-        case GameSave(f) => { println(s"Save game $f") }
+        case GameLoad(g) => {
+            maxLevelNum = g.level
+            levelNum = g.level
+            saveInventory = g.inventory
+            loadLevel
+        }
+        case GameSave(f) => {
+            GameLoader.saveFile(f, new CompactGame(maxLevelNum, saveInventory))
+        }
     }
 }
