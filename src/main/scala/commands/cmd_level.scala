@@ -57,11 +57,26 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                     return "load"
                 }
                 case 2 => {
-                    if (splited_command(1) == "l") {
-                        publish(SaveList())
-                        return ""
+                    try {
+                        val index = splited_command(1).toInt
+                        val saves = GameLoader.listSaveFiles
+                        if (index < saves.length) {
+                            publish(HeyPrint("Loading level"))
+                            publish(GameLoad(GameLoader.loadFile(saves(index))))
+                        } else {
+                            publish(HeyPrint("No such file"))
+                        }
+                    } catch {
+                        case _: NumberFormatException => {
+                            val game = GameLoader.tryLoadFile(splited_command(1))
+                            if (game != null) {
+                                publish(HeyPrint("Loading level"))
+                                publish(GameLoad(game))
+                            } else {
+                                publish(HeyPrint("No such file"))
+                            }
+                        }
                     }
-                    publish(GameLoad(splited_command(1)))
                     return ""
                 }
                 case _ => { publish(HeyPrint("Illegal number of arguments")); return "" }
