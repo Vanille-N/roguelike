@@ -47,7 +47,13 @@ class LevelCommand (room: Room) extends CommandManager (room) {
 
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint("Enter name of save file to load (`l` to list)"))
+                    val saves = GameLoader.listSaveFiles
+                    var msg = ""
+                    for ((f, i) <- saves.zipWithIndex) {
+                        msg += s"  $i: $f\n"
+                    }
+                    msg += "Enter name or number of save file to load"
+                    publish(HeyPrint(msg))
                     return "load"
                 }
                 case 2 => {
