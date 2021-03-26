@@ -11,8 +11,7 @@ Available commands :
   | Left                   -> help directions
   | help [...]
   | clear
-  | select                 -> help select
-  | selection [...]        -> help select
+  | selection [...]        -> help selection
   | item                   -> help item
   | behavior [...]         -> help behavior
   | level N                -> help level

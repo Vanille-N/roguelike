@@ -41,6 +41,8 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     // on friendly organisms is stored in (1) and hostile in (0)
     // This explains the `if (isFriendly) 1 else 0` in the rest of the file
     var organisms: Array[Set[Organism]] = Array(Set(), Set()) // all organisms
+    // organisms(0) -> non friendly organisms (cells)
+    // organisms(1) -> friendly organisms (viruses)
     var items: Set[Item] = Set() // all items that are on the floor
     var artefacts: Set[Artefact] = Set() // all items that are on the floor
     var strength: Array[Int] = Array(0, 0) // arbitrary measure of strength
