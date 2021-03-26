@@ -32,6 +32,13 @@ object GameLoader {
     }
 
     def listSaveFiles: List[String] = {
+        val files = new File("assets/")
+          .listFiles
+          .map(_.getName)
+          .filter(_.contains("save"))
+          .map(_.split('.')(0))
+          .toList
+        files.sorted
     }
 }
 
