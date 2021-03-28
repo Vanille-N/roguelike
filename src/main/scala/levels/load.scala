@@ -1,10 +1,10 @@
 import java.io.File
+import java.io.PrintWriter
 import scala.io.Source
 import MakeItem._
 
 object GameLoader {
     def loadFile (f: String): CompactGame = {
-        println(s"<load $f>")
         val src = Source.fromFile(s"assets/$f.save")
         val lines = src.getLines
         val level = lines.next.toInt
@@ -34,9 +34,21 @@ object GameLoader {
     }
 
     def saveFile (f: String, game: CompactGame) {
-        println(game.level)
-        println(game.inventory)
-        println(s"<save to $f>")
+        val out = new PrintWriter(new File(s"assets/$f.save"))
+        out.write(s"${game.level}\n")
+        for (itm <- game.inventory.contents) {
+            out.write(itm._1 match {
+                case ALCOHOL => "ALCOHOL"
+                case MOVE => "MOVE"
+                case JAVEL => "JAVEL"
+                case HEAT => "HEAT"
+                case SPIKE => "SPIKE"
+                case LEAK => "LEAK"
+                case MEMBRANE => "MEMBRANE"
+            })
+            out.write(s" ${itm._2}\n")
+        }
+        out.close
     }
 
     def listSaveFiles: List[String] = {
