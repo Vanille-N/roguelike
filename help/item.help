@@ -1,7 +1,7 @@
 The following commands allows a player to manually
 manage the items:
 
-`item_add ...`
+`item-add ...`
 OR
 `item add`
     will initiate an interactive command to add an
@@ -15,18 +15,22 @@ OR
 
 `item pickup`
 OR
-`item_pickup`
+`item-pickup`
     will force the organisms to pickup the items
     from the board.
 
 `item list`
 OR
-`item_list`
+`item-list`
     will list the current items of the board.
 
 `item give`
 OR
-`item_give`
+`item-give`
     will initiate an interactive command to give
     an item of the player's inventory to a
     particular organism.
+
+`item use`, `item-use`
+    same as `item give`, but item will be
+    forcefully applied

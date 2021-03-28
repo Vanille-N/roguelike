@@ -12,7 +12,7 @@ Available commands :
   | help [...]
   | clear
   | selection [...]        -> help selection
-  | item                   -> help item
+  | item [...]             -> help item
   | behavior [...]         -> help behavior
   | level N                -> help level
   | load FILE              -> help level
