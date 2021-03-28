@@ -15,7 +15,7 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                     (true, "level"),
-                    (true, s"N:1->${room.body.level.max}")
+                    (true, s"N:1->${room.body.level.max};")
                 )
             )) {
                 publish(HeyPrint("The command does not fit its syntax.\n\tCheck `help level`."))
