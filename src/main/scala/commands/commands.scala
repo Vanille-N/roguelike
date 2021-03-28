@@ -213,7 +213,7 @@ class Command (val room: Room) extends Publisher {
 
     def locsClicked ( p: Pos ): Unit = {
         if (current_command == "") {// no current command -> display the location's content
-            publish(HeyPrint (p.listContents))
+            publish(HeyPrint(p.listContents))
         } else {// there is a current command, append the coordinates of the location to the command line.
             room.body.cmdline.text += " " + p.i + " " + p.j
         }

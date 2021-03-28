@@ -65,6 +65,7 @@ extends Reactor with Publisher {
     var command = new Command(room)
     
     val winCondition = level.makeWinCondition(this)
+    listenTo(command)
     command.subCommands.foreach(listenTo(_))
 
     var isPlaying: Boolean = false
