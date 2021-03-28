@@ -1,6 +1,6 @@
 // The following class deals with the items management
 class ItemsCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give")
+    val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give", "item-use")
     help_menus = "item" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
@@ -35,7 +35,12 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
                         case "give"   => {
                             splited_command = splited_command.tail
                             splited_command(0) = "item-give"
-                            return items_give
+                            return items_give(false)
+                        }
+                        case "use" => {
+                            splited_command = splited_command.tail
+                            splited_command(0) = "item-use"
+                            return items_give(true)
                         }
                         case _        => { publish(HeyPrint("Error: command `" + splited_command(1) + "` unknown")); return "" }
                     }
@@ -45,21 +50,22 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
         def items_list: String = {// List the current list of items on the board
             var i: Int = 0
-            publish(HeyPrint(s"   ---------   Printing ${room.body.items.size} elements   ---------"))
+            publish(HeyPrint(s"Currently on the board:\n   ---------   Printing ${room.body.items.size} elements   ---------"))
             for ( o <- room.body.items.toList ) {
                 publish(HeyPrint(i + "-\t" + o))
                 i += 1
             }
             publish(HeyPrint(s"   ---------   End of the printing (${room.body.items.size} elements)   ---------"))
+            list_inventory
             return ""
         }
 
         def getItemById (id: Int): Item = {
-            val lily : List[Item] = room.body.items.toList
-            if(id > lily.length) { null }
+            val items : List[Item] = room.body.items.toList
+            if(id > items.length) { null }
             else {
                 var i: Int = 0
-                for ( o <- lily ) {
+                for ( o <- items ) {
                     if (i == id) {return o}
                     i += 1
                 }
@@ -171,7 +177,7 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
 
         def list_inventory: Unit = {// List the inventory of the player
             var i: Int = 0
-            publish(HeyPrint(s"   ---------   Printing ${room.body.player.inventory.size} elements   ---------"))
+            publish(HeyPrint(s"Held by user:\n   ---------   Printing ${room.body.player.inventory.size} elements   ---------"))
             for ( o <- room.body.player.inventory.toList ) {
                 publish(HeyPrint(i + "-\t" + o))
                 i += 1
@@ -189,13 +195,15 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         def getOrganismById (id: Int): Organism = {
-            val lily : List[Organism] = room.body.organisms.toList
-            if(id > lily.length) { null }
+            val orgas : List[Organism] = room.body.organisms.toList
+            if (id > orgas.length) { null }
             else {
                 var i: Int = 0
-                for ( o <- lily ) {
-                    if (i == id) {return o}
-                    i += 1
+                for ( o <- orgas ) {
+                    if (o.name != "wall cell") {
+                        if (i == id) { return o }
+                        i += 1
+                    }
                 }
             }
             null
@@ -205,18 +213,20 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             publish(HeyPrint(s"   ---   Printing ${room.body.organisms.size} organisms:   ---"))
             var i: Int = 0
             for ( o <- room.body.organisms.toList ) {
-                publish(HeyPrint(i + "-\t" + o))
-                i += 1
+                if (o.name != "wall cell") {
+                    publish(HeyPrint(i + "-\t" + o))
+                    i += 1
+                }
             }
             publish(HeyPrint(s"   ---   End of the list (${room.body.organisms.size} organisms).   ---", ln_before = true))
         }
 
-        def items_give: String = {// Give an item from the inventory to an organism
+        def items_give (forceUse: Boolean): String = {// Give an item from the inventory to an organism
             // Check if the command syntax is correct or not:
-            if(!command_syntax_check (
+            if (!command_syntax_check (
                 splited_command,
                 Array(
-                        (true, "item-give"),
+                        (true, "item-give|item-use"),
                         (true, s"l|N:0->${room.body.player.inventory.size - 1};"),
                         (true, s"l|N:0->${room.body.organisms.size - 1};")
                     )
@@ -229,29 +239,40 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
             splited_command.length match {
                 case 1 => {
                     publish(HeyPrint("Which item of the inventory would you like to give? (`l` to list the items)"))
-                    return "item-give"
+                    if (forceUse) {
+                        return "item-use"
+                    } else {
+                        return "item-give"
+                    }
                 }
                 case 2 => {
                     if ( splited_command(1) == "l") {
                         list_inventory
                         publish(HeyPrint("Which item of the inventory would you like to give? (`l` to list the items)"))
-                        return "item-give"
+                        if (forceUse) {
+                            return "item-use"
+                        } else {
+                            return "item-give"
+                        }
                     } else {
-                        publish(HeyPrint("What organism should revieve the item? (`l` to list the organisms)"))
+                        publish(HeyPrint("What organism should receive the item? (`l` to list the organisms)"))
                         return unSplitCommand(splited_command)
                     }
                 }
                 case 3 => {
                     if(splited_command(2) == "l") {
                         organisms_list
-                        publish(HeyPrint("What organism should revieve the item? (`l` to list the organisms)"))
+                        publish(HeyPrint("What organism should receive the item? (`l` to list the organisms)"))
                         return (splited_command(0) + " " + splited_command(1))
                     } else {
                         val target_item: Item = getItemFromInventoryById(splited_command(1).toInt)
                         val target_organism: Organism = getOrganismById(splited_command(2).toInt)
                         room.body.player.inventory -= target_item
                         target_organism.items += target_item
-                        publish(HeyPrint( "The organism " + splited_command(2) + " revieved the item " + splited_command(1)))
+                        if (forceUse) {
+                            target_item.use(target_organism, target_organism)
+                        }
+                        publish(HeyPrint( "The organism " + splited_command(2) + " received the item " + splited_command(1)))
                         return ""
                     }
                 }
@@ -301,14 +322,15 @@ class ItemsCommand (room: Room) extends CommandManager (room) {
         }
 
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
-            case "item-add"    => { return items_add    }
-            case "item-rm"     => { return items_rm     }
+            case "item-add" => { return items_add }
+            case "item-rm" => { return items_rm }
             case "item-pickup" => { return items_pickUp }
-            case "item-level"  => { return items_level  }
-            case "item-list"   => { return items_list   }
-            case "item-give"   => { return items_give   }
-            case "item"        => { return items_item   }
-            case _             => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+            case "item-level" => { return items_level }
+            case "item-list" => { return items_list }
+            case "item-give" => { return items_give(false) }
+            case "item-use" => { return items_give(true) }
+            case "item" => { return items_item }
+            case _ => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
         }
         return ""
     }
