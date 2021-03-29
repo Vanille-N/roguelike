@@ -8,6 +8,9 @@ class StatGen (var amount: Int, var variability: Int) {
     def instantiate: Stat = {
         new Stat(Rng.gaussian(amount, variability).max(0))
     }
+    def deepCopy: StatGen = {
+        new StatGen(amount, variability)
+    }
 }
 
 class Stat (var base: Int) {
@@ -73,6 +76,38 @@ class StatSetGen (
             power=power.instantiate,
             resistance=resistance.instantiate,
             decisiveness=decisiveness.instantiate,
+        )
+    }
+    def sacrificeBoost (points: Int): List[Int] = {
+        def boost(p: Double): Int = {
+            if (Rng.choice(p)) 1 else 0
+        }
+        var spd = 0
+        var hp = 0
+        var pow = 0
+        var res = 0
+        var dec = 0
+        for (i <- 1 to points) {
+            spd += boost(0.02)
+            hp += boost(0.05)
+            pow += boost(0.04)
+            res += boost(0.03)
+            dec += boost(0.01)
+        }
+        speed.amount += spd
+        health.amount += hp
+        power.amount += pow
+        resistance.amount += res
+        decisiveness.amount += res
+        List(spd, hp, pow, res, dec)
+    }
+    def deepCopy: StatSetGen = {
+        new StatSetGen(
+            speed=speed.deepCopy,
+            health=health.deepCopy,
+            power=power.deepCopy,
+            resistance=resistance.deepCopy,
+            decisiveness=decisiveness.deepCopy,
         )
     }
 }
