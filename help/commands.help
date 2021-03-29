@@ -17,3 +17,4 @@ Available commands :
   | level N                -> help level
   | load FILE              -> help level
   | save FILE              -> help level
+  | sacrifice              -> help item

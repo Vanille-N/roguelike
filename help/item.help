@@ -34,3 +34,7 @@ OR
 `item use`, `item-use`
     same as `item give`, but item will be
     forcefully applied
+
+`sacrifice`
+    destroy all viruses and items in exchange
+    for permanent stat boosts
