@@ -14,8 +14,8 @@ case class NewOrganism (o: Organism) extends Event
 case class DyingOrganism (o: Organism) extends Event
 
 abstract class Spawner (
-    stats: StatSetGen,
-    skills: SkillSetGen,
+    var stats: StatSetGen,
+    var skills: SkillSetGen,
 ) {
     def generate: Organism
     def itemDrop: Distribution[MakeItem] = Buffer()
@@ -26,28 +26,32 @@ abstract class Spawner (
     }
 }
 
+// Why the _ before _stats, you ask ?
+// because if it is removed there is a name collision with
+// Spawner.stats, and the argument wins over the field even when
+// this._ is specified.
 class VirusSpawner (
-    stats: StatSetGen,
-    skills: SkillSetGen = new SkillSetGen(),
-) extends Spawner(stats, skills) {
+    _stats: StatSetGen,
+    _skills: SkillSetGen = new SkillSetGen(),
+) extends Spawner(_stats, _skills) {
     def generate: Virus = {
         new Virus(stats.instantiate, skills.instantiate, itemDrop)
     }
 }
 
 class CellSpawner (
-    stats: StatSetGen,
-    skills: SkillSetGen = new SkillSetGen(),
+    _stats: StatSetGen,
+    _skills: SkillSetGen = new SkillSetGen(),
     name: String,
     behavior: Behavior.Behavior = Behavior.FLEE,
-) extends Spawner(stats, skills) {
+) extends Spawner(_stats, _skills) {
     def generate: Cell = {
         new Cell(stats.instantiate, skills.instantiate, name, behavior, itemDrop)
     }
 }
 
 class DefaultVirusSpawner extends VirusSpawner(
-    stats = new StatSetGen(
+    _stats = new StatSetGen(
         speed = new StatGen(70, 2),
         health = new StatGen(20, 2),
         power = new StatGen(30, 1),
@@ -57,14 +61,14 @@ class DefaultVirusSpawner extends VirusSpawner(
 ) {}
 
 class DefaultWallCellSpawner extends CellSpawner(
-    stats = new StatSetGen(
+    _stats = new StatSetGen(
         speed = new StatGen(0, 0),
         health = new StatGen(100, 0),
         power = new StatGen(0, 0),
         resistance = new StatGen(100, 0),
         decisiveness = new StatGen(100, 0),
     ),
-    skills = new SkillSetGen(
+    _skills = new SkillSetGen(
         blocking = new SkillGen(5),
         immunity = new SkillGen(5),
     ),
@@ -72,7 +76,7 @@ class DefaultWallCellSpawner extends CellSpawner(
 ) {}
 
 class DefaultRedCellSpawner extends CellSpawner(
-    stats = new StatSetGen(
+    _stats = new StatSetGen(
         speed = new StatGen(50, 2),
         health = new StatGen(50, 20),
         power = new StatGen(0, 0),
@@ -92,14 +96,14 @@ class DefaultRedCellSpawner extends CellSpawner(
 }
 
 class DefaultWhiteCellSpawner extends CellSpawner(
-    stats = new StatSetGen(
+    _stats = new StatSetGen(
         speed = new StatGen(40, 2),
         health = new StatGen(10, 5),
         power = new StatGen(10, 2),
         resistance = new StatGen(10, 1),
         decisiveness = new StatGen(40, 10),
     ),
-    skills = new SkillSetGen(
+    _skills = new SkillSetGen(
         power = new SkillGen(1),
         penetration = new SkillGen(1),
     ),
@@ -117,7 +121,7 @@ class DefaultWhiteCellSpawner extends CellSpawner(
 }
 
 class DefaultNeuronSpawner extends CellSpawner(
-    stats = new StatSetGen(
+    _stats = new StatSetGen(
         speed = new StatGen(5, 1),
         health = new StatGen(500, 50),
         power = new StatGen(5, 1),

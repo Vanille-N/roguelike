@@ -60,11 +60,11 @@ class StatSet (
 }
 
 class StatSetGen (
-    val speed: StatGen,
-    val health: StatGen,
-    val power: StatGen,
-    val resistance: StatGen,
-    val decisiveness: StatGen,
+    var speed: StatGen,
+    var health: StatGen,
+    var power: StatGen,
+    var resistance: StatGen,
+    var decisiveness: StatGen,
 ) {
     def instantiate: StatSet = {
         new StatSet (
