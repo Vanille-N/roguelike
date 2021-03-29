@@ -241,13 +241,12 @@ object main extends SimpleSwingApplication {
     reactions += {
         case LevelClear() => {
             saveInventory = bodyPart.migrateInventory // inventory is only transfered if level is cleared
-            startingStats = bodyPart.startingStats.deepCopy
+            startingStats = bodyPart.startingStats.deepCopy // same for boosts
             levelNum += 1
             updateMaxLevel
             loadLevel
         }
         case LevelLoad(k) => {
-            startingStats = bodyPart.startingStats.deepCopy
             levelNum = k
             loadLevel
         }
