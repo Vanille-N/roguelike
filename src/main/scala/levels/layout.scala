@@ -6,8 +6,8 @@ class Level (val num: Int, val max: Int) {
         case 4 => "brain"
         case 5 => "ending"
     }
-    def makeRoom (body: BodyPart): Room = {
-        new Room(body, layoutName)
+    def makeRoom (body: BodyPart, startingStats: StatSetGen): Room = {
+        new Room(body, layoutName, startingStats)
     }
     def makeWinCondition (body: BodyPart): WinCondition = {
         layoutName match {

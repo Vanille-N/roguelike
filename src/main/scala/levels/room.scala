@@ -7,13 +7,14 @@ import scala.io.Source
  */
 
 // The whole room
-class Room (val body: BodyPart, fbase: String)
+class Room (val body: BodyPart, fbase: String, startingStats: StatSetGen)
 extends Reactor with Publisher {
     // cell spawners
     val wallSpawner = new DefaultWallCellSpawner()
     val redCellSpawner = new DefaultRedCellSpawner()
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
-    val virusSpawner = new DefaultVirusSpawner()
+    var virusSpawner = new DefaultVirusSpawner()
+    virusSpawner.stats = startingStats
     val neuronSpawner = new DefaultNeuronSpawner()
 
     // initialization from src file

@@ -33,7 +33,7 @@ object GameLoader {
                 }
             }
         }
-        new CompactGame(level, inventory)
+        new CompactGame(level, inventory, stats)
     }
 
     def tryLoadFile (f: String): CompactGame = {
@@ -77,4 +77,5 @@ object GameLoader {
 class CompactGame (
     val level: Int,
     val inventory: CompactInventory,
+    val stats: StatSetGen,
 ) {}

@@ -21,7 +21,7 @@ case class SaveList() extends Event
 
 /* -- Main environment -- */
 
-class BodyPart(val level: Level, inventory: CompactInventory = new CompactInventory)
+class BodyPart(val level: Level, inventory: CompactInventory = new CompactInventory, var startingStats: StatSetGen)
 extends Reactor with Publisher {
     var globalPanel : GridBagPanel = null
 
@@ -58,7 +58,7 @@ extends Reactor with Publisher {
     var selection_current: String = "_"
     var repeat: Int = 1
 
-    val room = level.makeRoom(this) // string decides room layout from assets/*.room
+    val room = level.makeRoom(this, startingStats)
     val player = new Player(room.locs(10, 10))
     player.inventory = inventory.decompress
 
@@ -113,7 +113,6 @@ extends Reactor with Publisher {
 
     // main loop
     def step {
-        /**DEBUG println("next turn") OVER**/
         organisms.foreach(o => o.stats.syncCurrent)
         val () = { // update barycenter
             var count: Array[Int] = Array(0, 0)
@@ -157,7 +156,7 @@ extends Reactor with Publisher {
     def migrateInventory: CompactInventory = {
         (new CompactInventory).compress(player.inventory)
     }
-
+    
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case DisplayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
@@ -186,10 +185,11 @@ object main extends SimpleSwingApplication {
     var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
     var saveInventory = new CompactInventory()
+    var startingStats: StatSetGen = (new DefaultVirusSpawner).stats
 
     def updateMaxLevel { maxLevelNum = levelNum.max(maxLevelNum) }
     def makeBodyPart {
-        bodyPart = new BodyPart(new Level(levelNum, maxLevelNum), saveInventory)
+        bodyPart = new BodyPart(new Level(levelNum, maxLevelNum), saveInventory, startingStats)
     }
 
     val top = new MainFrame {
@@ -220,11 +220,13 @@ object main extends SimpleSwingApplication {
     reactions += {
         case LevelClear() => {
             saveInventory = bodyPart.migrateInventory // inventory is only transfered if level is cleared
+            startingStats = bodyPart.startingStats
             levelNum += 1
             updateMaxLevel
             loadLevel
         }
         case LevelLoad(k) => {
+            startingStats = bodyPart.startingStats
             levelNum = k
             loadLevel
         }
@@ -232,10 +234,11 @@ object main extends SimpleSwingApplication {
             maxLevelNum = g.level
             levelNum = g.level
             saveInventory = g.inventory
+            startingStats = g.stats
             loadLevel
         }
         case GameSave(f) => {
-            GameLoader.saveFile(f, new CompactGame(maxLevelNum, saveInventory))
+            GameLoader.saveFile(f, new CompactGame(maxLevelNum, saveInventory, startingStats))
         }
     }
 }
