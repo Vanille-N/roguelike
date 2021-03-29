@@ -158,6 +158,10 @@ abstract class Organism (
         }
     }
 
+    def sacrificeValue: Int = {
+        math.sqrt((strength / 20).toFloat).toInt
+    }
+
     reactions += {
         case DyingItem(i: Item) => { publish(HeyPrint("Dying item:(\n")) }
         case UsedItem(i: Item, o:Organism, st: StatType) => { publish(HeyPrint("Used item:(\n")) }
