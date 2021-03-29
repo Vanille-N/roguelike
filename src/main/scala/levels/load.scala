@@ -7,20 +7,31 @@ object GameLoader {
     def loadFile (f: String): CompactGame = {
         val src = Source.fromFile(s"assets/$f.save")
         val lines = src.getLines
-        val level = lines.next.toInt
+        val level = {
+          val vals = lines.next.split(" ")
+          assert(vals(0) == "level")
+          vals(1).toInt
+        }
         var inventory = new CompactInventory()
         for (line <- lines) {
             val entry = line.split(" ")
-            val id = entry(0) match {
-                case "ALCOHOL" => ALCOHOL
-                case "MOVE" => MOVE
-                case "JAVEL" => JAVEL
-                case "HEAT" => HEAT
-                case "SPIKE" => SPIKE
-                case "LEAK" => LEAK
-                case "MEMBRANE" => MEMBRANE
+            entry(0) match {
+                case "item" => {
+                    val id = entry(1) match {
+                        case "ALCOHOL" => ALCOHOL
+                        case "MOVE" => MOVE
+                        case "JAVEL" => JAVEL
+                        case "HEAT" => HEAT
+                        case "SPIKE" => SPIKE
+                        case "LEAK" => LEAK
+                        case "MEMBRANE" => MEMBRANE
+                    }
+                    inventory.contents(id) = entry(2).toInt
+                }
+                case _ => {
+                    throw new Exception(s"Unkwown specifier ${entry(0)}")
+                }
             }
-            inventory.contents(id) = entry(1).toInt
         }
         new CompactGame(level, inventory)
     }
@@ -35,8 +46,9 @@ object GameLoader {
 
     def saveFile (f: String, game: CompactGame) {
         val out = new PrintWriter(new File(s"assets/$f.save"))
-        out.write(s"${game.level}\n")
+        out.write(s"level ${game.level}\n")
         for (itm <- game.inventory.contents) {
+            out.write("item ")
             out.write(itm._1 match {
                 case ALCOHOL => "ALCOHOL"
                 case MOVE => "MOVE"
