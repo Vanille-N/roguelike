@@ -58,7 +58,7 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
 
 
 class OtherCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List("quit", "toggle", "stop", "play", "step", "step-multiple", "focus-cmdline", "focus-win", "q", "clear")
+    val acceptedCommands: List[String] = List("quit", "toggle", "stop", "play", "step", "step-multiple", "focus-cmdline", "focus-win", "q", "clear", "sacrifice")
     help_menus = Nil
 
     // The two following variables are used to make an automatic and regular step in the game evolution.
@@ -101,6 +101,7 @@ class OtherCommand (room: Room) extends CommandManager (room) {
             case "focus-win"     => { room.body.globalPanel.requestFocusInWindow(); return "" }
             case "q"             => { room.body.globalPanel.requestFocusInWindow(); return "" }
             case "clear"         => { publish(ClearLogs()); return "" }
+            case "sacrifice"     => { publish(Sacrifice()); return "" }
             case _               => { publish(HeyPrint("Error: Command `" + splited_command(0) + "` unknown")); return "" }
         }
         return ""
