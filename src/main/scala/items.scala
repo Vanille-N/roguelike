@@ -89,6 +89,7 @@ abstract class Item (var position: Pos) extends Publisher {
     val max_lvl: Int = 5
     var cost_type: StatType = NONE
     var cost: Int = 0
+    def sacrificeValue: Int
 
     def updateCost: Unit = { cost = cost_factor * level }
 
@@ -333,6 +334,7 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     targetStat = HP
 
     override def toString = "Alcohol"
+    def sacrificeValue = 5
 }
 
 // Kills organisms it crosses
@@ -355,6 +357,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
     }
 
     override def toString = "Knife"
+    def sacrificeValue = 10
 }
 
 
@@ -384,6 +387,7 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     }
 
     override def toString = "Movement"
+    def sacrificeValue = 2
 }
 
 // Kills organisms when picked up
@@ -396,6 +400,9 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
         }
         drop
     }
+
+    override def toString = "Javel"
+    def sacrificeValue = 3
 }
 
 // Slows down cells
@@ -408,6 +415,7 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
     targetStat = SPD
 
     override def toString = "Heat"
+    def sacrificeValue = 3
 }
 
 
@@ -424,6 +432,7 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Membrane"
+    def sacrificeValue = 4
 }
 
 // Strengthens viruses
@@ -436,6 +445,7 @@ class Spike (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Spike"
+    def sacrificeValue = 5
 }
 
 // Cell: spd++, hp--; Virus: unusable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
@@ -448,6 +458,7 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Leak"
+    def sacrificeValue = 5
 }
 
 class Key (pos: Pos) extends Item(pos) {
@@ -463,6 +474,7 @@ class Key (pos: Pos) extends Item(pos) {
     }
 
     override def toString = "Key"
+    def sacrificeValue = 0
 }
 
 class CompactInventory() {
