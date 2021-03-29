@@ -13,6 +13,7 @@ case class DisplayContents (p: Pos) extends Event
 case class LevelClear() extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
+case class Sacrifice() extends Event
 
 case class LevelLoad(num: Int) extends Event
 case class GameLoad(game: CompactGame) extends Event
@@ -58,7 +59,7 @@ extends Reactor with Publisher {
     var selection_current: String = "_"
     var repeat: Int = 1
 
-    val room = level.makeRoom(this, startingStats)
+    val room = level.makeRoom(this, startingStats.deepCopy)
     val player = new Player(room.locs(10, 10))
     player.inventory = inventory.decompress
 
@@ -173,6 +174,26 @@ extends Reactor with Publisher {
             else logs.text += str
         }
         case ClearLogs() => { logs.text = "" }
+        case Sacrifice() => {
+            var points = 0
+            for (it <- player.inventory) {
+                points += it.sacrificeValue
+            }
+            player.inventory = Set() // empty inventory
+            for (o <- organisms) {
+                if (o.isFriendly) {
+                    points += o.sacrificeValue
+                    o.stats.health.residual = 0
+                    o.sync
+                }
+            }
+            logs.text += s"\n${points} sacrifice points obtained\n"
+            val l = startingStats.sacrificeBoost(points)
+            logs.text += s"boosted:"
+            logs.text += s"  SPD: ${l(0)}; HP: ${l(1)}; DEC: ${l(4)}\n"
+            logs.text += s"  POW: ${l(2)}; DEF: ${l(3)}\n"
+            step
+        }
     }
     command.commandRequest("help")
     logs.text += winCondition.message
@@ -189,7 +210,7 @@ object main extends SimpleSwingApplication {
 
     def updateMaxLevel { maxLevelNum = levelNum.max(maxLevelNum) }
     def makeBodyPart {
-        bodyPart = new BodyPart(new Level(levelNum, maxLevelNum), saveInventory, startingStats)
+        bodyPart = new BodyPart(new Level(levelNum, maxLevelNum), saveInventory, startingStats.deepCopy)
     }
 
     val top = new MainFrame {
@@ -220,13 +241,13 @@ object main extends SimpleSwingApplication {
     reactions += {
         case LevelClear() => {
             saveInventory = bodyPart.migrateInventory // inventory is only transfered if level is cleared
-            startingStats = bodyPart.startingStats
+            startingStats = bodyPart.startingStats.deepCopy
             levelNum += 1
             updateMaxLevel
             loadLevel
         }
         case LevelLoad(k) => {
-            startingStats = bodyPart.startingStats
+            startingStats = bodyPart.startingStats.deepCopy
             levelNum = k
             loadLevel
         }
@@ -238,7 +259,7 @@ object main extends SimpleSwingApplication {
             loadLevel
         }
         case GameSave(f) => {
-            GameLoader.saveFile(f, new CompactGame(maxLevelNum, saveInventory, startingStats))
+            GameLoader.saveFile(f, new CompactGame(maxLevelNum, saveInventory, startingStats.deepCopy))
         }
     }
 }
