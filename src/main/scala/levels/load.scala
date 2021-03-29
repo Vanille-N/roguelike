@@ -13,6 +13,7 @@ object GameLoader {
           vals(1).toInt
         }
         var inventory = new CompactInventory()
+        var stats = (new DefaultVirusSpawner).stats
         for (line <- lines) {
             val entry = line.split(" ")
             entry(0) match {
@@ -27,6 +28,18 @@ object GameLoader {
                         case "MEMBRANE" => MEMBRANE
                     }
                     inventory.contents(id) = entry(2).toInt
+                }
+                case "stat" => {
+                    val amount = entry(2).toInt
+                    val variability = entry(3).toInt
+                    val stat = new StatGen(amount, variability)
+                    entry(1) match {
+                        case "SPD" => stats.speed = stat
+                        case "HTH" => stats.health = stat
+                        case "POW" => stats.power = stat
+                        case "RES" => stats.resistance = stat
+                        case "DEC" => stats.decisiveness = stat
+                    }
                 }
                 case _ => {
                     throw new Exception(s"Unkwown specifier ${entry(0)}")
@@ -60,6 +73,14 @@ object GameLoader {
             })
             out.write(s" ${itm._2}\n")
         }
+        def writeStat(name: String, stat: StatGen) {
+            out.write(s"stat ${name} ${stat.amount} ${stat.variability}\n")
+        }
+        writeStat("SPD", game.stats.speed)
+        writeStat("HTH", game.stats.health)
+        writeStat("POW", game.stats.power)
+        writeStat("RES", game.stats.resistance)
+        writeStat("DEC", game.stats.decisiveness)
         out.close
     }
 
