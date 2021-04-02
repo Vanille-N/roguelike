@@ -13,6 +13,8 @@ extends Reactor with Publisher {
     val wallSpawner = new DefaultWallCellSpawner()
     val redCellSpawner = new DefaultRedCellSpawner()
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
+    val lymphocyteSpawner = new DefaultLymphocyteSpawner()
+    val phagocytosisSpawner = new DefaultPhagocytosisSpawner()
     var virusSpawner = new DefaultVirusSpawner()
     virusSpawner.stats = startingStats
     val neuronSpawner = new DefaultNeuronSpawner()
@@ -39,6 +41,8 @@ extends Reactor with Publisher {
                     case 'R' => locs(i, j).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.03, 7))
                     case 'W' => locs(i, j).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.02, 5))
                     case 'N' => locs(i, j).setHostileSpawner(new PhysicalSpawner(neuronSpawner, 0.01, 1))
+                    case 'P' => locs(i, j).setHostileSpawner(new PhysicalSpawner(phagocytosisSpawner, 0.01, 2))
+                    case 'L' => locs(i, j).setHostileSpawner(new PhysicalSpawner(lymphocyteSpawner, 0.02, 8))
                 }
             }
         }
