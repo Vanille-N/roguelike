@@ -202,7 +202,7 @@ class Command (val room: Room) extends Publisher {
         new LevelCommand(room),
         new HelpCommand(room),
         new OtherCommand(room),
-        new NullCommand(room),
+        new NullCommand(room)
     )
 
 
@@ -259,4 +259,3 @@ class Command (val room: Room) extends Publisher {
     }
 }
 
-// Une petite ligne pour une sœur disparue: `boundTypeFun(getCommandType(main_command.split(" ")(0)))(main_command)()`

@@ -11,20 +11,6 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
 
         publish(HeyPrint(prompt + unSplitCommand(splited_command)))
 
-        def selection_syntax_check (syntax: Array[Tuple2[Boolean, String]]): Boolean = {
-            /* If the command does not match its syntax, try add a selection name and try again.
-            ** if the modified command still does ot fit its syntax, reject the command, if not,
-            ** use the modified command.
-            */
-            if(command_syntax_check(splited_command, syntax)) return true;
-            //if (splited_command.length <= 1)
-                return false;
-            publish(HeyPrint("Selection name assumed implicit.", ln_after=true, ln_before=true))
-            splited_command = (splited_command(0) + splited_command(1) + room.body.selection_current + unSplitCommand(splited_command.tail.tail)).split("\\s+")
-            if(command_syntax_check(splited_command, syntax)) return true;
-            return false;
-        }
-
         val selection_possibilities: String = {
             var result = s"N:1->;${room.body.selection_names.length}"
             for (i <- 0 to room.body.selection_names.length - 1)
@@ -32,14 +18,54 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             result
         }
 
+        def selection_all: String = {
+            /*
+            ** This function allows the user to select all the viruses at once.
+            ** If the selection already exists, replace its content by the new
+            ** content, if not, create a whole new selection.
+            */
+            if(!command_syntax_check(
+                splited_command,
+                Array (// The syntax of this Array is described in
+                       // `commands.scala`
+                    (false, "selection"),
+                    (false, "all"),
+                    (true,  "any"),
+                ))) {
+                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                return "";
+            }
+            val selection_index: Int = {
+                if (room.body.selection_names.indexOf(splited_command(2)) < 0) {
+                    room.body.selection_names = room.body.selection_names.:+(splited_command(2))
+                    room.body.selection_organisms = room.body.selection_organisms.:+(Tuple2(Set[Organism](), Set[Organism]()))
+                    room.body.selection_names.indexOf(splited_command(2))
+                } else room.body.selection_names.indexOf(splited_command(2))
+            }
+            room.body.selection_organisms(selection_index) = Tuple2(Set(), Set())
+            for (i <- 0 to room.rows - 1) {
+                for (j <- 0 to room.cols - 1) {
+                    room.body.selection_organisms(selection_index)._2 ++= room.locs(i, j).organisms(0)
+                    room.body.selection_organisms(selection_index)._1 ++= room.locs(i, j).organisms(1)
+                }
+            }
+            publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
+            publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
+            splited_command = Array[String] ("selection", "print", splited_command(1))
+            selection_print
+            return ""
+        }
+
         def selection_new: String = {
             /*
             ** This function allows the user to make a new selection.
-            ** If the selection already exists, replace its content by the new content,
-            **  if not, create a whole new selection.
+            ** If the selection already exists, replace its content by the new
+            ** content, if not, create a whole new selection.
             */
-            if(!selection_syntax_check(
-                Array (
+            if(!command_syntax_check(
+                splited_command,
+                Array (// The syntax of this Array is described in
+                       // `commands.scala`
                     (false, "selection"),
                     (false, "new"),
                     (true,  "any"),
@@ -112,7 +138,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
 
         def selection_switch: String = {
             if(!command_syntax_check(splited_command,
-                Array (
+                Array (// The syntax of this Array is described in
+                       // `commands.scala`
                     (false, "selection"),
                     (false, "switch"),
                     (true, "any")
@@ -127,7 +154,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
 
         def selection_destroy: String = {
             if(!command_syntax_check(splited_command,
-                Array (
+                Array (// The syntax of this Array is described in
+                       // `commands.scala`
                     (false, "selection"),
                     (false, "destroy"),
                     (true, selection_possibilities)
@@ -169,20 +197,34 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             return ""
         }
 
-            splited_command(0) match {// main switch to know what function corresponds to the command at hand.
-                case "selection"        => {
-                    splited_command(1) match {
-                        case "new" => return selection_new
-                        case "print" => return selection_print
-                        case "switch" => return selection_switch
-                        case "current" => {publish(HeyPrint(s"The surrent selection is ${room.body.selection_current}")); return ""}
-                        case "destroy" => return selection_destroy
-                        case "list" => return selection_list
-                        case _ => return ""
-                    }
+        def selection_take: String = {// take every items of the current selected organisms
+            val selection_id: Int = room.body.selection_names.indexOf(room.body.selection_current)
+            var i: Int = 0
+            try {
+                for (o <- room.body.selection_organisms(selection_id)._1) {
+                    room.body.player.inventory ++= o.items
+                    o.items.empty
                 }
-                case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+            } catch {case _ : Throwable => publish(HeyPrint("No such selection"))}
+            ""
+        }
+
+        splited_command(0) match {// main switch to know what function corresponds to the command at hand.
+            case "selection"        => {
+                splited_command(1) match {
+                    case "all" => return selection_all
+                    case "new" => return selection_new
+                    case "print" => return selection_print
+                    case "switch" => return selection_switch
+                    case "current" => {publish(HeyPrint(s"The surrent selection is ${room.body.selection_current}")); return ""}
+                    case "destroy" => return selection_destroy
+                    case "list" => return selection_list
+                    case "take" => return selection_take
+                    case _ => return ""
+                }
             }
+            case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+        }
     }
 }
 
