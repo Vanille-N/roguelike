@@ -14,8 +14,60 @@
 \section{Diversification}
 
 \subsection{Objets}
-% parler des artefacts
-% mentionner le fait qu'on a déjà plusieurs catégories d'items
+Dans la première version du projet, nous disposions de deux types d'objets non
+exclusifs : des objets mouvants, lesquels peuvent agir sans être ramassés et se
+déplaçant de manière rectiligne et des objets statiques, lesquels doivent être
+ramassés par des organismes pour être utilisés.
+
+Dans cette seconde partie a été introduite une nouvelle famille d'objets
+indépendante des deux premières : la famille des artefacts.
+Un artefact peut apparaître lorsqu'un item meurt. Plus le temps passe dans la
+partie, moins la probabilité de matérialisation d'artefact est grande.
+
+Un artefact est un objet statique dont la fonction première est de modifier les
+items environnant à l'aide des actions suivantes :
+\begin{itemize}
+\item
+incrémenter par un le niveau d'un item
+\item
+décrémenter par un le niveau d'un item
+\item
+imposer un niveau à un item.
+\item
+multiplier par deux le niveau d'un item
+\item
+diviser par deux le niveau d'un item
+\item
+ne rien faire (artefact passif)
+\end{itemize}
+
+Ces actions sont effectuées sur tous les items, portés ou non se trouvant dans
+un cercle autour de l'artefact.
+
+Notons qu'il est ainsi possible d'obtenir des items de niveau très élevé. Pour
+autant, cela ne pose pas de problème car un item possédant un grand pouvoir
+demande de grands sacrifices pour qu'un porteur puisse l'utiliser (si l'item
+agit sur la santé, l'organisme pourrait mourir instantanément pour vouloir
+utiliser l'item).
+
+\medskip
+
+Il existe au sein des artefacts, pour tous les comportements ci-dessus cinq
+familles: les artefacts meurtriers, qui tuent les organismes les approchant,
+les artefacts forçant l'utilisation d'un item, quels que soient les risques
+encourus par l'organisme, les artefacts proposant à chaque porteur d'item
+d'utiliser ses items et les artefacts forçant tout porteur d'item à déposer ses
+items, ce qui empêche dès lors le joueur de récolter ces items dans sont
+inventaire.
+\medskip
+
+Les artefacts ne sont pas visibles sur la carte, de manière volontaire, pour en
+faire une menace fantôme. Le joueur contrôlant un grand nombre de virus, et
+pouvant observer les virus doit donc déduire de ce qu'il voit ou apparaissent
+les artefacts et de quel genre d'artefact il s'agit pour déterminer sa
+stratégie.
+
+
 
 \subsection{Entit\'es}
 % quelques ennemis ajoutés
@@ -29,6 +81,15 @@
 % -> organismes sur organismes
 % actions du joueur
 % -> contrôle plus fin sur les organismes (behavior give/keep, selection)
+Le joueur pouvait à l'issu de la partie 1 contrôler une sélection de virus, afin
+de leur attribuer une autre cible que le pointeur. Il est à présent possible de
+d'effectuer plusieurs sélections distinctes, et de leur donner des noms. Il
+existe par défaut une sélection \texttt\_. Il est possible de redéfinir une
+sélection en sélectionnant à l'écran des zones, de détruire des sélections,
+d'afficher une sélection, de lister les sélections, de sélectionner tous les
+organismes dans une sélection\footnote{Notons qu'un organisme peut se trouver
+dans un nombre arbitraire de sélections.} et de récupérer tous les items des
+virus d'une sélection pour le remettre à l'inventaire du joueur.
 % -> sacrifice des items
 
 \section{Niveaux et objectifs}
