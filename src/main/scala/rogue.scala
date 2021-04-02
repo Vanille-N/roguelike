@@ -194,6 +194,12 @@ extends Reactor with Publisher {
             logs.text += s"  POW: ${l(2)}; DEF: ${l(3)}\n"
             step
         }
+        case DyingItem (i: Item) => {
+            deafTo(i)
+            /*if(items.size < 10) {
+                i.position
+            }*/
+        }
     }
     command.commandRequest("help")
     logs.text += winCondition.message

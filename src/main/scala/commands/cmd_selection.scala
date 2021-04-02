@@ -211,6 +211,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
 
         splited_command(0) match {// main switch to know what function corresponds to the command at hand.
             case "selection"        => {
+                if (splited_command.length == 1) return ""
                 splited_command(1) match {
                     case "all" => return selection_all
                     case "new" => return selection_new
