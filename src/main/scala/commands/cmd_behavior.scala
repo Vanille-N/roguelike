@@ -25,13 +25,16 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                     return "behavior"
                 }
                 case 2 => {
-                    return splited_command(1) match {
+                    val newCmd = splited_command(1) match {
                         case "cursor" | "1" => "behavior-cursor"
                         case "target" | "2" | "click" => "behavior-target"
                         case "give" | "3" => "behavior-give"
                         case "keep" | "4" => "behavior-keep"
                         case _ => { publish(HeyPrint("Error: no such behavior")); "" }
                     }
+                    var newSplit = splited_command.tail
+                    newSplit(0) = newCmd
+                    return realExecuteCommand(newSplit)
                 }
                 case _ => {
                     publish(HeyPrint("Error: too many parameters; see `help behavior`\nAborting."))
@@ -41,18 +44,6 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
         }
 
         def behavior_cursor: String = {
-            // Check if the command syntax is correct or not:
-            if(!command_syntax_check (
-                splited_command,
-                Array(
-                        (true, "behavior-cursor")
-                    )
-                )) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
-                return ""
-            }
-
-            // The syntax is correct. Continue.
             room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
                 o.behavior = { () => (room.body.player.position, SEEK) }
             })
@@ -110,6 +101,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             }
             return ""
         }
+        println(splited_command(0))
 
         splited_command(0) match {
             case "behavior" => { return behavior }
