@@ -83,6 +83,8 @@ abstract class Item (var position: Pos) extends Publisher {
         publish(NewItem(this))
     }
     def destroy { // remove from global item index
+        if(position == null)
+            position = owner.position
         publish (DyingItem(this))
         if (owner != null) {
             owner.items -= this
