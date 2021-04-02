@@ -329,7 +329,11 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
 abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
     override def action (o: Organism, t: Organism): Unit = {
-        for (o <- position.room.body.organisms ) { super.action (owner, o) }
+        if(position == null && owner.position != null) {
+            for (o <- owner.position.room.body.organisms ) { super.action (owner, o) }
+        } else {
+            for (o <- position.room.body.organisms ) { super.action (owner, o) }
+        }
         drop
     }
 }

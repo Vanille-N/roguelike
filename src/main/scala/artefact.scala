@@ -131,9 +131,11 @@ class ForceUsage (
         //
     override def step: Unit = {
         for (o <- findOrganism) {
-            for (i <- o.items) {
-                i.action(o, o)
-                // Does NOT destroy the item after usage
+            if(o != null) {
+                for (i <- o.items) {
+                    if (i != null) i.action(o, o)
+                    // Does NOT destroy the item after usage
+                }
             }
         }
         super.step
