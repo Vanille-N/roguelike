@@ -1,5 +1,5 @@
 class BehaviorCommand (room: Room) extends CommandManager (room) {
-    val acceptedCommands: List[String] = List("behavior", "behavior-cursor", "behavior-target")
+    val acceptedCommands: List[String] = List("behavior", "behavior-cursor", "behavior-target", "behavior-give", "behavior-keep")
     help_menus = "behavior" :: Nil
     import Behavior._
 
@@ -11,7 +11,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                 splited_command,
                 Array(
                         (true, "behavior"),
-                        (true, "target|cursor|click|N:1->2;")
+                        (true, "target|cursor|click|give|keep|N:1->4;")
                     )
                 )) {
                 publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
@@ -21,13 +21,15 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint("Where should they go ? (1 -> cursor, 2 -> click target)"))
+                    publish(HeyPrint("To control movement: 1 -> cursor, 2 -> click target\nTo control items: 3 -> give, 4 -> keep"))
                     return "behavior"
                 }
                 case 2 => {
                     return splited_command(1) match {
                         case "cursor" | "1" => "behavior-cursor"
                         case "target" | "2" | "click" => "behavior-target"
+                        case "give" | "3" => "behavior-give"
+                        case "keep" | "4" => "behavior-keep"
                         case _ => { publish(HeyPrint("Error: no such behavior")); "" }
                     }
                 }
@@ -53,10 +55,21 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             // The syntax is correct. Continue.
             room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
                 o.behavior = { () => (room.body.player.position, SEEK) }
-                if(!o.isFriendly) publish(HeyPrint("fshksfh ksqdh fks hfk ")) // debug garbage
             })
             publish(HeyPrint("The friendly organisms have changed their target"))
             return ""
+        }
+
+        def behavior_give: String = {
+            println("give")
+            room.body.player.itemPolicyTake = true
+            ""
+        }
+
+        def behavior_keep: String = {
+            println("keep")
+            room.body.player.itemPolicyTake = false
+            ""
         }
 
         def behavior_target: String = {
@@ -102,6 +115,8 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             case "behavior" => { return behavior }
             case "behavior-cursor" => { return behavior_cursor }
             case "behavior-target" => { return behavior_target }
+            case "behavior-keep" => { return behavior_keep }
+            case "behavior-give" => { return behavior_give }
             case _ => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
