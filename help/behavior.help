@@ -6,13 +6,12 @@ The current selection can be displayed through
 
 $ behavior
 $ behavior-cursor
-$ behavior-target [...]
+$ behavior-target *position*
+$ behavior-give
+$ behavior-keep
 
 behavior
-    you will be prompted select 1/cursor
-    or 2/target. your choice will redirect
-    execution towards either behavior_cursor
-    or behavior_target
+    you will be prompted to select the subcommand
 
 behavior-cursor
     all selected viruses will now go towards
@@ -22,3 +21,13 @@ behavior-target
     you will be prompted to click on a tile
     selected viruses will now go towards that
     tile
+
+behavior-give
+    from now on all organisms will give to
+    the player the items they hold
+    (effect not restricted to selection)
+
+behavior-keep
+    from now on all organisms will keep items
+    the pick up
+    (effect not restricted to selection)
