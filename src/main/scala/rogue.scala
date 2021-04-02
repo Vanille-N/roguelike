@@ -1,6 +1,7 @@
 import scala.collection.mutable.Set
 import scala.swing._
 import event._
+import ArtefactType._
 
 /* Main game loop
  * - global application layout
@@ -47,6 +48,7 @@ extends Reactor with Publisher {
     }
     var organisms: Set[Organism] = Set() // all alive
     var items: Set[Item] = Set() // all existing
+    var nb_destroyed_items: Int = 1// 1 avoid a division by 0
     var organismsBarycenter: Array[Pos] = Array(null, null)
 
     /* selection_organisms is an array of tuples.
@@ -164,7 +166,6 @@ extends Reactor with Publisher {
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
-        case DyingItem(i: Item) => { logs.text += s"\n * RIP $i, you were a wonderful item *\n"  }
         case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n" }
         case PickedUpItem(i, o) => { if (i.isInstanceOf[Key]) publish(PickedUpKey(o)) }
         case HeyPrint(str: String, ln_after: Boolean, ln_before: Boolean) => {
@@ -196,9 +197,51 @@ extends Reactor with Publisher {
         }
         case DyingItem (i: Item) => {
             deafTo(i)
-            /*if(items.size < 10) {
-                i.position
-            }*/
+            nb_destroyed_items = nb_destroyed_items + 1;
+            def get_artefact_type: ArtefactType = {
+                return Rng.uniform(0, 6) match {
+                    case 0 => LEVELUP
+                    case 1 => LEVELDOWN
+                    case 2 => LEVELSET
+                    case 3 => LEVELDOUBLE
+                    case 4 => LEVELDDOUBLE
+                    case 5 => NONE
+                }
+            }
+            if(Rng.choice(items.size / nb_destroyed_items)) {
+                Rng.uniform(0, 5) match {
+                    case 0 => i.position.artefacts =
+                        i.position.artefacts.+(
+                            new Artefact(i.position,
+                                Rng.uniform(0, 5),
+                                Rng.uniform(0, 5),
+                                get_artefact_type))// Artefact
+                    case 1 => i.position.artefacts =
+                        i.position.artefacts.+(
+                            new Murderer(i.position,
+                                Rng.uniform(0, 5),
+                                Rng.uniform(0, 5),
+                                get_artefact_type))// Murderer
+                    case 2 => i.position.artefacts =
+                        i.position.artefacts.+(
+                            new ForceUsage(i.position,
+                                Rng.uniform(0, 5),
+                                Rng.uniform(0, 5),
+                                get_artefact_type))// Force Usage
+                    case 3 => i.position.artefacts =
+                        i.position.artefacts.+(
+                            new Temptation(i.position,
+                                Rng.uniform(0, 5),
+                                Rng.uniform(0, 5),
+                                get_artefact_type))// Temptation
+                    case 4 => i.position.artefacts =
+                        i.position.artefacts.+(
+                            new Unattach(i.position,
+                                Rng.uniform(0, 5),
+                                Rng.uniform(0, 5),
+                                get_artefact_type))// Unattach
+                }
+            }
         }
     }
     command.commandRequest("help")
