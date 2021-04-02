@@ -2,6 +2,8 @@
 target
 project
 .bsp
+*.aux
+*.log
 
 # Hidden files
 *~*
