@@ -166,7 +166,6 @@ extends Reactor with Publisher {
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
-        case NewItem(i: Item) => { logs.text += s"\n * Hi $i, welcome aboard! *\n" }
         case PickedUpItem(i, o) => { if (i.isInstanceOf[Key]) publish(PickedUpKey(o)) }
         case HeyPrint(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logs.text += "\n" + str + "\n"
@@ -208,7 +207,8 @@ extends Reactor with Publisher {
                     case 5 => NONE
                 }
             }
-            if(Rng.choice(items.size / nb_destroyed_items)) {
+            if(Rng.choice(items.size / nb_destroyed_items)
+                    && i.position != null) {
                 Rng.uniform(0, 5) match {
                     case 0 => i.position.artefacts =
                         i.position.artefacts.+(

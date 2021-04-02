@@ -24,18 +24,26 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
     def findOrganism: Set[Organism] = {
         var ans: Set[Organism] = Set()
         for (i <- 0 to radius) {
-            for (j <- 0 to radius) {
-                if((i*i+j*j) < radius*radius) {
-                    for (k <- 0 to 1) {
-                        // Four locations to check...
-                        //ans ++= position.room.locs(position.i - i, position.j - j).organisms(_) does NOT work
+          for (j <- 0 to radius) {
+            if((i*i+j*j) < radius*radius) {
+              for (k <- 0 to 1) {
+                // Four locations to check...
+                //ans ++= position.room.locs(position.i - i, position.j - j).organisms(_) does NOT work
+                if (0 <= position.i - i && position.i - i < position.room.rows) {
+                    if ( 0 <= position.j - j && position.j - j < position.room.cols)
                         ans ++= position.room.locs(position.i - i, position.j - j).organisms(k)
+                    if ( 0 <= position.j + j && position.j + j < position.room.cols)
                         ans ++= position.room.locs(position.i - i, position.j + j).organisms(k)
-                        ans ++= position.room.locs(position.i + i, position.j + j).organisms(k)
-                        ans ++= position.room.locs(position.i + i, position.j - j).organisms(k)
-                    }
                 }
+                if (0 <= position.i + i && position.i + i < position.room.rows) {
+                    if ( 0 <= position.j - j && position.j - j < position.room.cols)
+                        ans ++= position.room.locs(position.i + i, position.j - j).organisms(k)
+                    if ( 0 <= position.j + j && position.j + j < position.room.cols)
+                        ans ++= position.room.locs(position.i + i, position.j + j).organisms(k)
+                }
+              }
             }
+          }
         }
         ans
     }
@@ -43,21 +51,33 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
     def findItems: Set[Item] = {
         var answer: Set[Item] = Set[Item]()
         for (i <- 0 to radius) {
-            for (j <- 0 to radius) {
-                if(i*i+j*j < radius*radius) {
-                    for(k <- 0 to 1) {
-                        // Four locations to check...
-                        answer ++= position.room.locs(position.i - i, position.j - j).items
-                        for (o <- position.room.locs(position.i - i, position.j - j).organisms(k)) answer ++= o.items
-                        answer ++= position.room.locs(position.i - i, position.j + j).items
-                        for (o <- position.room.locs(position.i - i, position.j + j).organisms(k)) answer ++= o.items
-                        answer ++= position.room.locs(position.i + i, position.j + j).items
-                        for (o <- position.room.locs(position.i + i, position.j + j).organisms(k)) answer ++= o.items
-                        answer ++= position.room.locs(position.i + i, position.j - j).items
-                        for (o <- position.room.locs(position.i + i, position.j - j).organisms(k)) answer ++= o.items
-                    }
+          for (j <- 0 to radius) {
+            if(i*i+j*j < radius*radius) {
+              for(k <- 0 to 1) {
+                // Four locations to check...
+                if(0 <= position.i - i && position.i - i < position.room.rows) {
+                  if(0 <= position.j - j && position.j - j < position.room.cols) {
+                    answer ++= position.room.locs(position.i - i, position.j - j).items
+                    for (o <- position.room.locs(position.i - i, position.j - j).organisms(k)) answer ++= o.items
+                  }
+                  if(0 <= position.j + j && position.j + j < position.room.cols) {
+                    answer ++= position.room.locs(position.i - i, position.j + j).items
+                    for (o <- position.room.locs(position.i - i, position.j + j).organisms(k)) answer ++= o.items
+                  }
                 }
+                if(0 <= position.i + i && position.i + i < position.room.rows) {
+                  if(0 <= position.j - j && position.j - j < position.room.cols) {
+                    answer ++= position.room.locs(position.i + i, position.j - j).items
+                    for (o <- position.room.locs(position.i + i, position.j - j).organisms(k)) answer ++= o.items
+                  }
+                  if(0 <= position.j + j && position.j + j < position.room.cols) {
+                    answer ++= position.room.locs(position.i + i, position.j + j).items
+                    for (o <- position.room.locs(position.i + i, position.j + j).organisms(k)) answer ++= o.items
+                  }
+                }
+              }
             }
+          }
         }
         answer
     }
