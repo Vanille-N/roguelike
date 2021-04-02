@@ -88,9 +88,9 @@ class DefaultRedCellSpawner extends CellSpawner(
     import MakeItem._
     override def itemDrop = Buffer(
         (0.7, NONE),
-        (0.1, JAVEL),
+        (0.05, JAVEL),
         (0.1, MEMBRANE),
-        (0.1, ALCOHOL),
+        (0.05, ALCOHOL),
         (0.05, KEY),
     )
 }
@@ -155,8 +155,8 @@ class DefaultPhagocytosisSpawner extends CellSpawner(
         (0.2, MEMBRANE),
         (0.1, KEY),
         (0.1, HEAT),
-        (0.1, KNIFE),
-        (0.1, ALCOHOL),
+        (0.05, KNIFE),
+        (0.05, ALCOHOL),
         (0.2, NONE),
     )
 }
@@ -173,9 +173,9 @@ class DefaultLymphocyteSpawner extends CellSpawner(
 ) {
     import MakeItem._
     override def itemDrop = Buffer(
-        (0.2, KNIFE),
-        (0.2, ALCOHOL),
-        (0.6, NONE),
+        (0.1, KNIFE),
+        (0.1, ALCOHOL),
+        (0.8, NONE),
     )
 }
 

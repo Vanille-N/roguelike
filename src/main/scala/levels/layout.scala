@@ -1,9 +1,9 @@
 class Level (val num: Int, val max: Int) {
     val layoutName = num match {
-        case 0 => "plain"
+        case 1 => "plain"
         case 2 => "snake"
         case 3 => "cross"
-        case 1 => "boxes"
+        case 4 => "boxes"
         case 5 => "brain"
         case 6 => "ending"
     }
@@ -31,7 +31,7 @@ class Level (val num: Int, val max: Int) {
             )
             case "boxes" => new WinByPath(
                 body,
-                path=List((2, 2), (25, 2), (15, 15), (2, 15), (25, 25), (2, 25)),
+                path=List((2, 2), (25, 2), (15, 16), (2, 15), (25, 25), (2, 25)),
                 strengthThreshold=200,
                 turnCount=20,
             )
