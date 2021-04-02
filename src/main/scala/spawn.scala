@@ -173,9 +173,9 @@ class DefaultLymphocyteSpawner extends CellSpawner(
 ) {
     import MakeItem._
     override def itemDrop = Buffer(
-        (0.5, KNIFE),
-        (0.3, ALCOHOL),
-        (0.2, NONE),
+        (0.2, KNIFE),
+        (0.2, ALCOHOL),
+        (0.6, NONE),
     )
 }
 
