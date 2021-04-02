@@ -138,6 +138,48 @@ class DefaultNeuronSpawner extends CellSpawner(
     )
 }
 
+class DefaultPhagocytosisSpawner extends CellSpawner(
+    _stats = new StatSetGen(
+        speed = new StatGen(5, 1),
+        health = new StatGen(30, 50),
+        power = new StatGen(100, 1),
+        resistance = new StatGen(20, 10),
+        decisiveness = new StatGen(100, 10),
+    ),
+    name = "phagocytosis",
+    behavior = Behavior.SEEK
+) {
+    import MakeItem._
+    override def itemDrop = Buffer(
+        (0.2, SPIKE),
+        (0.2, MEMBRANE),
+        (0.1, KEY),
+        (0.1, HEAT),
+        (0.1, KNIFE),
+        (0.1, ALCOHOL),
+        (0.2, NONE),
+    )
+}
+
+class DefaultLymphocyteSpawner extends CellSpawner(
+    _stats = new StatSetGen(
+        speed = new StatGen(100, 1),
+        health = new StatGen(20, 50),
+        power = new StatGen(10, 1),
+        resistance = new StatGen(5, 10),
+        decisiveness = new StatGen(100, 10),
+    ),
+    name = "lymphocyte",
+) {
+    import MakeItem._
+    override def itemDrop = Buffer(
+        (0.5, KNIFE),
+        (0.3, ALCOHOL),
+        (0.2, NONE),
+    )
+}
+
+
 // ties a spawner to a location
 class PhysicalSpawner (val model: Spawner, var threshold: Double, var pulse: Int) {
     var position: Pos = null
