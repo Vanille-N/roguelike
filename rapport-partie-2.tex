@@ -89,18 +89,40 @@ sélection en sélectionnant à l'écran des zones, de détruire des sélections
 d'afficher une sélection, de lister les sélections, de sélectionner tous les
 organismes dans une sélection\footnote{Notons qu'un organisme peut se trouver
 dans un nombre arbitraire de sélections.} et de récupérer tous les items des
-virus d'une sélection pour le remettre à l'inventaire du joueur.
-% -> sacrifice des items
+virus d'une sélection pour le remettre à l'inventaire du joueur.\\
+
+Additionnellement, il est donn\'e au joueur un cont\^ole plus fin sur le comportement des organismes
+vis-\`a-vis des items avec l'enrichissement de la commande \texttt{behavior} par les sous-commandes
+\texttt{give} et \texttt{keep} qui imposent aux virus de respectivement donner au joueur ou garder 
+tous les items qu'ils ramassent.\\
+Cela facilite l'usage des items pour une nouvelle fonctionnalit\'e qui leur a \'et\'e accord\'ee: le sacrifice.\\
+Via la commande \texttt{sacrifice}, le joueur peut choisir d'abandonner tous les virus actuellement vivants et tous
+les items qu'il poss\`ede dans son inventaire en \'echange de points de sacrifice. Ces points fournissent des am\'eliorations
+permanentes aux stats des virus qui apparaissent, et ce \`a partir de la compl\'etion du niveau.
 
 \section{Niveaux et objectifs}
-% multiples niveaux
-% difficulté croissante
-% sacrifice stratégique pour faciliter la suite
-% retour arrière
-% objectifs divers
+Le joueur peut maintenant \'evoluer dans plusieurs niveaux, de mani\`ere plus ou moins s\'equentielle.\\
+Le d\'eblocage du niveau \(n+1\) se fait par la compl\'etion de l'objectif du niveau \(n\), mais le joueur peut \'egalement
+choisir de revenir en arri\`ere sur un niveau pr\'ec\'edent (plus facile) avec la commande \texttt{level}.\\
+Revenir en arri\`ere n'est jamais n\'ecessaire pour le progr\`es du jeu, mais il peut \^etre plus facile de gagner des items
+utilisables comme sacrifices dans des niveaux faciles, pour avoir des meilleures stats dans les niveaux plus difficiles.\\
+
+Les objectifs sont vari\'es: conqu\'erir une ou plusieurs position (l'atteindre puis rester dessus avec au moins un certain nombre d'organismes),
+tuer des cellules (quelconques ou d'une cat\'egorie particuli\`ere), ramasser des items d'un type particulier.\\
+Ils sont de difficult\'e approximativement croissante.\\
 
 \section{Syst\`eme de sauvegarde}
-% niveau débloqué + inventaire + stats
+Une sauvegarde conserve:
+\begin{itemize}
+    \item le niveau maximal d\'ebloqu\'e
+    \item le contenu de l'inventaire du joueur
+    \item les stats actuelles des virus
+\end{itemize}
+
+Puisque le jeu s'organise en niveaux qui sont globalement courts et ind\'ependants, nous avons consid\'er\'e que recommencer au d\'ebut
+du dernier niveau ne faisait pas perdre beaucoup de la progression du jeu.\\
+Nous avons aussi estim\'e que permettre de reprendre le jeu dans un \'etat arbitraire du niveau serait trop difficile \`a mettre en place.
+
 
 \end{document}
 
