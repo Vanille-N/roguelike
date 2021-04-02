@@ -27,6 +27,7 @@ class Player (var position: Pos) {
     }
 
     var inventory: Set[Item] = Set() // items held by the player (taken from viruses)
+    var itemPolicyTake: Boolean = false
 }
 
 object Behavior extends Enumeration {
