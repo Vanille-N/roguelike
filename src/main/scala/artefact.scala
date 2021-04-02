@@ -113,6 +113,7 @@ class Murderer (
         for (o <- findOrganism) {
             if (o.skills.immunity.get < 3 ) {
                 o.stats.health.residual = 0
+                o.sync
                 position.room.body.logs.text += s"\nKAPUT: radius=$radius !!!\n"
             }
         }

@@ -52,13 +52,11 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
         }
 
         def behavior_give: String = {
-            println("give")
             room.body.player.itemPolicyTake = true
             ""
         }
 
         def behavior_keep: String = {
-            println("keep")
             room.body.player.itemPolicyTake = false
             ""
         }

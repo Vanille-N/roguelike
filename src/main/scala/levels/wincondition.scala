@@ -105,7 +105,6 @@ class WinByPath(
     reactions += {
         case LoopStep() => {
             val pos = body.room.locs(path(num)._1, path(num)._2)
-            println(pos)
             pos.notification
             if (pos.strength(1) > strengthThreshold) {
                 count += 1
