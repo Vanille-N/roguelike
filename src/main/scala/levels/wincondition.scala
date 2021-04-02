@@ -87,6 +87,40 @@ class WinByKillCount(
     }
 }
 
+class WinByPath(
+    body: BodyPart,
+    var path: List[Tuple2[Int, Int]],
+    strengthThreshold: Int,
+    turnCount: Int,
+) extends WinCondition(body) {
+    def explanation = s"Conquer all successive positions"
+    val maxProgress = path.length * turnCount
+    var count = 0
+    var num = 0
+    def completion: Int = {
+        (num * turnCount + count) * 100 / maxProgress
+    }
+    
+    listenTo(body)
+    reactions += {
+        case LoopStep() => {
+            val pos = body.room.locs(path(num)._1, path(num)._2)
+            println(pos)
+            pos.notification
+            if (pos.strength(1) > strengthThreshold) {
+                count += 1
+                if (count == turnCount) {
+                    if (num == path.length - 1) {
+                        win
+                    } else {
+                        num += 1
+                    }
+                }
+            } else count = 0
+        }
+    }
+}
+
 class WinLock ()
 extends WinCondition(null) {
     def explanation = ""
