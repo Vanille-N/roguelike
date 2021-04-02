@@ -49,15 +49,26 @@ abstract class Item (var position: Pos) extends Publisher {
 
     def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
-            publish(PickedUpItem(this, o))
-            position.room.body.deafTo(this)
-            o.listenTo(this)
-            owner = o
-            pickable = false
-            position.items -= this
-            o.listenTo(this)
-            position = null
-            true
+            if (o.isFriendly && o.position.room.body.player.itemPolicyTake) {
+                // give to player
+                position.room.body.deafTo(this)
+                owner = null
+                position = null
+                position.items -= this
+                o.position.room.body.player.inventory += this
+                true
+            } else {
+                // give to organism
+                publish(PickedUpItem(this, o))
+                position.room.body.deafTo(this)
+                o.listenTo(this)
+                owner = o
+                pickable = false
+                position.items -= this
+                o.listenTo(this)
+                position = null
+                true
+            }
         } else false
     }
     def drop: Unit = { // owner -> tile
@@ -158,7 +169,6 @@ abstract class Item (var position: Pos) extends Publisher {
 
     var targetStat: StatType = NONE
     def action (o: Organism, t: Organism): Unit = { // execute the effect of the item
-        /**DEBUG println(this + " is being used") OVER**/
         payCost(o)
         damageUpdate
         def apply_damage (x: Stat) {
