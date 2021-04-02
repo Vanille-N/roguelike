@@ -111,8 +111,10 @@ class Murderer (
         //
     override def step: Unit = {
         for (o <- findOrganism) {
-            if (o.skills.immunity.get < 5 )
+            if (o.skills.immunity.get < 3 ) {
                 o.stats.health.residual = 0
+                position.room.body.logs.text += s"\nKAPUT: radius=$radius !!!\n"
+            }
         }
         super.step
     }
@@ -150,7 +152,7 @@ class Temptation (
     override def step: Unit = {
         for (o <- findOrganism) {
             for (i <- o.items) {
-                i.use(o, o)
+                if(i != null && o != null) i.use(o, o)
             }
         }
         super.step
