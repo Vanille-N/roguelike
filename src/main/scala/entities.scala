@@ -22,7 +22,7 @@ abstract class Organism (
     val stats: StatSet,
     val skills: SkillSet,
     val itemDrop: Distribution[MakeItem] = Buffer(), // Probability distribution over item drops upon death
-) extends Reactor with Publisher  {
+) extends Publisher  {
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
@@ -160,13 +160,6 @@ abstract class Organism (
 
     def sacrificeValue: Int = {
         math.sqrt((strength / 20).toFloat).toInt
-    }
-
-    reactions += {
-        case DyingItem(i: Item) => { publish(HeyPrint("Dying item:(\n")) }
-        case UsedItem(i: Item, o:Organism, st: StatType) => { publish(HeyPrint("Used item:(\n")) }
-        case PickedUpItem(i: Item, o: Organism) => { publish(HeyPrint("Picked up item:(\n")) }
-        case _ => {}
     }
 }
 
