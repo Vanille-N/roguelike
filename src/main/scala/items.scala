@@ -52,9 +52,9 @@ abstract class Item (var position: Pos) extends Publisher {
             if (o.isFriendly && o.position.room.body.player.itemPolicyTake) {
                 // give to player
                 position.room.body.deafTo(this)
+                position.items -= this
                 owner = null
                 position = null
-                position.items -= this
                 o.position.room.body.player.inventory += this
                 true
             } else {
@@ -346,7 +346,7 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
     targetStat = HP
 
     override def toString = "Alcohol"
-    def sacrificeValue = 5
+    def sacrificeValue = 100
 }
 
 // Kills organisms it crosses
@@ -369,7 +369,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
     }
 
     override def toString = "Knife"
-    def sacrificeValue = 10
+    def sacrificeValue = 100
 }
 
 
@@ -399,7 +399,7 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     }
 
     override def toString = "Movement"
-    def sacrificeValue = 2
+    def sacrificeValue = 60
 }
 
 // Kills organisms when picked up
@@ -414,7 +414,7 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
     }
 
     override def toString = "Javel"
-    def sacrificeValue = 3
+    def sacrificeValue = 100
 }
 
 // Slows down cells
@@ -427,7 +427,7 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
     targetStat = SPD
 
     override def toString = "Heat"
-    def sacrificeValue = 3
+    def sacrificeValue = 90
 }
 
 
@@ -444,7 +444,7 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Membrane"
-    def sacrificeValue = 4
+    def sacrificeValue = 40
 }
 
 // Strengthens viruses
@@ -457,7 +457,7 @@ class Spike (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Spike"
-    def sacrificeValue = 5
+    def sacrificeValue = 70
 }
 
 // Cell: spd++, hp--; Virus: unusable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
@@ -470,7 +470,7 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     damage_factor = 20
 
     override def toString = "Leak"
-    def sacrificeValue = 5
+    def sacrificeValue = 70
 }
 
 class Key (pos: Pos) extends Item(pos) {

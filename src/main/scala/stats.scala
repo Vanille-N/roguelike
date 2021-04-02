@@ -88,11 +88,11 @@ class StatSetGen (
         var res = 0
         var dec = 0
         for (i <- 1 to points) {
-            spd += boost(0.02)
-            hp += boost(0.05)
-            pow += boost(0.04)
-            res += boost(0.03)
-            dec += boost(0.01)
+            spd += boost(0.001)
+            hp += boost(0.002)
+            pow += boost(0.002)
+            res += boost(0.001)
+            dec += boost(0.001)
         }
         speed.amount += spd
         health.amount += hp

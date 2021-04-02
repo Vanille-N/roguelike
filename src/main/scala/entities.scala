@@ -159,7 +159,7 @@ abstract class Organism (
     }
 
     def sacrificeValue: Int = {
-        math.sqrt((strength / 20).toFloat).toInt
+        math.sqrt(strength).toInt
     }
 }
 
