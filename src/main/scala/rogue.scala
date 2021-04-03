@@ -196,7 +196,7 @@ extends Reactor with Publisher {
         }
         case DyingItem (i: Item) => {
             deafTo(i)
-            nb_destroyed_items = nb_destroyed_items + 1;
+            /*nb_destroyed_items = nb_destroyed_items + 1;
             def get_artefact_type: ArtefactType = {
                 return Rng.uniform(0, 6) match {
                     case 0 => LEVELUP
@@ -241,7 +241,7 @@ extends Reactor with Publisher {
                                 Rng.uniform(0, 5),
                                 get_artefact_type))// Unattach
                 }
-            }
+            }*/
         }
     }
     command.commandRequest("help")

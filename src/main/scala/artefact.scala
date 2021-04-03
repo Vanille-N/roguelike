@@ -111,8 +111,10 @@ class Murderer (
         //
     override def step: Unit = {
         for (o <- findOrganism) {
-            if (o.skills.immunity.get < 5 )
+            if (o.skills.immunity.get < 5 ) {
                 o.stats.health.residual = 0
+                o.sync
+            }
         }
         super.step
     }

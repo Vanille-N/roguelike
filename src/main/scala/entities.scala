@@ -96,7 +96,7 @@ abstract class Organism (
             /**DEBUG println(this, "attacked by", ennemy) OVER**/
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
                 this.stats.health.residual -=
-                    Rng.uniform(5, 10) * ennemy.stats.power.residual / this.stats.resistance.residual
+                    Rng.uniform(5, 10) * ennemy.stats.power.residual / (this.stats.resistance.residual.max(1))
                 this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
                 ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
                 ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
