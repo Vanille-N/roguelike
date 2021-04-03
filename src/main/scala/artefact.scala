@@ -17,6 +17,7 @@ object ArtefactType extends Enumeration {
 import ArtefactType._
 
 class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact_type: ArtefactType) extends Publisher {
+    var remaining_steps: Int = level * 5
     // radius defines the radius of the ciorcle it looks for to find items
 
     // levelset variable defines the evel of the artefact
@@ -96,6 +97,9 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
 
     def step: Unit = {
         for (i <- findItems) action(i)
+        remaining_steps = remaining_steps - 1
+        if(remaining_steps == 0)
+            position.artefacts = position.artefacts.filter(_ != this)
         publish(StepForward())
     }
 
