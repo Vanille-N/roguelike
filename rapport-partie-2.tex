@@ -70,17 +70,17 @@ stratégie.
 
 
 \subsection{Entit\'es}
-% quelques ennemis ajoutés
-% rappeler qu'une partie de nos objets ont un comportement presque aussi complexe que des organismes
-% rappeler qu'on a déjà de multiples entités de différents comportements (hostile (white cell), bénéfique (virus), neutre (wall cell), fuyard (red cell))
+Nous avons fait usage du m\'ecanisme de param\'etrage d'ennemis mis en place en partie 1 pour ajouter facilement trois nouveaux
+types d'ennemis, dont deux fuyards et un aggressif, avec des caract\'eristiques vari\'ees (l'un est rapide, un autre est r\'esistant, le troisi\`eme
+inflige beaucoup de d\'eg\^ats). Ils contribuent \`a rendre les niveaux de plus en plus difficiles.\\
+Ils s'ajoutent aux trois types d'organismes (un fuyard, un aggressif, un passif) qui \'etaient d\'ej\`a pr\'esents dans la partie 1.\\
+
+Il n'a pas \'et\'e ajout\'e de type de cellule compl\`etement diff\'erent (les trois nouveaux types h\'eritent du m\^eme type de base que
+les cellules qui avaient \'et\'e introduites dans la partie 1), mais deux de nos cat\'egories d'items (items spaciaux qui se d\'eplacent et agissent sur
+les organismes, artefacts qui agissent sur les organismes et autres items) ont des comportements qui en pratique
+ont une complexit\'e proche de celle d'un organisme.
 
 \subsection{Interactions}
-% types d'interactions entre éléments
-% -> artefact sur items et organismes
-% -> items spatiaux sur organismes
-% -> organismes sur organismes
-% actions du joueur
-% -> contrôle plus fin sur les organismes (behavior give/keep, selection)
 Le joueur pouvait à l'issu de la partie 1 contrôler une sélection de virus, afin
 de leur attribuer une autre cible que le pointeur. Il est à présent possible de
 d'effectuer plusieurs sélections distinctes, et de leur donner des noms. Il
