@@ -85,11 +85,11 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
     // action dedfines what an artefact should do on a given item.
     def action (i: Item): Unit = {
         artefact_type match {
-            case LEVELUP      => { i.level += 1 }
-            case LEVELDOWN    => { i.level -= 1 }
+            case LEVELUP      => { i.level = 6.min(i.level + 1) }
+            case LEVELDOWN    => { i.level = 1.max(i.level - 1) }
             case LEVELSET     => { i.level = level }
-            case LEVELDOUBLE  => { i.level *= 2 }
-            case LEVELDDOUBLE => { i.level /= 2 }
+            case LEVELDOUBLE  => { i.level = 6.min(i.level * 2) }
+            case LEVELDDOUBLE => { i.level = 1.max(i.level / 2) }
             case NONE => {}
         }
     }
@@ -111,10 +111,8 @@ class Murderer (
         //
     override def step: Unit = {
         for (o <- findOrganism) {
-            if (o.skills.immunity.get < 3 ) {
+            if (o.skills.immunity.get < 5 )
                 o.stats.health.residual = 0
-                position.room.body.logs.text += s"\nKAPUT: radius=$radius !!!\n"
-            }
         }
         super.step
     }
@@ -130,12 +128,10 @@ class ForceUsage (
     ) extends Artefact (position, radius, level, artefact_type) {
         //
     override def step: Unit = {
-        for (o <- findOrganism) {
-            if(o != null) {
-                for (i <- o.items) {
-                    if (i != null) i.action(o, o)
-                    // Does NOT destroy the item after usage
-                }
+        for (o <- findOrganism.filter(_ != null)) {
+            for (i <- o.items.filter(_ != null)) {
+                i.action(o, o)
+                return ()
             }
         }
         super.step
@@ -152,9 +148,10 @@ class Temptation (
     ) extends Artefact (position, radius, level, artefact_type) {
         //
     override def step: Unit = {
-        for (o <- findOrganism) {
-            for (i <- o.items) {
-                if(i != null && o != null) i.use(o, o)
+        for (o <- findOrganism.filter(_ != null)) {
+            for (i <- o.items.filter(_ != null)) {
+                i.use(o, o)
+                return ()
             }
         }
         super.step

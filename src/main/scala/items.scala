@@ -412,11 +412,12 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
 
     override def action (o: Organism, t: Organism): Unit = {
         if(position == null) {
-            for (org <- owner.position.room.body.organisms) {
+            for (org <-
+                owner.position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
                 org.stats.health.residual = 0
             }
         } else {
-            for (org <- position.room.body.organisms) {
+            for (org <- position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
                 org.stats.health.residual = 0
             }
         }
