@@ -72,6 +72,7 @@ abstract class Item (var position: Pos) extends Publisher {
         } else false
     }
     def drop: Unit = { // owner -> tile
+        if (owner == null && position == null) return ()
         if (owner != null) {
             position = owner.position
             owner.deafTo(this)

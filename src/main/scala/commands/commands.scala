@@ -72,9 +72,7 @@ abstract class CommandManager (room: Room) extends Publisher {
             //println("\ni = " + i + "\tacceptable.length = " +  acceptable.length)
             reason_of_withdraw = ""
             if ( !acceptable.exists (
-                elt =>// elt is a string of the forms described above.
-                {
-                    //println("\telement = " + elt)
+                elt => {// elt is a string whose the form is described above.
                     var result: Boolean = true
                     elt(0) match {
                         case '[' => {
