@@ -22,6 +22,7 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
 
     // levelset variable defines the evel of the artefact
 
+    // findOrganism return a set containing the organisms in the reach of the artefact.
     def findOrganism: Set[Organism] = {
         var ans: Set[Organism] = Set()
         for (i <- 0 to radius) {
@@ -46,9 +47,11 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
             }
           }
         }
-        ans
+        ans.filter(_ != null)
     }
 
+
+    // findItems return a set containing the items in the reach of the artefact.
     def findItems: Set[Item] = {
         var answer: Set[Item] = Set[Item]()
         for (i <- 0 to radius) {
@@ -80,7 +83,7 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
             }
           }
         }
-        answer
+        answer.filter(_ != null)
     }
 
     // action dedfines what an artefact should do on a given item.
@@ -103,11 +106,10 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
             position.artefacts = position.artefacts.filter(_ != this)
         publish(StepForward())
     }
-
     override def toString = "Classical artefact"
 }
 
-class Murderer (
+class Murderer (// Artefact that kills any organisms in its reach
     position: Pos,
     radius: Int,
     level: Int,
@@ -127,7 +129,7 @@ class Murderer (
     override def toString = "Murderer artefact"
 }
 
-class ForceUsage (
+class ForceUsage (// Artefact that make the organisms use their items (even if it harms / kills them)
     position: Pos,
     radius: Int,
     level: Int,
@@ -135,8 +137,8 @@ class ForceUsage (
     ) extends Artefact (position, radius, level, artefact_type) {
         //
     override def step: Unit = {
-        for (o <- findOrganism.filter(_ != null)) {
-            for (i <- o.items.filter(_ != null)) {
+        for (o <- findOrganism) {
+            for (i <- o.items) {
                 i.action(o, o)
                 return ()
             }
@@ -147,7 +149,7 @@ class ForceUsage (
     override def toString = "ForceUsage artefact"
 }
 
-class Temptation (
+class Temptation (// Artefact that make the organisms check whether use or not their items
     position: Pos,
     radius: Int,
     level: Int,
@@ -155,8 +157,8 @@ class Temptation (
     ) extends Artefact (position, radius, level, artefact_type) {
         //
     override def step: Unit = {
-        for (o <- findOrganism.filter(_ != null)) {
-            for (i <- o.items.filter(_ != null)) {
+        for (o <- findOrganism) {
+            for (i <- o.items) {
                 i.use(o, o)
                 return ()
             }
@@ -167,7 +169,7 @@ class Temptation (
     override def toString = "Temptation artefact"
 }
 
-class Unattach (
+class Unattach (// Artefact that make the organisms drop their items
     position: Pos,
     radius: Int,
     level: Int,

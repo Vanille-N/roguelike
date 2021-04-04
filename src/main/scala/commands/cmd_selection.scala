@@ -4,7 +4,7 @@ import scala.Tuple2
 // The following class is required to select organisms.
 class SelectionCommand (room: Room) extends CommandManager (room) {
     val acceptedCommands: List[String] = List("select", "take", "filter", "flush", "selection-print", "selection")
-    help_menus = "select" :: "selection" :: "take" :: "filter" :: "flush" :: Nil
+    help_menus = "selection" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
         var splited_command = splited_command_arg

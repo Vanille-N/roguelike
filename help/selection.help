@@ -11,12 +11,10 @@ selection new <selection_name> [<selection_type>
 
 
 selection print
-
   prints every selection.
 
 
 selection switch <selection_name>
-
   switch the current selection to the selection
    "<selection_name>"
   If such selection does not exists, this commands
@@ -26,19 +24,27 @@ selection switch <selection_name>
 
 
 selection current
-  
   prints the name of the current selection ("_" at
    the beginning of the game).
 
 
 
 selection destroy <selection_name>
-  
   destroys the selection "<selection_name>"
 
 
 
 selection list
-
   lists the content of every selection (and their
    name).
+
+
+
+selection all <selection_name>
+  adds every organisms in the selection <selection_name>.
+
+
+
+selection take <selection_name>
+  allows the player to steal every items from the organisms
+  of the selection <selection_name>.
