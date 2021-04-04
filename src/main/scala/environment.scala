@@ -141,8 +141,10 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
             t1 += "+"
             if (hostileSpawner == null && totalStrength == 0) t0 += "."
         }
+        if (artefacts.size != 0) t1 += "A" // 'i' indicates an item
+            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
         if (items.size != 0) t1 += "i" // 'i' indicates an item
-        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
+            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
         // color
         background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
         background = Scheme.setBlueChannel(background, notifyLevel)
