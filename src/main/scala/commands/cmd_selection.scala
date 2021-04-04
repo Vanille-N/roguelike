@@ -9,7 +9,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
         var splited_command = splited_command_arg
 
-        publish(HeyPrint(prompt + unSplitCommand(splited_command)))
+        publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
 
         val selection_possibilities: String = {
             var result = s"N:1->;${room.body.selection_names.length}"
@@ -32,7 +32,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (false, "all"),
                     (true,  "any"),
                 ))) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return "";
             }
             val selection_index: Int = {
@@ -49,8 +49,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     room.body.selection_organisms(selection_index)._1 ++= room.locs(i, j).organisms(1)
                 }
             }
-            publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
-            publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
+            publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
+            publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
             splited_command = Array[String] ("selection", "print", splited_command(1))
             selection_print
             return ""
@@ -75,21 +75,21 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     (false, s"N:1->${room.rows};"),
                     (true,  s"N:1->${room.cols};"),
                 ))) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return "";
             }
             splited_command.length match {
                 case 3 => {// selection new <selection name>
-                    publish(HeyPrint(
+                    publish(PrintInLogs(
                         "What kind of selection dou you want to make ?\n\t1 -> rectangle\n\t\t|top left and\n\t\t|bottom right locations asked\n\t2 -> circle\n\t\t|center cell and\n\t\t|a cell on the circle asked"))
                     return unSplitCommand(splited_command)
                 }
                 case 4 => {// new <selection name> (rectangle|circle|rect|circ|1|2)
-                    publish(HeyPrint("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
+                    publish(PrintInLogs("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
                 case 6 => {// new <selection name> (rectangle|circle|rect|circ|1|2) <coord_i coord_j>
-                    publish(HeyPrint("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
+                    publish(PrintInLogs("What is the second cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }
                 case 8 => {// new <selection name> (rectangle|circle|rect|circ|1|2) <coord_i coord_j> <coord_i coord_j>
@@ -127,8 +127,8 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                             }
                         }
                     }
-                    publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
-                    publish(HeyPrint(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
+                    publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
+                    publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
                     splited_command = Array[String] ("selection", "print", splited_command(1))
                     selection_print
                     return ""
@@ -178,22 +178,22 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
             val selection_id: Int = room.body.selection_names.indexOf(room.body.selection_current)
             var i: Int = 0
             try {
-                publish(HeyPrint(s"\t*********\tPrinting ${room.body.selection_current}\t*********"))
+                publish(PrintInLogs(s"\t*********\tPrinting ${room.body.selection_current}\t*********"))
                 for (o <- room.body.selection_organisms(selection_id)._1)
-                    publish(HeyPrint(s"\t${i} -> $o"))
+                    publish(PrintInLogs(s"\t${i} -> $o"))
                 for (o <- room.body.selection_organisms(selection_id)._2)
-                    publish(HeyPrint(s"\t${i} -> $o"))
-                publish(HeyPrint(s"\t*********\tEnd of printing ${room.body.selection_current}\t*********"))
-            } catch {case _ : Throwable => publish(HeyPrint("No such selection"))}
+                    publish(PrintInLogs(s"\t${i} -> $o"))
+                publish(PrintInLogs(s"\t*********\tEnd of printing ${room.body.selection_current}\t*********"))
+            } catch {case _ : Throwable => publish(PrintInLogs("No such selection"))}
             ""
         }
 
         def selection_list: String = {
-            publish(HeyPrint("List of selection names", ln_before=true))
+            publish(PrintInLogs("List of selection names", ln_before=true))
             for (i <- 0 to room.body.selection_names.length - 1) {
-                publish(HeyPrint(s"\t_ `${room.body.selection_names(i)}`\n\t\t->${room.body.selection_organisms(i)._1.size} viruses\n\t\t->${room.body.selection_organisms(i)._2.size} cells"))
+                publish(PrintInLogs(s"\t_ `${room.body.selection_names(i)}`\n\t\t->${room.body.selection_organisms(i)._1.size} viruses\n\t\t->${room.body.selection_organisms(i)._2.size} cells"))
             }
-            publish(HeyPrint(""))
+            publish(PrintInLogs(""))
             return ""
         }
 
@@ -205,7 +205,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     room.body.player.inventory ++= o.items
                     o.items.empty
                 }
-            } catch {case _ : Throwable => publish(HeyPrint("No such selection"))}
+            } catch {case _ : Throwable => publish(PrintInLogs("No such selection"))}
             ""
         }
 
@@ -217,14 +217,14 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                     case "new" => return selection_new
                     case "print" => return selection_print
                     case "switch" => return selection_switch
-                    case "current" => {publish(HeyPrint(s"The surrent selection is ${room.body.selection_current}")); return ""}
+                    case "current" => {publish(PrintInLogs(s"The surrent selection is ${room.body.selection_current}")); return ""}
                     case "destroy" => return selection_destroy
                     case "list" => return selection_list
                     case "take" => return selection_take
                     case _ => return ""
                 }
             }
-            case _                  => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+            case _                  => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")); return "" }
         }
     }
 }

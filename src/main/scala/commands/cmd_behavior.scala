@@ -4,7 +4,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
     import Behavior._
 
     def realExecuteCommand (splited_command: Array[String]): String = {
-        publish(HeyPrint(prompt + unSplitCommand(splited_command)))
+        publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
         def behavior: String = {
             // Check if the command syntax is correct or not:
             if(!command_syntax_check (
@@ -14,14 +14,14 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                         (true, "target|cursor|click|give|keep|N:1->4;")
                     )
                 )) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
 
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint("To control movement: 1 -> cursor, 2 -> click target\nTo control items: 3 -> give, 4 -> keep"))
+                    publish(PrintInLogs("To control movement: 1 -> cursor, 2 -> click target\nTo control items: 3 -> give, 4 -> keep"))
                     return "behavior"
                 }
                 case 2 => {
@@ -30,14 +30,14 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                         case "target" | "2" | "click" => "behavior-target"
                         case "give" | "3" => "behavior-give"
                         case "keep" | "4" => "behavior-keep"
-                        case _ => { publish(HeyPrint("Error: no such behavior")); "" }
+                        case _ => { publish(PrintInLogs("Error: no such behavior")); "" }
                     }
                     var newSplit = splited_command.tail
                     newSplit(0) = newCmd
                     return realExecuteCommand(newSplit)
                 }
                 case _ => {
-                    publish(HeyPrint("Error: too many parameters; see `help behavior`\nAborting."))
+                    publish(PrintInLogs("Error: too many parameters; see `help behavior`\nAborting."))
                     return ""
                 }
             }
@@ -47,7 +47,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
                 o.behavior = { () => (room.body.player.position, SEEK) }
             })
-            publish(HeyPrint("The friendly organisms have changed their target"))
+            publish(PrintInLogs("The friendly organisms have changed their target"))
             return ""
         }
 
@@ -71,18 +71,18 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                         (true,  s"N:1->${room.cols - 1};")
                     )
                 )) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
 
             // The syntax is correct. Continue.
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint("Which tile ?"))
+                    publish(PrintInLogs("Which tile ?"))
                     return "behavior-target"
                 }
                 case 2 => {
-                    publish(HeyPrint("Illegal number of parameters (plausible error: coordinates must be passed as `i j`, not `i`, `j`.)\n\tAborting."))
+                    publish(PrintInLogs("Illegal number of parameters (plausible error: coordinates must be passed as `i j`, not `i`, `j`.)\n\tAborting."))
                     return ""
                 }
                 case 3 => {
@@ -90,12 +90,12 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
                     val j = splited_command(2).toInt
                     room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
                         o.behavior = { () => (room.locs(i, j), SEEK) }
-                        if(!o.isFriendly) publish(HeyPrint("dskjfh kdsjhf klf flkqs"))
+                        if(!o.isFriendly) publish(PrintInLogs("dskjfh kdsjhf klf flkqs"))
                     })
-                    publish(HeyPrint("The friendly organisms have changed their target"))
+                    publish(PrintInLogs("The friendly organisms have changed their target"))
                     return ""
                 }
-                case _ => { publish(HeyPrint("Illegal number of arguments. Aborting.")) }
+                case _ => { publish(PrintInLogs("Illegal number of arguments. Aborting.")) }
             }
             return ""
         }
@@ -107,7 +107,7 @@ class BehaviorCommand (room: Room) extends CommandManager (room) {
             case "behavior-target" => { return behavior_target }
             case "behavior-keep" => { return behavior_keep }
             case "behavior-give" => { return behavior_give }
-            case _ => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
+            case _ => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
     }

@@ -7,7 +7,7 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
     help_menus = "artefact" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
-        publish(HeyPrint(prompt + unSplitCommand(splited_command_arg)))
+        publish(PrintInLogs(prompt + unSplitCommand(splited_command_arg)))
         var splited_command: Array[String] = splited_command_arg// necessary as the arguments of a function are non mutable
 
         val available_classes: Map[Int, String] = Map (
@@ -27,7 +27,7 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
 
         def artefacts_artefact: String = {
             splited_command.length match {
-                case 1 => { publish(HeyPrint("Wrong usage of command `artefact`\n\t-> check `help artefact` to find out :)")); return "" }
+                case 1 => { publish(PrintInLogs("Wrong usage of command `artefact`\n\t-> check `help artefact` to find out :)")); return "" }
                 case _ => {
                     splited_command(1) match {
                         case "list" => {artefacts_list; return ""}
@@ -58,12 +58,12 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                     (true,  s"N:1->${room.cols};")
                     )
                 )) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint(s"Which type of artefact would you like to add ?(l to list)"))
+                    publish(PrintInLogs(s"Which type of artefact would you like to add ?(l to list)"))
                     return unSplitCommand(splited_command)
                 }
                 case 2 => {
@@ -71,11 +71,11 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                         case "l" => {
                             var liste: String = ""
                             for (i <- 0 to (available_classes.size-1)) liste += s"\n\t$i -> ${available_classes(i)}"
-                            publish(HeyPrint(s"$liste\n\nWhich type of artefact would you like to add ?(l to list)"))
+                            publish(PrintInLogs(s"$liste\n\nWhich type of artefact would you like to add ?(l to list)"))
                             return "artefact-add"
                         }
                         case _ => {
-                            publish(HeyPrint("What should the artefact do ? (l to list)"))
+                            publish(PrintInLogs("What should the artefact do ? (l to list)"))
                             return unSplitCommand(splited_command)
                         }
                     }
@@ -87,17 +87,17 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                             for (i <- 0 to available_types.size - 1) {
                                 liste += s"\n\t$i -> ${available_types(i)}"
                             }
-                            publish(HeyPrint(s"${liste}\n\nWhat should the artefact do ? (l to list)"))
+                            publish(PrintInLogs(s"${liste}\n\nWhat should the artefact do ? (l to list)"))
                             return s"artefact-add ${splited_command(1)}"
                         }
                         case _ => {
-                            publish(HeyPrint("What level should the artefact have ? (1 -> 5)"))
+                            publish(PrintInLogs("What level should the artefact have ? (1 -> 5)"))
                             return unSplitCommand(splited_command)
                         }
                     }
                 }
                 case 4 => {
-                    publish(HeyPrint("Where do you want to spawn the artefact ?(`i j ` or click"))
+                    publish(PrintInLogs("Where do you want to spawn the artefact ?(`i j ` or click"))
                     return unSplitCommand(splited_command)
                 }
                 case 6 => {
@@ -140,21 +140,21 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                     (true, s"l|N:0->${artefacts.size - 1};")
                     )
                 )) {
-                publish(HeyPrint("The command does not fit its syntax :/\n\tAborting."))
+                publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
             splited_command.length match {
                 case 1 =>
-                        publish(HeyPrint("Which artefact would you like to destroy ?(l to list)"))
+                        publish(PrintInLogs("Which artefact would you like to destroy ?(l to list)"))
                         return "artefact-rm"
                 case 2 => {
                     if(splited_command(1) == "l") {
                         artefacts_list
-                        publish(HeyPrint("Which artefact would you like to destroy ?(l to list)"))
+                        publish(PrintInLogs("Which artefact would you like to destroy ?(l to list)"))
                         return "artefact-rm"
                     } else {
                         artefacts(splited_command(1).toInt).position.artefacts -= artefacts(splited_command(1).toInt)
-                        publish(HeyPrint(s"Artefact ${artefacts(splited_command(1).toInt).toString} destroyed"))
+                        publish(PrintInLogs(s"Artefact ${artefacts(splited_command(1).toInt).toString} destroyed"))
                     }
                 }
             }
@@ -170,9 +170,9 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
                     i += 1
                     }
                 ))
-            publish(HeyPrint(s"   ---------   Printing ${artefacts.size} elements   ---------"))
-            for (i <- 0 to artefacts.size - 1) publish(HeyPrint(s"\n\t$i -> ${artefacts(i)}"))
-            publish(HeyPrint(s"   ---------   End of the printing of ${artefacts.size} elements   ---------"))
+            publish(PrintInLogs(s"   ---------   Printing ${artefacts.size} elements   ---------"))
+            for (i <- 0 to artefacts.size - 1) publish(PrintInLogs(s"\n\t$i -> ${artefacts(i)}"))
+            publish(PrintInLogs(s"   ---------   End of the printing of ${artefacts.size} elements   ---------"))
         }
 
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
@@ -180,7 +180,7 @@ class ArtefactsCommand (room: Room) extends CommandManager (room) {
             case "artefact-add"  => { return artefacts_add }
             case "artefact-rm"   => { return artefacts_rm }
             case "artefact-list" => { artefacts_list; return "" }
-            case _               => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+            case _               => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")); return "" }
         }
         return ""
     }

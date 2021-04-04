@@ -15,7 +15,7 @@ class HelpCommand (room: Room) extends CommandManager (room) {
                 val src = Source.fromFile("help/help")
                 src.foreach { s => buffer += s }
                 src.close
-                publish(HeyPrint(buffer))
+                publish(PrintInLogs(buffer))
             } catch {
                 case e: FileNotFoundException => println("Error: Help file not found")
                 case e: IOException => println("Error: Failed to open help file")
@@ -23,12 +23,12 @@ class HelpCommand (room: Room) extends CommandManager (room) {
         } else {
             for (i <- 1 to  splited_command.length - 1) {
                 try {
-                    publish(HeyPrint("Reading help from `help/" + splited_command(i) + ".help`", ln_after=true))
+                    publish(PrintInLogs("Reading help from `help/" + splited_command(i) + ".help`", ln_after=true))
                     val src = Source.fromFile("help/" + splited_command(i) + ".help")
                     src.foreach { s => buffer += s }
                     src.close
-                    publish(HeyPrint(buffer))
-                } catch { case e: java.io.FileNotFoundException => publish(HeyPrint("\nInternal Error: help unavailable for `" + splited_command(i) + "`")) }
+                    publish(PrintInLogs(buffer))
+                } catch { case e: java.io.FileNotFoundException => publish(PrintInLogs("\nInternal Error: help unavailable for `" + splited_command(i) + "`")) }
             }
         }
         return ""

@@ -8,7 +8,7 @@ class LevelCommand (room: Room) extends CommandManager (room) {
     help_menus = "level" :: Nil
 
     def realExecuteCommand (splited_command_arg: Array[String]): String = {
-        publish(HeyPrint(prompt + unSplitCommand(splited_command_arg)))
+        publish(PrintInLogs(prompt + unSplitCommand(splited_command_arg)))
         var splited_command: Array[String] = splited_command_arg // mutable copy
         def level_load: String = {
             if (!command_syntax_check(
@@ -18,20 +18,20 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                     (true, s"N:1->${room.body.level.max};")
                 )
             )) {
-                publish(HeyPrint("The command does not fit its syntax.\n\tCheck `help level`."))
+                publish(PrintInLogs("The command does not fit its syntax.\n\tCheck `help level`."))
                 return ""
             }
 
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint(s"Enter level you want to go back to.\n\tCurrent: ${room.body.level.num}\n\tUnlocked : 1 to ${room.body.level.max}"))
+                    publish(PrintInLogs(s"Enter level you want to go back to.\n\tCurrent: ${room.body.level.num}\n\tUnlocked : 1 to ${room.body.level.max}"))
                     return "level"
                 }
                 case 2 => {
                     publish(LevelLoad(splited_command(1).toInt))
                     return ""
                 }
-                case _ => { publish(HeyPrint("Illegal number of arguments")); return "" }
+                case _ => { publish(PrintInLogs("Illegal number of arguments")); return "" }
             }
         }
 
@@ -43,7 +43,7 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                     (true, "[abcdefghijklmnopqrstuvwxyz_]|N"),
                 )
             )) {
-                publish(HeyPrint("The command does not fit its syntax.\n\tCheck `help level`."))
+                publish(PrintInLogs("The command does not fit its syntax.\n\tCheck `help level`."))
                 return ""
             }
 
@@ -55,7 +55,7 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                         msg += s"  $i: $f\n"
                     }
                     msg += "Enter name or number of save file to load"
-                    publish(HeyPrint(msg))
+                    publish(PrintInLogs(msg))
                     return "load"
                 }
                 case 2 => {
@@ -63,39 +63,39 @@ class LevelCommand (room: Room) extends CommandManager (room) {
                         val index = splited_command(1).toInt
                         val saves = GameLoader.listSaveFiles
                         if (index < saves.length) {
-                            publish(HeyPrint("Loading level"))
+                            publish(PrintInLogs("Loading level"))
                             publish(GameLoad(GameLoader.loadFile(saves(index))))
                         } else {
-                            publish(HeyPrint("No such file"))
+                            publish(PrintInLogs("No such file"))
                         }
                     } catch {
                         case _: NumberFormatException => {
                             val game = GameLoader.tryLoadFile(splited_command(1))
                             if (game != null) {
-                                publish(HeyPrint("Loading level"))
+                                publish(PrintInLogs("Loading level"))
                                 publish(GameLoad(game))
                             } else {
-                                publish(HeyPrint("No such file"))
+                                publish(PrintInLogs("No such file"))
                             }
                         }
                     }
                     return ""
                 }
-                case _ => { publish(HeyPrint("Illegal number of arguments")); return "" }
+                case _ => { publish(PrintInLogs("Illegal number of arguments")); return "" }
             }
         }
 
         def game_save: String = {
             splited_command.length match {
                 case 1 => {
-                    publish(HeyPrint("Enter name of save file to write to"))
+                    publish(PrintInLogs("Enter name of save file to write to"))
                     return "save"
                 }
                 case 2 => {
                     publish(GameSave(splited_command(1)))
                     return ""
                 }
-                case _ => { publish(HeyPrint("Illegal number of arguments")); return "" }
+                case _ => { publish(PrintInLogs("Illegal number of arguments")); return "" }
             }
         }
 
@@ -104,7 +104,7 @@ class LevelCommand (room: Room) extends CommandManager (room) {
             case "level" => { return level_load }
             case "save" => { return game_save }
             case "load" => { return game_load }
-            case _ => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
+            case _ => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
     }
