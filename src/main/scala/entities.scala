@@ -133,7 +133,7 @@ abstract class Organism (
                 val it = position.items.head
                 if (it.pickUp(this)) {
                     items += it
-                    publish(HeyPrint(s"I $this pick up the item, yay !"))
+                    publish(PrintInLogs(s"I $this pick up the item, yay !"))
                 }
             }
         }

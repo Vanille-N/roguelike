@@ -3,7 +3,7 @@ import event._
 
 import Direction._
 
-case class HeyPrint (str: String, ln_after: Boolean = true, ln_before: Boolean = false) extends Event
+case class PrintInLogs (str: String, ln_after: Boolean = true, ln_before: Boolean = false) extends Event
 case class ClearLogs() extends Event
 
 /*
@@ -56,11 +56,11 @@ abstract class CommandManager (room: Room) extends Publisher {
 
         // 1- Checking the global form of the command.
         if (parsed_command.length > syntax.length) {// the length of a command should not exceed the maximal size of the described command.
-            publish(HeyPrint("_/!\\_: The command exceeds the maximal length."))
+            publish(PrintInLogs("_/!\\_: The command exceeds the maximal length."))
             return false
         }
         if ( !(syntax(parsed_command.length - 1)._1) ) {// the command should not stop where it did :/
-            publish(HeyPrint("_/!\\_: The command should not end on this parameter."))
+            publish(PrintInLogs("_/!\\_: The command should not end on this parameter."))
             return false
         }
 
@@ -117,7 +117,7 @@ abstract class CommandManager (room: Room) extends Publisher {
                     result
                 }
                 )) {
-                publish(HeyPrint(s"The ${i+1} ${(i+1) match { case 1 => "-st" case 2 => "-nd" case 3 => "-rd" case _ => "-th"} }  argument does not respect its form: $reason_of_withdraw"))
+                publish(PrintInLogs(s"The ${i+1} ${(i+1) match { case 1 => "-st" case 2 => "-nd" case 3 => "-rd" case _ => "-th"} }  argument does not respect its form: $reason_of_withdraw"))
                 return false
             }
         }
@@ -133,9 +133,9 @@ abstract class CommandManager (room: Room) extends Publisher {
     def executeCommand (command: String): String = {
         val splited_command = commandSplit(command)
         if (splited_command.length > 1 && splited_command(1) == "help") {
-            publish(HeyPrint("Help can be found running `help [.]`,\n\twhere [.] is", ln_after=false))
+            publish(PrintInLogs("Help can be found running `help [.]`,\n\twhere [.] is", ln_after=false))
             help_menus.foreach ( o =>
-                publish(HeyPrint("\n\t| " + o))
+                publish(PrintInLogs("\n\t| " + o))
                 )
             return "";
         } else return realExecuteCommand(splited_command)
@@ -213,7 +213,7 @@ class Command (val room: Room) extends Publisher {
 
     def locsClicked ( p: Pos ): Unit = {
         if (current_command == "") {// no current command -> display the location's content
-            publish(HeyPrint(p.listContents))
+            publish(PrintInLogs(p.listContents))
         } else {// there is a current command, append the coordinates of the location to the command line.
             room.body.cmdline.text += " " + p.i + " " + p.j
         }
@@ -237,7 +237,7 @@ class Command (val room: Room) extends Publisher {
             return
         }
         else if (command.split("\\s+").head == "abort") {// if the line starts with abort, abort the current command.
-            publish(HeyPrint("Aborting ..."))
+            publish(PrintInLogs("Aborting ..."))
             current_command = ""
             room.body.cmdline.text = ""
             return

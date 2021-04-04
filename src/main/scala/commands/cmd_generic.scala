@@ -19,7 +19,7 @@ class DirectionsCommand(room: Room) extends CommandManager (room) {
             case "Down"  => { room.body.player.move(DOWN)  }
             case "Left"  => { room.body.player.move(LEFT)  }
             case "Right" => { room.body.player.move(RIGHT) }
-            case _       => { publish(HeyPrint(s"Error: Direction `${splited_command(0)}` unknown")) }
+            case _       => { publish(PrintInLogs(s"Error: Direction `${splited_command(0)}` unknown")) }
         }
         room.locs.map(_.updateVisuals)// Update the map that the user sees.
         return ""
@@ -49,7 +49,7 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
             case "-"            => { room.body.repeat -= 1; return "" }
             case "repeat-reset" => { room.body.repeat = 1; return "" }
             case "repeat"       => { if (splited_command.length == 1) room.body.repeat = 1 else room.body.repeat = splited_command(1).toInt; return "" }
-            case _       => { publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown")) }
+            case _       => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")) }
         }
         return ""
     }
@@ -102,7 +102,7 @@ class OtherCommand (room: Room) extends CommandManager (room) {
             case "q"             => { room.body.globalPanel.requestFocusInWindow(); return "" }
             case "clear"         => { publish(ClearLogs()); return "" }
             case "sacrifice"     => { publish(Sacrifice()); return "" }
-            case _               => { publish(HeyPrint("Error: Command `" + splited_command(0) + "` unknown")); return "" }
+            case _               => { publish(PrintInLogs("Error: Command `" + splited_command(0) + "` unknown")); return "" }
         }
         return ""
     }
@@ -117,7 +117,7 @@ class NullCommand (room: Room) extends CommandManager (room) {
     help_menus = Nil
 
     def realExecuteCommand (splited_command: Array[String]): String = {
-        publish(HeyPrint(s"Error: Command `${splited_command(0)}` unknown"))
+        publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown"))
         return ""
     }
 }
