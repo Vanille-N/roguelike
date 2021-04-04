@@ -171,25 +171,27 @@ abstract class Item (var position: Pos) extends Publisher {
 
     var targetStat: StatType = NONE
     def action (o: Organism, t: Organism): Unit = { // execute the effect of the item
-        payCost(o)
-        damageUpdate
-        def apply_damage (x: Stat) {
-            x.residual -= damage
+        if(o != null) {
+            payCost(o)
+            damageUpdate
+            def apply_damage (x: Stat) {
+                x.residual -= damage
+            }
+            def attr_apply_damage (accessor: StatSet => Stat) {
+                apply_damage(accessor(o.stats))
+            }
+            cost_type match {
+                case HP   => { attr_apply_damage(_.health) }
+                case SPD  => { attr_apply_damage(_.speed) }
+                case POW  => { attr_apply_damage(_.power) }
+                case DEF  => { attr_apply_damage(_.resistance) }
+                case DEC  => { attr_apply_damage(_.decisiveness) }
+                case ALL  => { o.stats.list.foreach(x => apply_damage(x)) }
+                case ANY  => { apply_damage(o.stats.list(Rng.uniform(0, 4))) }
+                case NONE => {}
+            }
+            drop
         }
-        def attr_apply_damage (accessor: StatSet => Stat) {
-            apply_damage(accessor(o.stats))
-        }
-        cost_type match {
-            case HP   => { attr_apply_damage(_.health) }
-            case SPD  => { attr_apply_damage(_.speed) }
-            case POW  => { attr_apply_damage(_.power) }
-            case DEF  => { attr_apply_damage(_.resistance) }
-            case DEC  => { attr_apply_damage(_.decisiveness) }
-            case ALL  => { o.stats.list.foreach(x => apply_damage(x)) }
-            case ANY  => { apply_damage(o.stats.list(Rng.uniform(0, 4))) }
-            case NONE => {}
-        }
-        drop
     }
 
     def superAction (o: Organism): Unit = {}
