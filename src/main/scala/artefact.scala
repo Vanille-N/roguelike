@@ -21,69 +21,40 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
     // radius defines the radius of the ciorcle it looks for to find items
 
     // levelset variable defines the evel of the artefact
+    
+    def influenceZone: Set[Pos] = {
+        var ans: Set[Pos] = Set()
+        for (i <- -radius to radius; j <- -radius to radius) {
+            if (i * i + j * j < radius * radius) {
+                val new_i = position.i + i
+                val new_j = position.j + j
+                if (0 <= new_i && new_i < position.room.rows && 0 <= new_j && new_j < position.room.cols) {
+                    ans += position.room.locs(new_i, new_j)
+                }
+            }
+        }
+        ans
+    }
 
     // findOrganism return a set containing the organisms in the reach of the artefact.
     def findOrganism: Set[Organism] = {
         var ans: Set[Organism] = Set()
-        for (i <- 0 to radius) {
-          for (j <- 0 to radius) {
-            if((i*i+j*j) < radius*radius) {
-              for (k <- 0 to 1) {
-                // Four locations to check...
-                //ans ++= position.room.locs(position.i - i, position.j - j).organisms(_) does NOT work
-                if (0 <= position.i - i && position.i - i < position.room.rows) {
-                    if ( 0 <= position.j - j && position.j - j < position.room.cols)
-                        ans ++= position.room.locs(position.i - i, position.j - j).organisms(k)
-                    if ( 0 <= position.j + j && position.j + j < position.room.cols)
-                        ans ++= position.room.locs(position.i - i, position.j + j).organisms(k)
-                }
-                if (0 <= position.i + i && position.i + i < position.room.rows) {
-                    if ( 0 <= position.j - j && position.j - j < position.room.cols)
-                        ans ++= position.room.locs(position.i + i, position.j - j).organisms(k)
-                    if ( 0 <= position.j + j && position.j + j < position.room.cols)
-                        ans ++= position.room.locs(position.i + i, position.j + j).organisms(k)
-                }
-              }
-            }
-          }
-        }
+        influenceZone.foreach(p => {
+            ans ++= p.organisms(0)
+            ans ++= p.organisms(1)
+        })
         ans.filter(_ != null)
     }
 
-
     // findItems return a set containing the items in the reach of the artefact.
     def findItems: Set[Item] = {
-        var answer: Set[Item] = Set[Item]()
-        for (i <- 0 to radius) {
-          for (j <- 0 to radius) {
-            if(i*i+j*j < radius*radius) {
-              for(k <- 0 to 1) {
-                // Four locations to check...
-                if(0 <= position.i - i && position.i - i < position.room.rows) {
-                  if(0 <= position.j - j && position.j - j < position.room.cols) {
-                    answer ++= position.room.locs(position.i - i, position.j - j).items
-                    for (o <- position.room.locs(position.i - i, position.j - j).organisms(k)) answer ++= o.items
-                  }
-                  if(0 <= position.j + j && position.j + j < position.room.cols) {
-                    answer ++= position.room.locs(position.i - i, position.j + j).items
-                    for (o <- position.room.locs(position.i - i, position.j + j).organisms(k)) answer ++= o.items
-                  }
-                }
-                if(0 <= position.i + i && position.i + i < position.room.rows) {
-                  if(0 <= position.j - j && position.j - j < position.room.cols) {
-                    answer ++= position.room.locs(position.i + i, position.j - j).items
-                    for (o <- position.room.locs(position.i + i, position.j - j).organisms(k)) answer ++= o.items
-                  }
-                  if(0 <= position.j + j && position.j + j < position.room.cols) {
-                    answer ++= position.room.locs(position.i + i, position.j + j).items
-                    for (o <- position.room.locs(position.i + i, position.j + j).organisms(k)) answer ++= o.items
-                  }
-                }
-              }
-            }
-          }
-        }
-        answer.filter(_ != null)
+        var ans: Set[Item] = Set[Item]()
+        influenceZone.foreach(p => {
+            ans ++= p.items
+            for (o <- p.organisms(0)) ans ++= o.items
+            for (o <- p.organisms(1)) ans ++= o.items
+        })
+        ans.filter(_ != null)
     }
 
     // action dedfines what an artefact should do on a given item.
@@ -99,10 +70,10 @@ class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact
     }
 
     def step: Unit = {
-        position.notification
+        influenceZone.foreach(_.notification)
         for (i <- findItems) action(i)
         remaining_steps = remaining_steps - 1
-        if(remaining_steps == 0) 
+        if (remaining_steps == 0) 
             position.artefacts = position.artefacts.filter(_ != this)
         publish(StepForward())
     }

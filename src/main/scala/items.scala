@@ -84,8 +84,6 @@ abstract class Item (var position: Pos) extends Publisher {
         publish(NewItem(this))
     }
     def destroy { // remove from global item index
-        if(position == null)
-            position = owner.position
         publish (DyingItem(this))
         if (owner != null) {
             owner.items -= this
@@ -297,16 +295,18 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
     }
 
     def move: Unit = {
-        if (!Rng.choice(moveProba)) return
-        val newPos = position.jump(mv_vert, mv_horiz)
-        if (newPos != null) { setPos(newPos); return }
-        durability -= 1
-        if (durability <= 0) {
-            destroy
-        } else {
-            val tmp = mv_vert
-            mv_vert = -mv_horiz
-            mv_horiz = tmp
+        if (position != null) {
+            if (!Rng.choice(moveProba)) return
+            val newPos = position.jump(mv_vert, mv_horiz)
+            if (newPos != null) { setPos(newPos); return }
+            durability -= 1
+            if (durability <= 0) {
+                destroy
+            } else {
+                val tmp = mv_vert
+                mv_vert = -mv_horiz
+                mv_horiz = tmp
+            }
         }
     }
 
@@ -332,10 +332,9 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
 abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
     override def action (o: Organism, t: Organism): Unit = {
-        if(position == null && owner.position != null) {
-            for (o <- owner.position.room.body.organisms ) { super.action (owner, o) }
-        } else {
-            for (o <- position.room.body.organisms ) { super.action (owner, o) }
+        val pos = if (owner != null) { owner.position } else if (position != null) { position } else null
+        if (pos != null) {
+            for (o <- pos.room.body.organisms ) { super.action (owner, o) }
         }
         drop
     }
@@ -393,14 +392,16 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
     targetStat = HP
 
     override def action (o: Organism, t: Organism): Unit = {
-        for (org <- position.room.body.organisms) {
-            unpayCost(owner)
-            super.action(owner, org)
-            for(i <- 1 to 10) {
-                org.maybeMove (position.room, Direction.UP)
-                org.maybeMove (position.room, Direction.DOWN)
-                org.maybeMove (position.room, Direction.LEFT)
-                org.maybeMove (position.room, Direction.RIGHT)
+        if (position != null) {
+            for (org <- position.room.body.organisms) {
+                unpayCost(owner)
+                super.action(owner, org)
+                for(i <- 1 to 10) {
+                    org.maybeMove (position.room, Direction.UP)
+                    org.maybeMove (position.room, Direction.DOWN)
+                    org.maybeMove (position.room, Direction.LEFT)
+                    org.maybeMove (position.room, Direction.RIGHT)
+                }
             }
         }
     }
@@ -414,12 +415,12 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
     setPos(position)
 
     override def action (o: Organism, t: Organism): Unit = {
-        if(position == null) {
+        if (owner != null) {
             for (org <-
                 owner.position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
                 org.stats.health.residual = 0
             }
-        } else {
+        } else if (position != null) {
             for (org <- position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
                 org.stats.health.residual = 0
             }
