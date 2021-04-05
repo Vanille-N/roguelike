@@ -27,18 +27,12 @@ partie, moins la probabilité de matérialisation d'artefact est grande.
 Un artefact est un objet statique dont la fonction première est de modifier les
 items environnant à l'aide des actions suivantes :
 \begin{itemize}
-\item
-incrémenter par un le niveau d'un item
-\item
-décrémenter par un le niveau d'un item
-\item
-imposer un niveau à un item.
-\item
-multiplier par deux le niveau d'un item
-\item
-diviser par deux le niveau d'un item
-\item
-ne rien faire (artefact passif)
+    \item incrémenter par un le niveau d'un item
+    \item décrémenter par un le niveau d'un item
+    \item imposer un niveau à un item.
+    \item multiplier par deux le niveau d'un item
+    \item diviser par deux le niveau d'un item
+    \item ne rien faire (artefact passif)
 \end{itemize}
 
 Ces actions sont effectuées sur tous les items, portés ou non se trouvant dans
@@ -61,12 +55,11 @@ items, ce qui empêche dès lors le joueur de récolter ces items dans sont
 inventaire.
 \medskip
 
-Les artefacts ne sont pas visibles sur la carte, de manière volontaire, pour en
+Les artefacts ne sont visibles que lorsqu'ils s'activent, pour en
 faire une menace fantôme. Le joueur contrôlant un grand nombre de virus, et
 pouvant observer les virus doit donc déduire de ce qu'il voit ou apparaissent
 les artefacts et de quel genre d'artefact il s'agit pour déterminer sa
 stratégie.
-
 
 
 \subsection{Entit\'es}
@@ -106,9 +99,12 @@ Le d\'eblocage du niveau \(n+1\) se fait par la compl\'etion de l'objectif du ni
 choisir de revenir en arri\`ere sur un niveau pr\'ec\'edent (plus facile) avec la commande \texttt{level}.\\
 Revenir en arri\`ere n'est jamais n\'ecessaire pour le progr\`es du jeu, mais il peut \^etre plus facile de gagner des items
 utilisables comme sacrifices dans des niveaux faciles, pour avoir des meilleures stats dans les niveaux plus difficiles.\\
+En pratique il est tr\`es facile de compl\'eter tous les niveaux pour peu qu'on passe un peu de temps au niveau 1 pour
+accumuler aux alentours de 20 points de bonus dans chaque stat, \`a l'inverse les niveaux \texttt{maze} et \texttt{brain} seront
+tr\`es difficiles \`a vaincre sans des virus am\'elior\'es.\\
 
 Les objectifs sont vari\'es: conqu\'erir une ou plusieurs positions (l'atteindre puis rester dessus avec au moins un certain nombre d'organismes),
-tuer des cellules (quelconques ou d'une cat\'egorie particuli\`ere), ramasser des items d'un type particulier.\\
+tuer des cellules (quelconques ou d'une cat\'egorie particuli\`ere), ramasser des items d'un type particulier.
 Ils sont de difficult\'e approximativement croissante.\\
 
 \section{Syst\`eme de sauvegarde}
