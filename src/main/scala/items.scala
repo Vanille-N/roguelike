@@ -153,7 +153,7 @@ abstract class Item (var position: Pos) extends Publisher {
             reduce(accessor(o.stats))
         }
         cost_type match {
-            case HP   => { attr_reduce(_.health) }
+            case HP   => { o.inflictDamage(cost, CauseOfDeath.ItemCost) }
             case SPD  => { attr_reduce(_.speed) }
             case POW  => { attr_reduce(_.power) }
             case DEF  => { attr_reduce(_.resistance) }
@@ -180,7 +180,7 @@ abstract class Item (var position: Pos) extends Publisher {
                 apply_damage(accessor(o.stats))
             }
             cost_type match {
-                case HP   => { attr_apply_damage(_.health) }
+                case HP   => { o.inflictDamage(cost, CauseOfDeath.ItemCost) }
                 case SPD  => { attr_apply_damage(_.speed) }
                 case POW  => { attr_apply_damage(_.power) }
                 case DEF  => { attr_apply_damage(_.resistance) }
@@ -317,8 +317,8 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
                 l.notification
                 for (orga <- l.organisms.toList) {
                     for (o <- orga.toList) {
-                        if (o != null && o != owner && o.skills.immunity.get < 5) {
-                            o.stats.health.residual -= damage
+                        if (o != null && o != owner) {
+                            o.inflictDamage(damage, CauseOfDeath.ItemEffect)
                         }
                     }
                 }
@@ -367,7 +367,7 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
             l.notification
             for (orga <- l.organisms.toList) {
                 for (o <- orga.toList) {
-                    if (o.skills.immunity.get < 5) o.stats.health.residual = 0
+                    o.kill(CauseOfDeath.ItemEffect)
                 }
             }
         }
@@ -416,13 +416,12 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
 
     override def action (o: Organism, t: Organism): Unit = {
         if (owner != null) {
-            for (org <-
-                owner.position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
-                org.stats.health.residual = 0
+            for (org <- owner.position.room.body.organisms) {
+                org.kill(CauseOfDeath.ItemEffect)
             }
         } else if (position != null) {
-            for (org <- position.room.body.organisms.filter(_.skills.immunity.get < 5)) {
-                org.stats.health.residual = 0
+            for (org <- position.room.body.organisms) {
+                org.kill(CauseOfDeath.ItemEffect)
             }
         }
         drop

@@ -29,7 +29,7 @@ import CauseOfDeath._
  * - interaction with items (pickup, drop)
  */
 
-case class OrganismDeath(o: Organism, p: Pos) extends Event
+case class OrganismDeath(o: Organism, p: Pos, cause: CauseOfDeath) extends Event
 
 abstract class Organism (
     val stats: StatSet,
@@ -39,6 +39,8 @@ abstract class Organism (
     var position: Pos = null
     def isFriendly: Boolean = false
     def name: String
+
+    var lastDamagedBy: CauseOfDeath = OldAge 
 
     var items: Set[Item] = Set() // held by organism
 
@@ -108,8 +110,9 @@ abstract class Organism (
         if (ennemy.stats.power.residual > 0) {
             /**DEBUG println(this, "attacked by", ennemy) OVER**/
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
-                this.stats.health.residual -=
-                    Rng.uniform(5, 10) * ennemy.stats.power.residual / (this.stats.resistance.residual.max(1))
+                val damage = Rng.uniform(5, 10) * ennemy.stats.power.residual / (this.stats.resistance.residual.max(1))
+                val ennemyType = if (ennemy.isFriendly) { CauseOfDeath.Virus1 } else { CauseOfDeath.Cell }
+                inflictDamage(damage, ennemyType)
                 this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
                 ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
                 ennemy.stats.power.residual = 0 // ennemy can only attack once in each turn
@@ -170,7 +173,7 @@ abstract class Organism (
         stats.syncCurrent
         if (stats.health.current <= 0) {
             position.kill(this)
-            position.room.publish(OrganismDeath(this, position))
+            position.room.publish(OrganismDeath(this, position, lastDamagedBy))
             // died, maybe drop an item upon death
             Rng.weightedChoice(itemDrop) match {
                 case None => ()
