@@ -153,6 +153,17 @@ abstract class Organism (
         true
     }
 
+    def inflictDamage (amount: Int, cause: CauseOfDeath) {
+        if (stats.health.residual > 0 && skills.immunity.get < 5) {
+            stats.health.residual -= amount
+            lastDamagedBy = cause
+        }
+    }
+
+    def kill (cause: CauseOfDeath) {
+        inflictDamage(stats.health.residual, cause)
+    }
+
     def sync {
         // residual health becomes actual health, other stats are restored
         stats.health.current = stats.health.residual
