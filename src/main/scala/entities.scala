@@ -10,6 +10,19 @@ import MakeItem._
 import StatType._
 
 
+object CauseOfDeath extends Enumeration {
+    type CauseOfDeath = Value
+    val Virus1 = Value("Player 1")
+    val Virus2 = Value("Player 2")
+    val Cell = Value("Cell")
+    val Artefact = Value("Artefact")
+    val OldAge = Value("Old age")
+    val Sacrifice = Value("Sacrifice")
+    val ItemCost = Value("Item cost")
+    val ItemEffect = Value("Item effect")
+}
+import CauseOfDeath._
+
 /* Entities: all living things
  * - interaction with other entities (attack)
  * - movement utilities
