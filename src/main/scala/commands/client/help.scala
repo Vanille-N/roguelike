@@ -4,7 +4,7 @@ import scala.io.Source
 
 import Direction._
 
-class HelpCommand (room: Room) extends CommandManager (room) {
+class HelpCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("help")
     help_menus = Nil
 

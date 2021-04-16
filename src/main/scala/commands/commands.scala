@@ -4,6 +4,7 @@ import event._
 import Direction._
 
 case class PrintInLogs (str: String, ln_after: Boolean = true, ln_before: Boolean = false) extends Event
+case class SendCommandToServer (player_id: Int, command: String) extends Event
 case class ClearLogs() extends Event
 
 /*
@@ -18,7 +19,7 @@ case class ClearLogs() extends Event
 
 
 
-abstract class CommandManager (room: Room) extends Publisher {
+abstract class ClientCommandManager (val room: Room) extends Publisher {
     /*
     ** useful variables
     */
@@ -145,6 +146,22 @@ abstract class CommandManager (room: Room) extends Publisher {
     }
 }
 
+abstract class ServerCommandManager (room: Room) extends Publisher {
+    /*
+    ** When a server recieves a command, its syntax is already defined as
+    ** correct. Only the execution remains.
+    */
+    var prompt:String = ">>"
+
+    def unSplitCommand(arr: Array[String]): String = {// Reverse the previous function (deletes the multi-char spaces)
+        var out: String = ""
+        arr.foreach(elt => out += elt + " ")
+        return out
+    }
+
+    def execute (splited_command: Array[String]) : Boolean
+}
+
 
 
 
@@ -189,7 +206,7 @@ class Command (val room: Room) extends Publisher {
     var aliases: Map[String, String] = Map ()// defines aliases (not used yet)
 
     // creates the different classes to deal with commands
-    val subCommands: List[CommandManager] = List(
+    val subCommands: List[ClientCommandManager] = List(
         new DirectionsCommand(room),
         new DigitsCommand(room),
         new SelectionCommand(room),

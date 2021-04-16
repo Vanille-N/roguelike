@@ -1,5 +1,5 @@
 // The following class deals with the items management
-class ItemsCommand (room: Room) extends CommandManager (room) {
+class ItemsCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give", "item-use")
     help_menus = "item" :: Nil
 

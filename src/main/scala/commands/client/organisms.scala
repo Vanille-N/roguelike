@@ -1,5 +1,5 @@
 // The following class deals with the management of the organisms
-class OrganismsCommand (room: Room) extends CommandManager (room) {
+class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("list", "set", "show")
     var last_checked_arg: Int = 0
     help_menus = "list" :: "set" :: "show" :: Nil

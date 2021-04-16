@@ -3,7 +3,7 @@ import java.lang.NumberFormatException
 // This class is responsible for
 // - level loading (go back to a previous level)
 // - save/load
-class LevelCommand (room: Room) extends CommandManager (room) {
+class LevelCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("level", "load", "save")
     help_menus = "level" :: Nil
 

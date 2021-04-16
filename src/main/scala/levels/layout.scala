@@ -18,7 +18,7 @@ class Level (val num: Int, val max: Int) {
             )
             case "plain" => new WinByPosition(
                 body, i=25, j=25,
-                strengthThreshold=100,
+			strengthThreshold=100,
                 turnCount=50,
             )
             case "cross" => new WinByPickup(
