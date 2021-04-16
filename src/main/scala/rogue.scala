@@ -149,7 +149,9 @@ extends Reactor with Publisher {
         // + synchronize effects of items and damage
         // + remove all organisms that should die
         organisms.foreach(o => {
-            if (o.isFriendly && Rng.choice(0.07)) o.inflictDamage(1, CauseOfDeath.OldAge)
+            if (o.isFriendly && Rng.choice(0.07)) {
+                o.inflictDamage(1, CauseOfDeath.OldAge)
+            }
             o.sync
         })
         room.locs.map(_.trySpawn(organisms.size)) // sometimes spawn new organisms

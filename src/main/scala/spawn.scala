@@ -141,7 +141,7 @@ class DefaultNeuronSpawner extends CellSpawner(
 class DefaultPhagocytosisSpawner extends CellSpawner(
     _stats = new StatSetGen(
         speed = new StatGen(5, 1),
-        health = new StatGen(30, 50),
+        health = new StatGen(30, 10),
         power = new StatGen(100, 1),
         resistance = new StatGen(20, 10),
         decisiveness = new StatGen(100, 10),
@@ -164,7 +164,7 @@ class DefaultPhagocytosisSpawner extends CellSpawner(
 class DefaultLymphocyteSpawner extends CellSpawner(
     _stats = new StatSetGen(
         speed = new StatGen(100, 1),
-        health = new StatGen(20, 50),
+        health = new StatGen(20, 10),
         power = new StatGen(10, 1),
         resistance = new StatGen(5, 10),
         decisiveness = new StatGen(100, 10),

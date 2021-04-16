@@ -108,7 +108,6 @@ abstract class Organism (
     // What to do when attacked
     def attackedBy (ennemy: Organism) {
         if (ennemy.stats.power.residual > 0) {
-            /**DEBUG println(this, "attacked by", ennemy) OVER**/
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
                 val damage = Rng.uniform(5, 10) * ennemy.stats.power.residual / (this.stats.resistance.residual.max(1))
                 val ennemyType = if (ennemy.isFriendly) { CauseOfDeath.Virus1 } else { CauseOfDeath.Cell }
