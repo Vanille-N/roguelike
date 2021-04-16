@@ -7,18 +7,19 @@ import event._
  * - visual feedback for tile contents
  */
 
-case class Notification(pos: Pos) extends Event
+case class Notification (pos: Pos) extends Event
+case class Focus (pos: Pos) extends Event
+case class UnFocus (pos: Pos) extends Event
 
 // one tile
-class DisplayPos (val room: Room, val i: Int, val j: Int) extends Button {
+class DisplayPos (val dual: Pos) extends Button {
     var isFocused: Boolean = false // position of cursor
     var notifyLevel: Int = 0 // visual feedback for important events
 
-    var dual: Pos = null
-    def connectDual (d: Pos) {
-        dual = d
-        listenTo(d)
-    }
+    listenTo(dual)
+    val room = dual.room
+    val i = dual.i
+    val j = dual.j
     this.focusable = false
 
     override def toString: String = {
@@ -31,11 +32,6 @@ class DisplayPos (val room: Room, val i: Int, val j: Int) extends Button {
     font = new Font("default", 0, 20)
     focusPainted = false
 
-    // visual effects
-    def notification {
-        notifyLevel = 255
-        publish(Notification(this.dual))
-    }
     def updateVisuals {
         // text
         val totalStrength = dual.strength(0) + dual.strength(1)
@@ -71,10 +67,14 @@ class DisplayPos (val room: Room, val i: Int, val j: Int) extends Button {
     reactions += {
         case MouseClicked(_, _ ,0, _ , _ ) =>
             { publish(DisplayContents(dual)) }
-        case UIElementResized(_) =>
+        case UIElementResized(_) => {
             font = new Font("default", Font.BOLD,
                 (size.width / dual.strength(0).toString.length.max(dual.strength(1).toString.length).max(3)).min(
                 size.height / 2))
+        }
+        case Notification(_) => this.notifyLevel = 255
+        case Focus(_) => this.isFocused = true
+        case UnFocus(_) => this.isFocused = false
     }
 }
 
@@ -84,10 +84,7 @@ class DisplayGrid (room: Room) {
     val cols = room.cols
     val elem = IndexedSeq.tabulate(rows, cols) {
         (i, j) => {
-            val p = new DisplayPos(room, i, j)
-            room.locs(i,j).connectDual(p)
-            p.connectDual(room.locs(i,j))
-            p
+            new DisplayPos(room.locs(i,j))
         }
     }
     def map[U] (f: DisplayPos => U) = elem.map(_.map(f(_)))

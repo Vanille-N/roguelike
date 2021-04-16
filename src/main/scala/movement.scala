@@ -13,14 +13,14 @@ import Direction._
 class Player (var position: Pos) {
     def placeOnMap (p: Pos) {
         position = p
-        p.dual.isFocused = true
+        p.publish(Focus(p))
     }
     placeOnMap(position)
 
     def move (dir: Direction): Boolean = { // moves without concern for walls
         val newPosition = position.tryAdd(dir)
         if (newPosition != null) {
-            position.dual.isFocused = false
+            position.publish(UnFocus(position))
             placeOnMap(newPosition)
             true
         } else false

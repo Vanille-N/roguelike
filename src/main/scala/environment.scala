@@ -45,18 +45,13 @@ extends Publisher with Reactor {
     var friendlySpawner: PhysicalSpawner = null
     var hostileSpawner: PhysicalSpawner = null
 
-    var dual: DisplayPos = null
-    def connectDual (d: DisplayPos) {
-        dual = d
-        listenTo(d)
-    }
     def notification {
-        dual.notification
+        publish(Notification(this))
     }
 
     def setItem (i: Item) = {
        items.add(i)
-       dual.notification
+       notification
     }
     def addOrganism (o: Organism) = { // organism enters the tile
         val idx = if (o.isFriendly) 1 else 0
