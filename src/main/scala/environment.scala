@@ -1,18 +1,13 @@
 import Math._
 import scala.collection.mutable.Buffer
 import scala.collection.mutable.Set
-import scala.swing._
-import javax.swing.BorderFactory._
-import java.awt.Font
+import swing._
 import event._
 
 /* Environment: tiles of the "dungeon"
- * - visual feedback for tile contents
  * - interaction with organisms
  * - battle procedure
  */
-
-case class Notification(pos: Pos) extends Event
 
 object Direction extends Enumeration { // allowed moves for organisms
     type Direction = Value
@@ -35,8 +30,8 @@ object Direction extends Enumeration { // allowed moves for organisms
 import Direction._
 
 // one tile
-class Pos (val room: Room, val i: Int, val j: Int) extends Button {
-    var isFocused: Boolean = false // position of cursor
+class Pos (val room: Room, val i: Int, val j: Int)
+extends Publisher with Reactor {
     // for all members of type Array[...] with two indexes, information
     // on friendly organisms is stored in (1) and hostile in (0)
     // This explains the `if (isFriendly) 1 else 0` in the rest of the file
@@ -49,13 +44,19 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
     var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord()) // are celles allowed to step over this tile ?
     var friendlySpawner: PhysicalSpawner = null
     var hostileSpawner: PhysicalSpawner = null
-    var notifyLevel: Int = 0 // visual feedback for important events
 
-    this.focusable = false
+    var dual: DisplayPos = null
+    def connectDual (d: DisplayPos) {
+        dual = d
+        listenTo(d)
+    }
+    def notification {
+        dual.notification
+    }
 
     def setItem (i: Item) = {
        items.add(i)
-       notification
+       dual.notification
     }
     def addOrganism (o: Organism) = { // organism enters the tile
         val idx = if (o.isFriendly) 1 else 0
@@ -117,43 +118,6 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
         if (hostileSpawner != null) hostileSpawner.spawn
     }
 
-    // visual appearance
-    border = createEmptyBorder
-    preferredSize = new Dimension(20, 20)
-    font = new Font("default", 0, 20)
-    focusPainted = false
-
-    // visual effects
-    def notification {
-        notifyLevel = 255
-        publish(Notification(this))
-    }
-    def updateVisuals {
-        // text
-        val totalStrength = strength(0) + strength(1)
-        var t0 = if (totalStrength > 0) strength(0).toString else ""
-        var t1 = if (totalStrength > 0) strength(1).toString else ""
-        if (hostileSpawner != null) { // '+' indicates a spawner
-            t0 += "+"
-            if (friendlySpawner == null && totalStrength == 0) t1 += "."
-        }
-        if (friendlySpawner != null) {
-            t1 += "+"
-            if (hostileSpawner == null && totalStrength == 0) t0 += "."
-        }
-        if (artefacts.size != 0) t1 += "A" // 'i' indicates an item
-            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
-        if (items.size != 0) t1 += "i" // 'i' indicates an item
-            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
-        // color
-        background = Scheme.mix(Scheme.red, strength(0) / 100.0, Scheme.green, strength(1) / 100.0)
-        background = Scheme.setBlueChannel(background, notifyLevel)
-        notifyLevel = 3 * notifyLevel / 4 // exponential decay for notifications
-        if (isFocused) background = Scheme.white
-        var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
-        foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
-    }
-
     def battle {
         // For now, battles are nondeterministic.
         // Each organism in turn picks an ennemy that is still alive and tries to attack it.
@@ -196,18 +160,6 @@ class Pos (val room: Room, val i: Int, val j: Int) extends Button {
                 }
             }
         })
-    }
-
-    // user interface
-    listenTo(mouse.clicks)
-
-    reactions += {
-        case MouseClicked(_, _ ,0, _ , _ ) =>
-            { publish(LeftClicked(this)) }
-        case UIElementResized(_) =>
-            font = new Font("default", Font.BOLD,
-                (size.width / strength(0).toString.length.max(strength(1).toString.length).max(3)).min(
-                size.height / 2))
     }
 
     def listContents: String = { // show all organisms on the tile
