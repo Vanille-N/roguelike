@@ -21,6 +21,7 @@ class DirectionsCommand(room: Room) extends CommandManager (room) {
             case "Right" => { room.body.player.move(RIGHT) }
             case _       => { publish(PrintInLogs(s"Error: Direction `${splited_command(0)}` unknown")) }
         }
+        publish(RefreshDisplay())
         return ""
     }
 }

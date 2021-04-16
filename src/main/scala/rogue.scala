@@ -15,6 +15,7 @@ case class LevelClear() extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
 case class Sacrifice() extends Event
+case class RefreshDisplay() extends Event
 
 case class LevelLoad(num: Int) extends Event
 case class GameLoad(game: CompactGame) extends Event
@@ -177,6 +178,9 @@ extends Reactor with Publisher {
             else logs.text += str
         }
         case ClearLogs() => { logs.text = "" }
+        case RefreshDisplay() => {
+            displayGrid.map(_.updateVisuals)
+        }
         case Sacrifice() => {
             var points = 0
             for (it <- player.inventory) {
@@ -195,7 +199,6 @@ extends Reactor with Publisher {
             logs.text += s"boosted:"
             logs.text += s"  SPD: ${l(0)}; HP: ${l(1)}; DEC: ${l(4)}\n"
             logs.text += s"  POW: ${l(2)}; DEF: ${l(3)}\n"
-            step
         }
         case DyingItem (i: Item) => {
             deafTo(i)

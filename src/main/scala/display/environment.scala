@@ -55,7 +55,6 @@ class DisplayPos (val dual: Pos) extends Button {
             Scheme.green, dual.strength(1) / 100.0
         )
         background = Scheme.setBlueChannel(background, notifyLevel)
-        notifyLevel = 3 * notifyLevel / 4 // exponential decay for notifications
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
         foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
@@ -63,6 +62,7 @@ class DisplayPos (val dual: Pos) extends Button {
 
     // user interface
     listenTo(mouse.clicks)
+    listenTo(room.body)
 
     reactions += {
         case MouseClicked(_, _ ,0, _ , _ ) =>
@@ -72,9 +72,10 @@ class DisplayPos (val dual: Pos) extends Button {
                 (size.width / dual.strength(0).toString.length.max(dual.strength(1).toString.length).max(3)).min(
                 size.height / 2))
         }
-        case Notification(_) => this.notifyLevel = 255
-        case Focus(_) => this.isFocused = true
-        case UnFocus(_) => this.isFocused = false
+        case LoopStep() => notifyLevel = 3 * notifyLevel / 4
+        case Notification(_) => notifyLevel = 255
+        case Focus(_) => isFocused = true
+        case UnFocus(_) => isFocused = false
     }
 }
 
