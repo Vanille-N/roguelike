@@ -2,7 +2,7 @@ import scala.collection.mutable.Set
 import scala.Tuple2
 
 // The following class is required to select organisms.
-class SelectionCommand (room: Room) extends CommandManager (room) {
+class SelectionCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("select", "take", "filter", "flush", "selection-print", "selection")
     help_menus = "selection" :: Nil
 
@@ -84,7 +84,7 @@ class SelectionCommand (room: Room) extends CommandManager (room) {
                         "What kind of selection dou you want to make ?\n\t1 -> rectangle\n\t\t|top left and\n\t\t|bottom right locations asked\n\t2 -> circle\n\t\t|center cell and\n\t\t|a cell on the circle asked"))
                     return unSplitCommand(splited_command)
                 }
-                case 4 => {// new <selection name> (rectangle|circle|rect|circ|1|2)
+                case 4 => {// selection new <selection name> (rectangle|circle|rect|circ|1|2)
                     publish(PrintInLogs("What is the first cell to mark? (click on it or write \"`i` `j`\" in the command line.)"))
                     return unSplitCommand(splited_command)
                 }

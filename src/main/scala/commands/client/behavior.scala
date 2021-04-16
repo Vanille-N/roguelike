@@ -1,4 +1,4 @@
-class BehaviorCommand (room: Room) extends CommandManager (room) {
+class BehaviorCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("behavior", "behavior-cursor", "behavior-target", "behavior-give", "behavior-keep")
     help_menus = "behavior" :: Nil
     import Behavior._

@@ -2,7 +2,7 @@ import ArtefactType._
 import scala.collection.mutable.Map
 
 // The following class deals with the artefacts management
-class ArtefactsCommand (room: Room) extends CommandManager (room) {
+class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("artefact", "artefact-add", "artefact-rm", "artefact-list")
     help_menus = "artefact" :: Nil
 

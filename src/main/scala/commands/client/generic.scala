@@ -9,7 +9,7 @@ import Direction._
 
 
 // The following  class deals with the movements of the player
-class DirectionsCommand(room: Room) extends CommandManager (room) {
+class DirectionsCommand(room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("Up", "Down", "Left", "Right")
     help_menus = "directions" :: Nil
 
@@ -29,7 +29,7 @@ class DirectionsCommand(room: Room) extends CommandManager (room) {
 
 
 // The following class deals withe the repeat variable (allowing to advance by `repeat` steps the state of the game).
-class DigitsCommand(room: Room) extends CommandManager (room) {
+class DigitsCommand(room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "repeat-reset")
     help_menus = "repeat" :: Nil
 
@@ -57,7 +57,7 @@ class DigitsCommand(room: Room) extends CommandManager (room) {
 
 
 
-class OtherCommand (room: Room) extends CommandManager (room) {
+class OtherCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List("quit", "toggle", "stop", "play", "step", "step-multiple", "focus-cmdline", "focus-win", "q", "clear", "sacrifice")
     help_menus = Nil
 
@@ -111,7 +111,7 @@ class OtherCommand (room: Room) extends CommandManager (room) {
 
 
 // accept every command and do nothing.
-class NullCommand (room: Room) extends CommandManager (room) {
+class NullCommand (room: Room) extends ClientCommandManager (room) {
     val acceptedCommands: List[String] = List()
     override def acceptCommand (str: String): Boolean = { true }
     help_menus = Nil
