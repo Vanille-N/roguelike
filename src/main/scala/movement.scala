@@ -13,14 +13,14 @@ import Direction._
 class Player (var position: Pos) {
     def placeOnMap (p: Pos) {
         position = p
-        p.isFocused = true
+        p.dual.isFocused = true
     }
     placeOnMap(position)
 
     def move (dir: Direction): Boolean = { // moves without concern for walls
         val newPosition = position.tryAdd(dir)
         if (newPosition != null) {
-            position.isFocused = false
+            position.dual.isFocused = false
             placeOnMap(newPosition)
             true
         } else false
@@ -67,14 +67,6 @@ class PathFinder (val envt: Array[Array[Boolean]], val rows: Int, val cols: Int)
                 }
             }
         }
-        /**DEBUG
-        for (i <- 0 to rows - 1) {
-            for (j <- 0 to cols - 1) {
-                print(dists(i)(j) + " ")
-            }
-            println()
-        }
-        OVER**/
         distance(i)(j) = dists
     }
     def getDistance (iCurrent: Int, jCurrent: Int, iTarget: Int, jTarget: Int): Int = {

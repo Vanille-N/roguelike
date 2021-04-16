@@ -62,6 +62,9 @@ extends Reactor with Publisher {
     var repeat: Int = 1
 
     val room = level.makeRoom(this, startingStats.deepCopy)
+    val displayGrid = new DisplayGrid(room)
+    displayGrid.map(listenTo(_))
+
     val player = new Player(room.locs(10, 10))
     player.inventory = inventory.decompress
 
@@ -76,7 +79,7 @@ extends Reactor with Publisher {
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
         val grid = new GridPanel(room.rows, room.cols)
-        room.locs.map(grid.contents += _)
+        displayGrid.map(grid.contents += _)
 
         listenTo(room, cmdline);
 
@@ -105,7 +108,7 @@ extends Reactor with Publisher {
         }
         panel.foreground = Scheme.darkGray
         panel.background = Scheme.darkGray
-        room.locs.map(_.updateVisuals)
+        displayGrid.map(_.updateVisuals)
 
         listenTo(panel.keys);
 
@@ -149,7 +152,7 @@ extends Reactor with Publisher {
             o.sync
         })
         room.locs.map(_.trySpawn(organisms.size)) // sometimes spawn new organisms
-        room.locs.map(_.updateVisuals) // update display
+        displayGrid.map(_.updateVisuals) // update display
 
         publish(LoopStep())
         progressbar.value = winCondition.completion

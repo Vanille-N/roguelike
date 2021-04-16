@@ -54,10 +54,6 @@ extends Reactor with Publisher {
 
     locs.map(listenTo(_))
 
-    reactions += {
-        case LeftClicked(c: Pos) => { publish(DisplayContents(c)) }
-    }
-
     def makeWall (p: Pos, q: Pos) = {
         for (i <- p.i to q.i; j <- p.j to q.j) {
             wallSpawner.spawn(locs(i, j))
