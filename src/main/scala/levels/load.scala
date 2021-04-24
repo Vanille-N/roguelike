@@ -13,7 +13,7 @@ object GameLoader {
           vals(1).toInt
         }
         var inventory = new CompactInventory()
-        var stats = (new DefaultVirusSpawner).stats
+        var stats = (new DefaultVirusSpawner(null)).stats
         for (line <- lines) {
             val entry = line.split(" ")
             entry(0) match {

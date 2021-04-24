@@ -193,11 +193,12 @@ class Virus ( // friendly
     stats: StatSet,
     skills: SkillSet,
     itemDrop: Distribution[MakeItem] = Buffer(),
+    val player: Player,
 ) extends Organism (stats, skills, itemDrop) {
     override def isFriendly = true
     var name = "virus"
 
-    behavior = {() => { (this.position.room.body.player.position, SEEK) }}
+    behavior = {() => { (player.position, SEEK) }}
 }
 
 class Cell ( // hostile

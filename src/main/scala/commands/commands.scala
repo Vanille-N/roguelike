@@ -19,7 +19,8 @@ case class ClearLogs() extends Event
 
 
 
-abstract class ClientCommandManager (val room: Room) extends Publisher {
+abstract class ClientCommandManager (val body: BodyPart, val game: Game)
+extends Publisher {
     /*
     ** useful variables
     */
@@ -146,7 +147,8 @@ abstract class ClientCommandManager (val room: Room) extends Publisher {
     }
 }
 
-abstract class ServerCommandManager (room: Room) extends Publisher {
+abstract class ServerCommandManager (body: BodyPart, game: Game)
+extends Publisher {
     /*
     ** When a server recieves a command, its syntax is already defined as
     ** correct. Only the execution remains.
@@ -169,7 +171,7 @@ abstract class ServerCommandManager (room: Room) extends Publisher {
 // --------- main command manager ---------
 
 
-class Command (val room: Room) extends Publisher {
+class Command (body: BodyPart, game: Game) extends Publisher {
     // defines the active command at any given time.
     var current_command: String = ""
 
@@ -207,17 +209,17 @@ class Command (val room: Room) extends Publisher {
 
     // creates the different classes to deal with commands
     val subCommands: List[ClientCommandManager] = List(
-        new DirectionsCommand(room),
-        new DigitsCommand(room),
-        new SelectionCommand(room),
-        new OrganismsCommand(room),
-        new ItemsCommand(room),
-        new BehaviorCommand(room),
-        new ArtefactsCommand(room),
-        new LevelCommand(room),
-        new HelpCommand(room),
-        new OtherCommand(room),
-        new NullCommand(room)
+        new DirectionsCommand(body, game),
+        new DigitsCommand(body, game),
+        new SelectionCommand(body, game),
+        new OrganismsCommand(body, game),
+        new ItemsCommand(body, game),
+        new BehaviorCommand(body, game),
+        new ArtefactsCommand(body, game),
+        new LevelCommand(body, game),
+        new HelpCommand(body, game),
+        new OtherCommand(body, game),
+        new NullCommand(body, game)
     )
 
 
@@ -230,7 +232,7 @@ class Command (val room: Room) extends Publisher {
         if (current_command == "") {// no current command -> display the location's content
             publish(PrintInLogs(p.listContents))
         } else {// there is a current command, append the coordinates of the location to the command line.
-            room.body.cmdline.text += " " + p.i + " " + p.j
+            game.cmdline.text += " " + p.i + " " + p.j
         }
     }
 
@@ -254,10 +256,10 @@ class Command (val room: Room) extends Publisher {
         else if (command.split("\\s+").head == "abort") {// if the line starts with abort, abort the current command.
             publish(PrintInLogs("Aborting ..."))
             current_command = ""
-            room.body.cmdline.text = ""
+            game.cmdline.text = ""
             return
         } else if (command == "click_cell") {// fake a click on the current location of the player
-            locsClicked (room.body.player.position)
+            locsClicked (game.player.position)
         } else {
             if(current_command != "") current_command += " " + command
             else current_command = command
@@ -270,7 +272,7 @@ class Command (val room: Room) extends Publisher {
             .executeCommand
 
         current_command = toBeExecuted(current_command)
-        room.body.cmdline.text = ""
+        game.cmdline.text = ""
     }
 }
 

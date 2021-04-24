@@ -2,7 +2,8 @@ import ArtefactType._
 import scala.collection.mutable.Map
 
 // The following class deals with the artefacts management
-class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
+class ArtefactsCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("artefact", "artefact-add", "artefact-rm", "artefact-list")
     help_menus = "artefact" :: Nil
 
@@ -54,8 +55,8 @@ class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
                     (true, s"l|N:0->${available_classes.size - 1};"),
                     (true, s"l|N:0->${available_types.size - 1};"),
                     (true, "N:0->5;"),
-                    (false, s"N:1->${room.rows};"),
-                    (true,  s"N:1->${room.cols};")
+                    (false, s"N:1->${body.room.rows};"),
+                    (true,  s"N:1->${body.room.cols};")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
@@ -111,12 +112,12 @@ class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
                         case 3 => LEVELDOUBLE
                         case 4 => LEVELDDOUBLE
                     }
-                    room.locs(i, j).artefacts += {splited_command(1).toInt match {
-                        case 0 => new Artefact(room.locs(i, j), 5, target_level, artefact_type)
-                        case 1 => new Murderer(room.locs(i, j), 5, target_level, artefact_type)
-                        case 2 => new ForceUsage(room.locs(i, j), 5, target_level, artefact_type)
-                        case 3 => new Temptation(room.locs(i, j), 5, target_level, artefact_type)
-                        case 4 => new Unattach(room.locs(i, j), 5, target_level, artefact_type)
+                    body.room.locs(i, j).artefacts += {splited_command(1).toInt match {
+                        case 0 => new Artefact(body.room.locs(i, j), 5, target_level, artefact_type)
+                        case 1 => new Murderer(body.room.locs(i, j), 5, target_level, artefact_type)
+                        case 2 => new ForceUsage(body.room.locs(i, j), 5, target_level, artefact_type)
+                        case 3 => new Temptation(body.room.locs(i, j), 5, target_level, artefact_type)
+                        case 4 => new Unattach(body.room.locs(i, j), 5, target_level, artefact_type)
                     }}
                     return ""
                 }
@@ -127,7 +128,7 @@ class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
         def artefacts_rm: String = {
             val artefacts: Map[Int, Artefact] = Map()
             var i: Int = 0
-            room.locs.map(_.artefacts.foreach(
+            body.room.locs.map(_.artefacts.foreach(
                 a => {
                     artefacts += (i -> a)
                     i += 1
@@ -164,7 +165,7 @@ class ArtefactsCommand (room: Room) extends ClientCommandManager (room) {
         def artefacts_list: Unit = {
             val artefacts: Map[Int, String] = Map()
             var i: Int = 0
-            room.locs.map(_.artefacts.foreach(
+            body.room.locs.map(_.artefacts.foreach(
                 a => {
                     artefacts += (i -> a.toString)
                     i += 1

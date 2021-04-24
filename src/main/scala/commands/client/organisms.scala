@@ -1,5 +1,6 @@
 // The following class deals with the management of the organisms
-class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
+class OrganismsCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("list", "set", "show")
     var last_checked_arg: Int = 0
     help_menus = "list" :: "set" :: "show" :: Nil
@@ -7,7 +8,7 @@ class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
     def realExecuteCommand (splited_command: Array[String]): String = {
         publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
         def getOrganismById (id: Int): Organism = {
-            val lily : List[Organism] = room.body.organisms.toList
+            val lily : List[Organism] = body.organisms.toList
             if(id > lily.length) { null }
             else {
                 var i: Int = 0
@@ -20,13 +21,13 @@ class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
         }
 
         def organisms_list: Unit = {
-            publish(PrintInLogs("   ---   Printing " + room.body.organisms.size + " organisms:   ---"))
+            publish(PrintInLogs("   ---   Printing " + body.organisms.size + " organisms:   ---"))
             var i: Int = 0
-            for ( o <- room.body.organisms.toList ) {
+            for ( o <- body.organisms.toList ) {
                 publish(PrintInLogs(i + "-\t" + o))
                 i += 1
             }
-            publish(PrintInLogs("   ---   End of the list ( " + room.body.organisms.size +"organisms).   ---", ln_before = true))
+            publish(PrintInLogs("   ---   End of the list ( " + body.organisms.size +"organisms).   ---", ln_before = true))
         }
 
         def organisms_set: String = {// Allows the user to set a stat field of any organism to any integer value.
@@ -35,7 +36,7 @@ class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                         (true, "set"),
-                        (true, "l|N:0->" + (room.body.organisms.size - 1) + ";"),
+                        (true, "l|N:0->" + (body.organisms.size - 1) + ";"),
                         (true, "SPD|HP|POW|DEF|DEC"),
                         (true, "N")
                     )
@@ -93,7 +94,7 @@ class OrganismsCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                     (true,  "show"                                    ),
-                    (true,  "N:0->" + (room.body.organisms.size - 1) + ";")
+                    (true,  "N:0->" + (body.organisms.size - 1) + ";")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))

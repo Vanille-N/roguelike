@@ -31,11 +31,12 @@ abstract class Spawner (
 // Spawner.stats, and the argument wins over the field even when
 // this._ is specified.
 class VirusSpawner (
+    player: Player,
     _stats: StatSetGen,
     _skills: SkillSetGen = new SkillSetGen(),
 ) extends Spawner(_stats, _skills) {
     def generate: Virus = {
-        new Virus(stats.instantiate, skills.instantiate, itemDrop)
+        new Virus(stats.instantiate, skills.instantiate, itemDrop, player)
     }
 }
 
@@ -50,7 +51,9 @@ class CellSpawner (
     }
 }
 
-class DefaultVirusSpawner extends VirusSpawner(
+class DefaultVirusSpawner (player: Player)
+extends VirusSpawner(
+    player,
     _stats = new StatSetGen(
         speed = new StatGen(70, 2),
         health = new StatGen(20, 2),

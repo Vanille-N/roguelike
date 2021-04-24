@@ -2,7 +2,8 @@ import scala.collection.mutable.Set
 import scala.Tuple2
 
 // The following class is required to select organisms.
-class SelectionCommand (room: Room) extends ClientCommandManager (room) {
+class SelectionCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("select", "take", "filter", "flush", "selection-print", "selection")
     help_menus = "selection" :: Nil
 
@@ -12,9 +13,9 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
         publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
 
         val selection_possibilities: String = {
-            var result = s"N:1->;${room.body.selection_names.length}"
-            for (i <- 0 to room.body.selection_names.length - 1)
-                result += s"|${room.body.selection_names(i)}"
+            var result = s"N:1->;${game.selection_names.length}"
+            for (i <- 0 to game.selection_names.length - 1)
+                result += s"|${game.selection_names(i)}"
             result
         }
 
@@ -36,21 +37,21 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                 return "";
             }
             val selection_index: Int = {
-                if (room.body.selection_names.indexOf(splited_command(2)) < 0) {
-                    room.body.selection_names = room.body.selection_names.:+(splited_command(2))
-                    room.body.selection_organisms = room.body.selection_organisms.:+(Tuple2(Set[Organism](), Set[Organism]()))
-                    room.body.selection_names.indexOf(splited_command(2))
-                } else room.body.selection_names.indexOf(splited_command(2))
+                if (game.selection_names.indexOf(splited_command(2)) < 0) {
+                    game.selection_names = game.selection_names.:+(splited_command(2))
+                    game.selection_organisms = game.selection_organisms.:+(Tuple2(Set[Organism](), Set[Organism]()))
+                    game.selection_names.indexOf(splited_command(2))
+                } else game.selection_names.indexOf(splited_command(2))
             }
-            room.body.selection_organisms(selection_index) = Tuple2(Set(), Set())
-            for (i <- 0 to room.rows - 1) {
-                for (j <- 0 to room.cols - 1) {
-                    room.body.selection_organisms(selection_index)._2 ++= room.locs(i, j).organisms(0)
-                    room.body.selection_organisms(selection_index)._1 ++= room.locs(i, j).organisms(1)
+            game.selection_organisms(selection_index) = Tuple2(Set(), Set())
+            for (i <- 0 to body.room.rows - 1) {
+                for (j <- 0 to body.room.cols - 1) {
+                    game.selection_organisms(selection_index)._2 ++= body.room.locs(i, j).organisms(0)
+                    game.selection_organisms(selection_index)._1 ++= body.room.locs(i, j).organisms(1)
                 }
             }
-            publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
-            publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
+            publish(PrintInLogs(s"Added ${(game.selection_organisms(selection_index)._1.size)} viruses."))
+            publish(PrintInLogs(s"Added ${(game.selection_organisms(selection_index)._2.size)} cells."))
             splited_command = Array[String] ("selection", "print", splited_command(1))
             selection_print
             return ""
@@ -70,10 +71,10 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                     (false, "new"),
                     (true,  "any"),
                     (true,  "rectangle|rect|circ|circle|N:1->2;"),
-                    (false, s"N:1->${room.rows};"),
-                    (true,  s"N:1->${room.cols};"),
-                    (false, s"N:1->${room.rows};"),
-                    (true,  s"N:1->${room.cols};"),
+                    (false, s"N:1->${body.room.rows};"),
+                    (true,  s"N:1->${body.room.cols};"),
+                    (false, s"N:1->${body.room.rows};"),
+                    (true,  s"N:1->${body.room.cols};"),
                 ))) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return "";
@@ -98,19 +99,19 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                     val i2: Int = splited_command(6).toInt
                     val j2: Int = splited_command(7).toInt
                     val selection_index: Int = {
-                        if (room.body.selection_names.indexOf(splited_command(2)) < 0) {
-                            room.body.selection_names = room.body.selection_names.:+(splited_command(2))
-                            room.body.selection_organisms = room.body.selection_organisms.:+(Tuple2(Set[Organism](), Set[Organism]()))
-                            room.body.selection_names.indexOf(splited_command(2))
-                        } else room.body.selection_names.indexOf(splited_command(2))
+                        if (game.selection_names.indexOf(splited_command(2)) < 0) {
+                            game.selection_names = game.selection_names.:+(splited_command(2))
+                            game.selection_organisms = game.selection_organisms.:+(Tuple2(Set[Organism](), Set[Organism]()))
+                            game.selection_names.indexOf(splited_command(2))
+                        } else game.selection_names.indexOf(splited_command(2))
                     }
-                    room.body.selection_organisms(selection_index) = Tuple2(Set(), Set())
+                    game.selection_organisms(selection_index) = Tuple2(Set(), Set())
                     splited_command(3) match {
                         case "rect" | "1" | "rectangle" => {
                             for (i <- i1 to i2) {
                                 for (j <- j1 to j2) {
-                                    room.body.selection_organisms(selection_index)._2 ++= room.locs(i, j).organisms(0)
-                                    room.body.selection_organisms(selection_index)._1 ++= room.locs(i, j).organisms(1)
+                                    game.selection_organisms(selection_index)._2 ++= body.room.locs(i, j).organisms(0)
+                                    game.selection_organisms(selection_index)._1 ++= body.room.locs(i, j).organisms(1)
                                 }
                             }
                         }
@@ -119,16 +120,16 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                             val R: Int = scala.math.sqrt(R2).ceil.toInt
                             for (i <- i1 - R to i1 + R) {
                                 for (j <- j1 - R to j1 + R) {
-                                    if (0 <= i && i < room.rows && 0 <= j && j < room.cols && ((i1 - i )^2 + (j1 - j)^2) <= R2 ) {
-                                        room.body.selection_organisms(selection_index)._2 ++= room.locs(i, j).organisms(0)
-                                        room.body.selection_organisms(selection_index)._1 ++= room.locs(i, j).organisms(1)
+                                    if (0 <= i && i < body.room.rows && 0 <= j && j < body.room.cols && ((i1 - i )^2 + (j1 - j)^2) <= R2 ) {
+                                        game.selection_organisms(selection_index)._2 ++= body.room.locs(i, j).organisms(0)
+                                        game.selection_organisms(selection_index)._1 ++= body.room.locs(i, j).organisms(1)
                                     }
                                 }
                             }
                         }
                     }
-                    publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._1.size)} viruses."))
-                    publish(PrintInLogs(s"Added ${(room.body.selection_organisms(selection_index)._2.size)} cells."))
+                    publish(PrintInLogs(s"Added ${(game.selection_organisms(selection_index)._1.size)} viruses."))
+                    publish(PrintInLogs(s"Added ${(game.selection_organisms(selection_index)._2.size)} cells."))
                     splited_command = Array[String] ("selection", "print", splited_command(1))
                     selection_print
                     return ""
@@ -144,65 +145,65 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                     (false, "switch"),
                     (true, "any")
                 ))) return ""
-            if(room.body.selection_names.indexOf(splited_command(2)) < 0) {
-                room.body.selection_names.:+(splited_command(2))
-                room.body.selection_organisms.:+(Tuple2(Set(), Set()))
+            if (game.selection_names.indexOf(splited_command(2)) < 0) {
+                game.selection_names.:+(splited_command(2))
+                game.selection_organisms.:+(Tuple2(Set(), Set()))
             }
-            room.body.selection_current = splited_command(2)
+            game.selection_current = splited_command(2)
             ""
         }
 
         def selection_destroy: String = {
-            if(!command_syntax_check(splited_command,
+            if (!command_syntax_check(splited_command,
                 Array (// The syntax of this Array is described in
                        // `commands.scala`
                     (false, "selection"),
                     (false, "destroy"),
                     (true, selection_possibilities)
                 ))) return ""
-            if(room.body.selection_names.indexOf(splited_command(2)) >= 0) {
-                val ind: Int = room.body.selection_names.indexOf(splited_command(2))
+            if (game.selection_names.indexOf(splited_command(2)) >= 0) {
+                val ind: Int = game.selection_names.indexOf(splited_command(2))
                 var new_selection_names: Array[String] = Array()
                 var new_selection_organisms: Array[Tuple2[Set[Organism], Set[Organism]]] = Array()
-                for (i <- room.body.selection_names.indices.filter(_ != ind) ) {
-                    new_selection_names = new_selection_names.:+(room.body.selection_names(i))
-                    new_selection_organisms = new_selection_organisms.:+(room.body.selection_organisms(i))
+                for (i <- game.selection_names.indices.filter(_ != ind) ) {
+                    new_selection_names = new_selection_names.:+(game.selection_names(i))
+                    new_selection_organisms = new_selection_organisms.:+(game.selection_organisms(i))
                 }
-                room.body.selection_names = new_selection_names
-                room.body.selection_organisms = new_selection_organisms
+                game.selection_names = new_selection_names
+                game.selection_organisms = new_selection_organisms
             }
             ""
         }
 
         def selection_print: String = {
-            val selection_id: Int = room.body.selection_names.indexOf(room.body.selection_current)
+            val selection_id: Int = game.selection_names.indexOf(game.selection_current)
             var i: Int = 0
             try {
-                publish(PrintInLogs(s"\t*********\tPrinting ${room.body.selection_current}\t*********"))
-                for (o <- room.body.selection_organisms(selection_id)._1)
+                publish(PrintInLogs(s"\t*********\tPrinting ${game.selection_current}\t*********"))
+                for (o <- game.selection_organisms(selection_id)._1)
                     publish(PrintInLogs(s"\t${i} -> $o"))
-                for (o <- room.body.selection_organisms(selection_id)._2)
+                for (o <- game.selection_organisms(selection_id)._2)
                     publish(PrintInLogs(s"\t${i} -> $o"))
-                publish(PrintInLogs(s"\t*********\tEnd of printing ${room.body.selection_current}\t*********"))
+                publish(PrintInLogs(s"\t*********\tEnd of printing ${game.selection_current}\t*********"))
             } catch {case _ : Throwable => publish(PrintInLogs("No such selection"))}
             ""
         }
 
         def selection_list: String = {
             publish(PrintInLogs("List of selection names", ln_before=true))
-            for (i <- 0 to room.body.selection_names.length - 1) {
-                publish(PrintInLogs(s"\t_ `${room.body.selection_names(i)}`\n\t\t->${room.body.selection_organisms(i)._1.size} viruses\n\t\t->${room.body.selection_organisms(i)._2.size} cells"))
+            for (i <- 0 to game.selection_names.length - 1) {
+                publish(PrintInLogs(s"\t_ `${game.selection_names(i)}`\n\t\t->${game.selection_organisms(i)._1.size} viruses\n\t\t->${game.selection_organisms(i)._2.size} cells"))
             }
             publish(PrintInLogs(""))
             return ""
         }
 
         def selection_take: String = {// take every items of the current selected organisms
-            val selection_id: Int = room.body.selection_names.indexOf(room.body.selection_current)
+            val selection_id: Int = game.selection_names.indexOf(game.selection_current)
             var i: Int = 0
             try {
-                for (o <- room.body.selection_organisms(selection_id)._1) {
-                    room.body.player.inventory ++= o.items
+                for (o <- game.selection_organisms(selection_id)._1) {
+                    game.player.inventory ++= o.items
                     o.items.empty
                 }
             } catch {case _ : Throwable => publish(PrintInLogs("No such selection"))}
@@ -217,14 +218,14 @@ class SelectionCommand (room: Room) extends ClientCommandManager (room) {
                     case "new" => return selection_new
                     case "print" => return selection_print
                     case "switch" => return selection_switch
-                    case "current" => {publish(PrintInLogs(s"The surrent selection is ${room.body.selection_current}")); return ""}
+                    case "current" => {publish(PrintInLogs(s"The surrent selection is ${game.selection_current}")); return ""}
                     case "destroy" => return selection_destroy
                     case "list" => return selection_list
                     case "take" => return selection_take
                     case _ => return ""
                 }
             }
-            case _                  => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")); return "" }
+            case _ => { publish(PrintInLogs(s"Error: Command `${splited_command(0)}` unknown")); return "" }
         }
     }
 }

@@ -1,11 +1,11 @@
 import scala.swing._
 
-abstract class WinCondition(val body: BodyPart)
+abstract class WinCondition (player: Player)
 extends Reactor with Publisher {
     def win {
         publish(ClearLogs())
         Thread.sleep(1000)
-        publish(new LevelClear())
+        publish(new LevelClear(player))
     }
     def explanation: String
     def completion: Int
@@ -19,10 +19,11 @@ extends Reactor with Publisher {
 }
 
 class WinByPosition(
-    body: BodyPart, i: Int, j: Int,
+    body: BodyPart, player: Player,
+    i: Int, j: Int,
     strengthThreshold: Int,
     turnCount: Int,
-) extends WinCondition(body) {
+) extends WinCondition(player) {
     val pos = body.room.locs(i, j)
     def explanation = s"To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
     var count = 0
@@ -45,9 +46,9 @@ class WinByPosition(
 
 import scala.reflect.ClassTag
 class WinByPickup(
-    body: BodyPart,
+    body: BodyPart, player: Player,
     pickupCount: Int,
-) extends WinCondition(body) {
+) extends WinCondition(player) {
     def explanation = s"Pick up $pickupCount hidden items"
     var count = 0
     
@@ -57,7 +58,7 @@ class WinByPickup(
     listenTo(body)
     reactions += {
         case PickedUpKey(o) => {
-            if (o.isFriendly) {
+            if (o.isFriendly) { // TODO: check that o.player == player
                 count += 1
                 if (count == pickupCount) win
             }
@@ -66,10 +67,10 @@ class WinByPickup(
 }
 
 class WinByKillCount(
-    body: BodyPart,
+    body: BodyPart, player: Player,
     name: String = "",
     killCount: Int,
-) extends WinCondition(body) {
+) extends WinCondition(player) {
     def explanation = s"Kill $killCount ${if (name == "") "hostile" else name} organisms"
     var count = 0
 
@@ -88,11 +89,11 @@ class WinByKillCount(
 }
 
 class WinByPath(
-    body: BodyPart,
+    body: BodyPart, player: Player,
     var path: List[Tuple2[Int, Int]],
     strengthThreshold: Int,
     turnCount: Int,
-) extends WinCondition(body) {
+) extends WinCondition(player) {
     def explanation = s"Conquer all successive positions"
     val maxProgress = path.length * turnCount
     var count = 0
@@ -120,8 +121,8 @@ class WinByPath(
     }
 }
 
-class WinLock ()
-extends WinCondition(null) {
+class WinLock (player: Player)
+extends WinCondition(player) {
     def explanation = ""
     def completion = 100
     override def win {}

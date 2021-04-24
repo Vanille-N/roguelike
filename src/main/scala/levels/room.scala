@@ -7,7 +7,7 @@ import scala.io.Source
  */
 
 // The whole room
-class Room (val body: BodyPart, fbase: String, startingStats: StatSetGen)
+class Room (val body: BodyPart, fbase: String, players: List[Player])
 extends Reactor with Publisher {
     // cell spawners
     val wallSpawner = new DefaultWallCellSpawner()
@@ -15,8 +15,11 @@ extends Reactor with Publisher {
     val whiteCellSpawner = new DefaultWhiteCellSpawner()
     val lymphocyteSpawner = new DefaultLymphocyteSpawner()
     val phagocytosisSpawner = new DefaultPhagocytosisSpawner()
-    var virusSpawner = new DefaultVirusSpawner()
-    virusSpawner.stats = startingStats
+    var virusSpawners = players.map(pl => {
+        var sp = new DefaultVirusSpawner(pl)
+        sp.stats = pl.startingStats
+        sp
+    })
     val neuronSpawner = new DefaultNeuronSpawner()
 
     // initialization from src file
@@ -36,7 +39,7 @@ extends Reactor with Publisher {
             for (j <- 0 to cols-1) {
                 line(2*j) match {
                     case ' ' => ()
-                    case '*' => locs(i, j).setFriendlySpawner(new PhysicalSpawner(virusSpawner, 0.015, 10))
+                    case '1' | '2' => locs(i, j).setFriendlySpawner(new PhysicalSpawner(virusSpawners(line(2*j).toInt - '1'.toInt), 0.015, 10))
                     case '#' => { wallSpawner.spawn(locs(i, j)); availability(i)(j) = false }
                     case 'R' => locs(i, j).setHostileSpawner(new PhysicalSpawner(redCellSpawner, 0.03, 7))
                     case 'W' => locs(i, j).setHostileSpawner(new PhysicalSpawner(whiteCellSpawner, 0.02, 5))

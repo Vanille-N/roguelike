@@ -10,12 +10,12 @@ import Direction._
  */
 
 // cursor controled by the player
-class Player (var position: Pos) {
+class Player () {
+    var position: Pos = null;
     def placeOnMap (p: Pos) {
         position = p
         p.publish(Focus(p))
     }
-    placeOnMap(position)
 
     def move (dir: Direction): Boolean = { // moves without concern for walls
         val newPosition = position.tryAdd(dir)
@@ -26,7 +26,9 @@ class Player (var position: Pos) {
         } else false
     }
 
+    var saveInventory: CompactInventory = null
     var inventory: Set[Item] = Set() // items held by the player (taken from viruses)
+    var startingStats: StatSetGen = null
     var itemPolicyTake: Boolean = false
 }
 

@@ -1,5 +1,6 @@
 // The following class deals with the items management
-class ItemsCommand (room: Room) extends ClientCommandManager (room) {
+class ItemsCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give", "item-use")
     help_menus = "item" :: Nil
 
@@ -50,27 +51,20 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
 
         def items_list: String = {// List the current list of items on the board
             var i: Int = 0
-            publish(PrintInLogs(s"Currently on the board:\n   ---------   Printing ${room.body.items.size} elements   ---------"))
-            for ( o <- room.body.items.toList ) {
+            publish(PrintInLogs(s"Currently on the board:\n   ---------   Printing ${body.items.size} elements   ---------"))
+            for ( o <- body.items.toList ) {
                 publish(PrintInLogs(i + "-\t" + o))
                 i += 1
             }
-            publish(PrintInLogs(s"   ---------   End of the printing (${room.body.items.size} elements)   ---------"))
+            publish(PrintInLogs(s"   ---------   End of the printing (${body.items.size} elements)   ---------"))
             list_inventory
             return ""
         }
 
         def getItemById (id: Int): Item = {
-            val items : List[Item] = room.body.items.toList
-            if(id > items.length) { null }
-            else {
-                var i: Int = 0
-                for ( o <- items ) {
-                    if (i == id) {return o}
-                    i += 1
-                }
-            }
-            null
+            val items : List[Item] = body.items.toList
+            if (id > items.length) { null }
+            else items(id)
         }
 
         def items_add: String = {// Add an item to the board.
@@ -80,8 +74,8 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                 Array(
                         (true,  "item-add"),
                         (true,  "N:1->8;"),
-                        (false, s"N:1->${room.rows};"),
-                        (true,  s"N:1->${room.cols};")
+                        (false, s"N:1->${body.room.rows};"),
+                        (true,  s"N:1->${body.room.cols};")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
@@ -96,17 +90,17 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                     val i: Int = splited_command(2).toInt
                     val j: Int = splited_command(3).toInt
                     val new_itm = splited_command(1) match {
-                        case "1" => new Knife(room.locs(i, j))
-                        case "2" => new Alcohol(room.locs(i, j))
-                        case "3" => new BodyMovement(room.locs(i, j))
-                        case "4" => new Javel(room.locs(i, j))
-                        case "5" => new Heat(room.locs(i, j))
-                        case "6" => new Spike(room.locs(i, j))
-                        case "7" => new CytoplasmLeak(room.locs(i, j))
-                        case "8" => new MembraneReplacement(room.locs(i, j))
+                        case "1" => new Knife(body.room.locs(i, j))
+                        case "2" => new Alcohol(body.room.locs(i, j))
+                        case "3" => new BodyMovement(body.room.locs(i, j))
+                        case "4" => new Javel(body.room.locs(i, j))
+                        case "5" => new Heat(body.room.locs(i, j))
+                        case "6" => new Spike(body.room.locs(i, j))
+                        case "7" => new CytoplasmLeak(body.room.locs(i, j))
+                        case "8" => new MembraneReplacement(body.room.locs(i, j))
                     }
-                    room.body.items += new_itm
-                    room.body.listenTo(new_itm)
+                    body.items += new_itm
+                    body.listenTo(new_itm)
                     new_itm.drop
                     ""
                 }
@@ -119,7 +113,7 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-rm"),
-                        (true, s"l|N:0->${room.body.items.size - 1};")
+                        (true, s"l|N:0->${body.items.size - 1};")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
@@ -145,11 +139,11 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
             splited_command.length match {
                 case 1 => { publish(PrintInLogs("Which cell is this about? (any one-word answer for all)")); return "item-pickup" }
                 case 2 => {
-                    for(i <- 0 to room.cols - 1) {
-                        for(j<- 0 to room.rows - 1) {
-                            room.locs(i, j).organisms(0).foreach ( o =>
-                                if (room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
-                                    val it = room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
+                    for(i <- 0 to body.room.cols - 1) {
+                        for(j<- 0 to body.room.rows - 1) {
+                            body.room.locs(i, j).organisms(0).foreach ( o =>
+                                if (body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
+                                    val it = body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
                                     if (it.pickUp(o)) {
                                         o.items += it
                                         publish(PrintInLogs(s"\nI $o pick up the item, yay !"))
@@ -160,9 +154,9 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                     }
                 }
                 case 3 => {
-                    room.locs(splited_command(1).toInt, splited_command(2).toInt).organisms(0).foreach ( o =>
-                        if (room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
-                            val it = room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
+                    body.room.locs(splited_command(1).toInt, splited_command(2).toInt).organisms(0).foreach ( o =>
+                        if (body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
+                            val it = body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
                             if (it.pickUp(o)) {
                                 o.items += it
                                 publish(PrintInLogs(s"\nI $o pick up the item, yay !"))
@@ -177,17 +171,17 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
 
         def list_inventory: Unit = {// List the inventory of the player
             var i: Int = 0
-            publish(PrintInLogs(s"Held by user:\n   ---------   Printing ${room.body.player.inventory.size} elements   ---------"))
-            for ( o <- room.body.player.inventory.toList ) {
+            publish(PrintInLogs(s"Held by user:\n   ---------   Printing ${game.player.inventory.size} elements   ---------"))
+            for ( o <- game.player.inventory.toList ) {
                 publish(PrintInLogs(i + "-\t" + o))
                 i += 1
             }
-            publish(PrintInLogs(s"   ---------   End of the printing (${room.body.player.inventory.size} elements))   ---------"))
+            publish(PrintInLogs(s"   ---------   End of the printing (${game.player.inventory.size} elements))   ---------"))
         }
 
         def getItemFromInventoryById (id: Int): Item = {
             var i: Int = 0
-            for ( o <- room.body.player.inventory.toList ) {
+            for ( o <- game.player.inventory.toList ) {
                 if(i == id) return o
                 i += 1
             }
@@ -195,7 +189,7 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
         }
 
         def getOrganismById (id: Int): Organism = {
-            val orgas : List[Organism] = room.body.organisms.toList
+            val orgas : List[Organism] = body.organisms.toList
             if (id > orgas.length) { null }
             else {
                 var i: Int = 0
@@ -210,15 +204,15 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
         }
 
         def organisms_list: Unit = {
-            publish(PrintInLogs(s"   ---   Printing ${room.body.organisms.size} organisms:   ---"))
+            publish(PrintInLogs(s"   ---   Printing ${body.organisms.size} organisms:   ---"))
             var i: Int = 0
-            for ( o <- room.body.organisms.toList ) {
+            for ( o <- body.organisms.toList ) {
                 if (o.name != "wall cell") {
                     publish(PrintInLogs(i + "-\t" + o))
                     i += 1
                 }
             }
-            publish(PrintInLogs(s"   ---   End of the list (${room.body.organisms.size} organisms).   ---", ln_before = true))
+            publish(PrintInLogs(s"   ---   End of the list (${body.organisms.size} organisms).   ---", ln_before = true))
         }
 
         def items_give (forceUse: Boolean): String = {// Give an item from the inventory to an organism
@@ -227,8 +221,8 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-give|item-use"),
-                        (true, s"l|N:0->${room.body.player.inventory.size - 1};"),
-                        (true, s"l|N:0->${room.body.organisms.size - 1};")
+                        (true, s"l|N:0->${game.player.inventory.size - 1};"),
+                        (true, s"l|N:0->${body.organisms.size - 1};")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
@@ -267,7 +261,7 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                     } else {
                         val target_item: Item = getItemFromInventoryById(splited_command(1).toInt)
                         val target_organism: Organism = getOrganismById(splited_command(2).toInt)
-                        room.body.player.inventory -= target_item
+                        game.player.inventory -= target_item
                         target_organism.items += target_item
                         if (forceUse) {
                             target_item.use(target_organism, target_organism)
@@ -289,7 +283,7 @@ class ItemsCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                         (true, "item-level"),
-                        (true, s"l|N:0->${room.body.items.size - 1};"),
+                        (true, s"l|N:0->${body.items.size - 1};"),
                         (true, "N:0->5;")
                     )
                 )) {

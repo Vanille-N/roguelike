@@ -3,7 +3,8 @@ import java.lang.NumberFormatException
 // This class is responsible for
 // - level loading (go back to a previous level)
 // - save/load
-class LevelCommand (room: Room) extends ClientCommandManager (room) {
+class LevelCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("level", "load", "save")
     help_menus = "level" :: Nil
 
@@ -15,7 +16,7 @@ class LevelCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                     (true, "level"),
-                    (true, s"N:1->${room.body.level.max};")
+                    (true, s"N:1->${body.level.max};")
                 )
             )) {
                 publish(PrintInLogs("The command does not fit its syntax.\n\tCheck `help level`."))
@@ -24,7 +25,7 @@ class LevelCommand (room: Room) extends ClientCommandManager (room) {
 
             splited_command.length match {
                 case 1 => {
-                    publish(PrintInLogs(s"Enter level you want to go back to.\n\tCurrent: ${room.body.level.num}\n\tUnlocked : 1 to ${room.body.level.max}"))
+                    publish(PrintInLogs(s"Enter level you want to go back to.\n\tCurrent: ${body.level.num}\n\tUnlocked : 1 to ${body.level.max}"))
                     return "level"
                 }
                 case 2 => {

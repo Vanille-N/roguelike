@@ -1,4 +1,5 @@
-class BehaviorCommand (room: Room) extends ClientCommandManager (room) {
+class BehaviorCommand (body: BodyPart, game: Game)
+extends ClientCommandManager (body, game) {
     val acceptedCommands: List[String] = List("behavior", "behavior-cursor", "behavior-target", "behavior-give", "behavior-keep")
     help_menus = "behavior" :: Nil
     import Behavior._
@@ -44,20 +45,20 @@ class BehaviorCommand (room: Room) extends ClientCommandManager (room) {
         }
 
         def behavior_cursor: String = {
-            room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
-                o.behavior = { () => (room.body.player.position, SEEK) }
+            game.selection_organisms(game.selection_names.indexOf(game.selection_current))._1.foreach(o => {
+                o.behavior = { () => (game.player.position, SEEK) }
             })
             publish(PrintInLogs("The friendly organisms have changed their target"))
             return ""
         }
 
         def behavior_give: String = {
-            room.body.player.itemPolicyTake = true
+            game.player.itemPolicyTake = true
             ""
         }
 
         def behavior_keep: String = {
-            room.body.player.itemPolicyTake = false
+            game.player.itemPolicyTake = false
             ""
         }
 
@@ -67,8 +68,8 @@ class BehaviorCommand (room: Room) extends ClientCommandManager (room) {
                 splited_command,
                 Array(
                         (true,  "behavior-target"),
-                        (false, s"N:1->${room.rows - 1};"),
-                        (true,  s"N:1->${room.cols - 1};")
+                        (false, s"N:1->${body.room.rows - 1};"),
+                        (true,  s"N:1->${body.room.cols - 1};")
                     )
                 )) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
@@ -88,8 +89,8 @@ class BehaviorCommand (room: Room) extends ClientCommandManager (room) {
                 case 3 => {
                     val i = splited_command(1).toInt
                     val j = splited_command(2).toInt
-                    room.body.selection_organisms(room.body.selection_names.indexOf(room.body.selection_current))._1.foreach(o => {
-                        o.behavior = { () => (room.locs(i, j), SEEK) }
+                    game.selection_organisms(game.selection_names.indexOf(game.selection_current))._1.foreach(o => {
+                        o.behavior = { () => (body.room.locs(i, j), SEEK) }
                         if(!o.isFriendly) publish(PrintInLogs("dskjfh kdsjhf klf flkqs"))
                     })
                     publish(PrintInLogs("The friendly organisms have changed their target"))

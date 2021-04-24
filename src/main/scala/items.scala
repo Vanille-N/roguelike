@@ -49,25 +49,27 @@ abstract class Item (var position: Pos) extends Publisher {
 
     def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
-            if (o.isFriendly && o.position.room.body.player.itemPolicyTake) {
-                // give to player
-                position.room.body.deafTo(this)
-                position.items -= this
-                owner = null
-                position = null
-                o.position.room.body.player.inventory += this
-                true
-            } else {
-                // give to organism
-                publish(PickedUpItem(this, o))
-                position.room.body.deafTo(this)
-                o.listenTo(this)
-                owner = o
-                pickable = false
-                position.items -= this
-                o.listenTo(this)
-                position = null
-                true
+            o match {
+                case v:Virus if v.player.itemPolicyTake => {
+                    position.room.body.deafTo(this)
+                    position.items -= this
+                    owner = null
+                    position = null
+                    v.player.inventory += this
+                    true
+                }
+                case o:Organism => {
+                    // give to organism
+                    publish(PickedUpItem(this, o))
+                    position.room.body.deafTo(this)
+                    o.listenTo(this)
+                    owner = o
+                    pickable = false
+                    position.items -= this
+                    o.listenTo(this)
+                    position = null
+                    true
+                }
             }
         } else false
     }
