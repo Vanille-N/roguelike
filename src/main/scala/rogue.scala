@@ -125,7 +125,6 @@ class Game (
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
-        case PickedUpItem(i, o) => { if (i.isInstanceOf[Key]) publish(PickedUpKey(o)) }
         case PrintInLogs(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logs.text += "\n" + str + "\n"
             else if (ln_after) logs.text += str + "\n"

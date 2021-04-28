@@ -89,15 +89,16 @@ extends ClientCommandManager (body, game) {
                 case 4 => {
                     val i: Int = splited_command(2).toInt
                     val j: Int = splited_command(3).toInt
+                    val owner = PosOwned(body.room.locs(i,j))
                     val new_itm = splited_command(1) match {
-                        case "1" => new Knife(body.room.locs(i, j))
-                        case "2" => new Alcohol(body.room.locs(i, j))
-                        case "3" => new BodyMovement(body.room.locs(i, j))
-                        case "4" => new Javel(body.room.locs(i, j))
-                        case "5" => new Heat(body.room.locs(i, j))
-                        case "6" => new Spike(body.room.locs(i, j))
-                        case "7" => new CytoplasmLeak(body.room.locs(i, j))
-                        case "8" => new MembraneReplacement(body.room.locs(i, j))
+                        case "1" => new Knife(owner)
+                        case "2" => new Alcohol(owner)
+                        case "3" => new BodyMovement(owner)
+                        case "4" => new Javel(owner)
+                        case "5" => new Heat(owner)
+                        case "6" => new Spike(owner)
+                        case "7" => new CytoplasmLeak(owner)
+                        case "8" => new MembraneReplacement(owner)
                     }
                     body.items += new_itm
                     body.listenTo(new_itm)

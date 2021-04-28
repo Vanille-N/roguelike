@@ -32,69 +32,103 @@ import StatType._
 * It must at least be listened by the body, which will relay the information.
 */
 case class DyingItem (i: Item) extends Event
-/*
-* The NewItem event is published whenever an item gets dropped.
-* This happens at the creation of the item and when it is dropped by a
-* (potentially dying) organism
-*/
-case class NewItem (i: Item) extends Event
 
 case class PickedUpItem (i: Item, o: Organism) extends Event // an item has been picked up
 case class UsedItem(i: Item, o: Organism, st: StatType) extends Event // an item has been used over an Organism
 
-abstract class Item (var position: Pos) extends Publisher {
-    // Item picking up -- dropping
+
+sealed trait Owner;
+case class PosOwned(p: Pos) extends Owner;
+case class OrgOwned(o: Organism) extends Owner;
+case class UnOwned() extends Owner;
+case class PlayOwned(p: Player) extends Owner
+
+abstract class Item (var owner: Owner) extends Publisher {
     var pickable: Boolean = true
-    var owner: Organism = null
+    setOwner(owner)
+    if (position != null) {
+        position.room.body.items += this
+    }
+
+    def abandonOwner {
+        owner match {
+            case PosOwned(position) => {
+                position.room.body.deafTo(this)
+                position.listenTo(this)
+                position.items -= this
+            }
+            case OrgOwned(orga) => {
+                orga.deafTo(this)
+                orga.items -= this
+            }
+            case PlayOwned(player) => {
+                player.inventory -= this
+            }
+            case _ => ()
+        }
+        owner = UnOwned()
+        pickable = false
+    }
+
+    def setOwner (newOwner: Owner) {
+        abandonOwner
+        newOwner match {
+            case PosOwned(position) => {
+                position.room.body.listenTo(this)
+                position.listenTo(this)
+                position.items += this
+                pickable = true
+            }
+            case OrgOwned(orga) => {
+                orga.items += this
+                orga.listenTo(this)
+                pickable = false
+            }
+            case PlayOwned(player) => {
+                player.inventory += this
+                pickable = false
+            }
+            case _ => ()
+        }
+        owner = newOwner
+    }
 
     def pickUp (o: Organism): Boolean = { // tile -> owner
         if (pickable) {
             o match {
                 case v:Virus if v.player.itemPolicyTake => {
-                    position.room.body.deafTo(this)
-                    position.items -= this
-                    owner = null
-                    position = null
-                    v.player.inventory += this
+                    setOwner(PlayOwned(v.player))
                     true
                 }
                 case o:Organism => {
                     // give to organism
                     publish(PickedUpItem(this, o))
-                    position.room.body.deafTo(this)
-                    o.listenTo(this)
-                    owner = o
-                    pickable = false
-                    position.items -= this
-                    o.listenTo(this)
-                    position = null
+                    setOwner(OrgOwned(o))
                     true
                 }
             }
         } else false
     }
-    def drop: Unit = { // owner -> tile
-        if (owner == null && position == null) return ()
-        if (owner != null) {
-            position = owner.position
-            owner.deafTo(this)
+    
+    def position: Pos = {
+        owner match {
+            case OrgOwned(orga) => orga.position
+            case PlayOwned(player) => player.position
+            case PosOwned(position) => position
+            case _ => null
         }
-        owner = null
-        pickable = true
-        position.items += this
-        position.room.body.listenTo(this)
-        publish(NewItem(this))
     }
+
+    def drop: Unit = { // owner -> tile
+        val pos = position
+        if (pos != null) {
+            setOwner(PosOwned(pos))
+        }
+    }
+
     def destroy { // remove from global item index
-        publish (DyingItem(this))
-        if (owner != null) {
-            owner.items -= this
-            owner.position.room.body.items -= this
-        }
-        if (position != null) {
-            position.items -= this
-            position.room.body.items -= this
-        }
+        publish(DyingItem(this))
+        abandonOwner
     }
 
     // Item usage-related elements
@@ -162,7 +196,7 @@ abstract class Item (var position: Pos) extends Publisher {
             case DEC  => { attr_reduce(_.decisiveness) }
             case ALL  => { o.stats.list.foreach(x => reduce(x)) }
             case ANY  => { reduce(o.stats.list(Rng.uniform(0, 4))) }
-            case NONE => {}
+            case NONE => ()
         }
     }
 
@@ -189,7 +223,7 @@ abstract class Item (var position: Pos) extends Publisher {
                 case DEC  => { attr_apply_damage(_.decisiveness) }
                 case ALL  => { o.stats.list.foreach(x => apply_damage(x)) }
                 case ANY  => { apply_damage(o.stats.list(Rng.uniform(0, 4))) }
-                case NONE => {}
+                case NONE => ()
             }
             drop
         }
@@ -198,7 +232,7 @@ abstract class Item (var position: Pos) extends Publisher {
     def superAction (o: Organism): Unit = {}
 
     def use (o: Organism, t: Organism) = {
-        if(isUsable(o)) {
+        if (isUsable(o)) {
             action(o, t)
             publish(UsedItem(this, o, cost_type))
             destroy // one-time use only
@@ -209,16 +243,23 @@ abstract class Item (var position: Pos) extends Publisher {
     def levelDown: Unit = { level -= 1 }
 
     def setPos (p: Pos) = {
-        if (position != null) position.items -= this
-        position = p
-        if (p != null) p.setItem(this)
+        abandonOwner
+        if (p != null) {
+            owner = PosOwned(p)
+            p.setItem(this)
+        }
     }
     // Game evolution: after each turn items move/are used
     def step: Unit = {
-        if (owner != null && isUsable(owner)
-        && Rng.choice(level / max_lvl)
-        && Rng.choice(owner.stats.decisiveness.residual / 100)) {
-            use(owner, owner)
+        owner match {
+            case OrgOwned(orga) => {
+                if (isUsable(orga)
+                && Rng.choice(level / max_lvl)
+                && Rng.choice(orga.stats.decisiveness.residual / 100)) {
+                    use(orga, orga)
+                }
+            }
+            case _ => ()
         }
     }
 }
@@ -237,22 +278,18 @@ object MakeItem extends Enumeration {
     val KEY = Value
     val NONE = Value
 
-    def build_item (it: MakeItem, pos: Pos) {
-        var item = it match {
-            case KNIFE => new Knife(pos)
-            case ALCOHOL => new Alcohol(pos)
-            case MOVE => new BodyMovement(pos)
-            case JAVEL => new Javel(pos)
-            case HEAT => new Heat(pos)
-            case SPIKE => new Spike(pos)
-            case LEAK => new CytoplasmLeak(pos)
-            case MEMBRANE => new MembraneReplacement(pos)
-            case KEY => new Key(pos)
-            case NONE => null
-        }
-        if (item != null) {
-            item.drop
-            pos.room.body.items += item
+    def build_item (it: MakeItem, owner: Owner) {
+        it match {
+            case KNIFE => new Knife(owner)
+            case ALCOHOL => new Alcohol(owner)
+            case MOVE => new BodyMovement(owner)
+            case JAVEL => new Javel(owner)
+            case HEAT => new Heat(owner)
+            case SPIKE => new Spike(owner)
+            case LEAK => new CytoplasmLeak(owner)
+            case MEMBRANE => new MembraneReplacement(owner)
+            case KEY => new Key(owner)
+            case NONE => return
         }
     }
 }
@@ -260,7 +297,7 @@ import MakeItem._
 
 // Partition the Items according to their application area:
 // Action on local area + straight movement (bounces on walls)
-abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
+abstract class SpatialActionItem (owner: Owner) extends Item(owner) {
     var (mv_vert, mv_horiz): Tuple2[Int, Int] = Rng.weightedChoice(Buffer(
         (0.1, (1,0)), (0.1, (0,1)), (0.1, (-1,0)), (0.1, (0,-1)),
         (0.1, (1,1)), (0.1, (1,-1)), (0.1, (-1,1)), (0.1, (-1,-1)),
@@ -274,11 +311,15 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
 
     def LocsPicking: ListBuffer[Pos] = { // positions affected by the item
         var lst = ListBuffer[Pos]()
-        for (i <- position.i - radius to position.i + radius) {
-            for (j <- position.j - radius to position.j + radius) {
-                if (0 <= i && i < position.room.rows && 0 <= j && j < position.room.cols) {
-                    if(pow(position.i - i, 2) + pow(position.j - j, 2) <= radius) {
-                        lst += position.room.locs(i, j)
+        val pos: Pos = owner match {
+            case PosOwned(position) => position
+            case _ => return ListBuffer()
+        }
+        for (i <- pos.i - radius to pos.i + radius) {
+            for (j <- pos.j - radius to pos.j + radius) {
+                if (0 <= i && i < pos.room.rows && 0 <= j && j < pos.room.cols) {
+                    if (pow(pos.i - i, 2) + pow(pos.j - j, 2) <= radius) {
+                        lst += pos.room.locs(i, j)
                     }
                 }
             }
@@ -291,24 +332,27 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
         pickable = false
     }
 
-    override def action (o: Organism, t: Organism): Unit = {
+    override def action(o: Organism, t: Organism): Unit = {
         unpayCost(o)
-        super.action (o, t)
+        super.action(o, t)
     }
 
     def move: Unit = {
-        if (position != null) {
-            if (!Rng.choice(moveProba)) return
-            val newPos = position.jump(mv_vert, mv_horiz)
-            if (newPos != null) { setPos(newPos); return }
-            durability -= 1
-            if (durability <= 0) {
-                destroy
-            } else {
-                val tmp = mv_vert
-                mv_vert = -mv_horiz
-                mv_horiz = tmp
+        owner match {
+            case PosOwned(position) => {
+                if (!Rng.choice(moveProba)) return
+                val newPos = position.jump(mv_vert, mv_horiz)
+                if (newPos != null) { setPos(newPos); return }
+                durability -= 1
+                if (durability <= 0) {
+                    destroy
+                } else {
+                    val tmp = mv_vert
+                    mv_vert = -mv_horiz
+                    mv_horiz = tmp
+                }
             }
+            case _ => ()
         }
     }
 
@@ -319,7 +363,7 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
                 l.notification
                 for (orga <- l.organisms.toList) {
                     for (o <- orga.toList) {
-                        if (o != null && o != owner) {
+                        if (OrgOwned(o) != owner) {
                             o.inflictDamage(damage, CauseOfDeath.ItemEffect)
                         }
                     }
@@ -332,11 +376,15 @@ abstract class SpatialActionItem (pos: Pos) extends Item(pos) {
 }
 
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
-abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
+abstract class GlobalActionItem (owner: Owner) extends Item(owner) {
     override def action (o: Organism, t: Organism): Unit = {
-        val pos = if (owner != null) { owner.position } else if (position != null) { position } else null
+        val pos: Pos = owner match {
+            case OrgOwned(orga) => orga.position
+            case PosOwned(position) => position
+            case _ => { null }
+        }
         if (pos != null) {
-            for (o <- pos.room.body.organisms ) { super.action (owner, o) }
+            for (o <- pos.room.body.organisms) { super.action(o, o) }
         }
         drop
     }
@@ -345,9 +393,7 @@ abstract class GlobalActionItem (pos: Pos) extends Item (pos) {
 
 /* --- * SpatialActionItem * ---*/
 // Weakens organisms it comes into contact with
-class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
-    setPos(position)
-
+class Alcohol (owner: Owner) extends SpatialActionItem(owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = 20
@@ -358,10 +404,8 @@ class Alcohol (pos: Pos) extends SpatialActionItem(pos) {
 }
 
 // Kills organisms it crosses
-class Knife (pos: Pos) extends SpatialActionItem(pos) {
+class Knife (owner: Owner) extends SpatialActionItem(owner) {
     setRadius(3)
-    setPos(position)
-
     pickable = false
 
     override def step: Unit = {
@@ -385,26 +429,27 @@ class Knife (pos: Pos) extends SpatialActionItem(pos) {
 /* --- * GlobalActionItem * ---*/
 
 // Randomly moves all organisms around
-class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
-    setPos(position)
-
+class BodyMovement (owner: Owner) extends GlobalActionItem(owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = 5
     targetStat = HP
 
     override def action (o: Organism, t: Organism): Unit = {
-        if (position != null) {
-            for (org <- position.room.body.organisms) {
-                unpayCost(owner)
-                super.action(owner, org)
-                for(i <- 1 to 10) {
-                    org.maybeMove (position.room, Direction.UP)
-                    org.maybeMove (position.room, Direction.DOWN)
-                    org.maybeMove (position.room, Direction.LEFT)
-                    org.maybeMove (position.room, Direction.RIGHT)
+        owner match {
+            case PosOwned(position) => {
+                for (org <- position.room.body.organisms) {
+                    unpayCost(o)
+                    super.action(o, org)
+                    for(i <- 1 to 10) {
+                        org.maybeMove (position.room, Direction.UP)
+                        org.maybeMove (position.room, Direction.DOWN)
+                        org.maybeMove (position.room, Direction.LEFT)
+                        org.maybeMove (position.room, Direction.RIGHT)
+                    }
                 }
             }
+            case _ => ()
         }
     }
 
@@ -413,18 +458,20 @@ class BodyMovement (pos: Pos) extends GlobalActionItem(pos) {
 }
 
 // Kills organisms when picked up
-class Javel (pos: Pos) extends GlobalActionItem(pos) {
-    setPos(position)
-
+class Javel (owner: Owner) extends GlobalActionItem(owner: Owner) {
     override def action (o: Organism, t: Organism): Unit = {
-        if (owner != null) {
-            for (org <- owner.position.room.body.organisms) {
-                org.kill(CauseOfDeath.ItemEffect)
+        owner match {
+            case OrgOwned(orga) => {
+                for (org <- orga.position.room.body.organisms) {
+                    org.kill(CauseOfDeath.ItemEffect)
+                }
             }
-        } else if (position != null) {
-            for (org <- position.room.body.organisms) {
-                org.kill(CauseOfDeath.ItemEffect)
+            case PosOwned(position) => {
+                for (org <- position.room.body.organisms) {
+                    org.kill(CauseOfDeath.ItemEffect)
+                }
             }
+            case _ => ()
         }
         drop
     }
@@ -434,9 +481,7 @@ class Javel (pos: Pos) extends GlobalActionItem(pos) {
 }
 
 // Slows down cells
-class Heat (pos: Pos) extends GlobalActionItem(pos) {
-    setPos(position)
-
+class Heat (owner: Owner) extends GlobalActionItem(owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = -5
@@ -451,9 +496,7 @@ class Heat (pos: Pos) extends GlobalActionItem(pos) {
 /* --- * LocalActionItem * --- */
 
 // Improves cells or viruses depending on who picked it up
-class MembraneReplacement (pos: Pos) extends Item (pos) {
-    setPos(position)
-
+class MembraneReplacement (owner: Owner) extends Item (owner) {
     cost_type = SPD
     cost_factor = 10
     targetStat = HP
@@ -464,9 +507,7 @@ class MembraneReplacement (pos: Pos) extends Item (pos) {
 }
 
 // Strengthens viruses
-class Spike (pos: Pos) extends Item (pos) {
-    setPos(position)
-
+class Spike (owner: Owner) extends Item (owner) {
     cost_type = SPD
     cost_factor = 3
     targetStat = POW
@@ -477,9 +518,7 @@ class Spike (pos: Pos) extends Item (pos) {
 }
 
 // Cell: spd++, hp--; Virus: unusable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
-class CytoplasmLeak (pos: Pos) extends Item (pos) {
-    setPos(position)
-
+class CytoplasmLeak (owner: Owner) extends Item (owner) {
     cost_type = HP
     cost_factor = 20
     targetStat = SPD
@@ -489,7 +528,7 @@ class CytoplasmLeak (pos: Pos) extends Item (pos) {
     def sacrificeValue = 70
 }
 
-class Key (pos: Pos) extends Item(pos) {
+class Key (owner: Owner) extends Item(owner) {
     override def pickUp (o: Organism): Boolean = {
         o.position.room.listenTo(this)
         publish(PickedUpItem(this, o))
@@ -498,7 +537,12 @@ class Key (pos: Pos) extends Item(pos) {
     }
     override def step {
         super.step
-        if (position != null) position.notification
+        owner match {
+            case PosOwned(position) => position.notification
+            case OrgOwned(orga) => orga.position.notification
+            case PlayOwned(player) => player.position.notification
+            case _ => ()
+        }
     }
 
     override def toString = "Key"

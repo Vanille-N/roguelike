@@ -176,7 +176,7 @@ abstract class Organism (
             // died, maybe drop an item upon death
             Rng.weightedChoice(itemDrop) match {
                 case None => ()
-                case Some(item) => MakeItem.build_item(item, position)
+                case Some(item) => MakeItem.build_item(item, PosOwned(position))
             }
         } else {
             val idx = if (isFriendly) 1 else 0

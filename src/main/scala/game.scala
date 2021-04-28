@@ -73,39 +73,17 @@ extends Reactor with Publisher {
                     case 5 => NONE
                 }
             }
-            if(Rng.choice(items.size / nb_destroyed_items)
-                    && i.position != null) {
+            val ipos = i.position
+            val a = Rng.uniform(0, 5)
+            val b = Rng.uniform(0, 5)
+            if (Rng.choice(items.size / nb_destroyed_items)
+                    && ipos != null) {
                 Rng.uniform(0, 5) match {
-                    case 0 => i.position.artefacts =
-                        i.position.artefacts.+(
-                            new Artefact(i.position,
-                                Rng.uniform(0, 5),
-                                Rng.uniform(0, 5),
-                                get_artefact_type))// Artefact
-                    case 1 => i.position.artefacts =
-                        i.position.artefacts.+(
-                            new Murderer(i.position,
-                                Rng.uniform(0, 5),
-                                Rng.uniform(0, 5),
-                                get_artefact_type))// Murderer
-                    case 2 => i.position.artefacts =
-                        i.position.artefacts.+(
-                            new ForceUsage(i.position,
-                                Rng.uniform(0, 5),
-                                Rng.uniform(0, 5),
-                                get_artefact_type))// Force Usage
-                    case 3 => i.position.artefacts =
-                        i.position.artefacts.+(
-                            new Temptation(i.position,
-                                Rng.uniform(0, 5),
-                                Rng.uniform(0, 5),
-                                get_artefact_type))// Temptation
-                    case 4 => i.position.artefacts =
-                        i.position.artefacts.+(
-                            new Unattach(i.position,
-                                Rng.uniform(0, 5),
-                                Rng.uniform(0, 5),
-                                get_artefact_type))// Unattach
+                    case 0 => ipos.artefacts = ipos.artefacts.+(new Artefact(ipos, a, b, get_artefact_type))
+                    case 1 => ipos.artefacts = ipos.artefacts.+(new Murderer(ipos, a, b, get_artefact_type))
+                    case 2 => ipos.artefacts = ipos.artefacts.+(new ForceUsage(ipos, a, b, get_artefact_type))
+                    case 3 => ipos.artefacts = ipos.artefacts.+(new Temptation(ipos, a, b, get_artefact_type))
+                    case 4 => ipos.artefacts = ipos.artefacts.+(new Unattach(ipos, a, b, get_artefact_type))
                 }
             }
         }
