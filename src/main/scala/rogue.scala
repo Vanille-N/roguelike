@@ -195,6 +195,7 @@ object main extends SimpleSwingApplication {
     def loadLevel {
         games.map(g => deafTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => deafTo(cmd)))
+        games.map(g => g.player.inventory = g.player.saveInventory.decompress(g.player))
         println(s"Entering level $levelNum")
         makeBodyPart
         top.contents = games(0).newGame

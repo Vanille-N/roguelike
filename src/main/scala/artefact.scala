@@ -16,7 +16,8 @@ object ArtefactType extends Enumeration {
 }
 import ArtefactType._
 
-class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact_type: ArtefactType) extends Publisher {
+class Artefact (val position: Pos, val radius: Int, val level: Int, val artefact_type: ArtefactType)
+extends Publisher {
     var remaining_steps: Int = 1.max(level) * 5
     // radius defines the radius of the ciorcle it looks for to find items
 
@@ -85,8 +86,7 @@ class Murderer (// Artefact that kills any organisms in its reach
     radius: Int,
     level: Int,
     artefact_type: ArtefactType
-    ) extends Artefact (position, radius, level, artefact_type) {
-        //
+) extends Artefact(position, radius, level, artefact_type) {
     override def step: Unit = {
         for (o <- findOrganism) {
             if (o.skills.immunity.get < 5 ) {
@@ -105,8 +105,7 @@ class ForceUsage (// Artefact that make the organisms use their items (even if i
     radius: Int,
     level: Int,
     artefact_type: ArtefactType
-    ) extends Artefact (position, radius, level, artefact_type) {
-        //
+) extends Artefact(position, radius, level, artefact_type) {
     override def step: Unit = {
         for (o <- findOrganism) {
             for (i <- o.items) {
@@ -125,8 +124,7 @@ class Temptation (// Artefact that make the organisms check whether use or not t
     radius: Int,
     level: Int,
     artefact_type: ArtefactType
-    ) extends Artefact (position, radius, level, artefact_type) {
-        //
+) extends Artefact(position, radius, level, artefact_type) {
     override def step: Unit = {
         for (o <- findOrganism) {
             for (i <- o.items) {
@@ -145,8 +143,7 @@ class Unattach (// Artefact that make the organisms drop their items
     radius: Int,
     level: Int,
     artefact_type: ArtefactType
-    ) extends Artefact (position, radius, level, artefact_type) {
-        //
+) extends Artefact(position, radius, level, artefact_type) {
     override def step: Unit = {
         for (o <- findOrganism) {
             for (i <- o.items) i.drop

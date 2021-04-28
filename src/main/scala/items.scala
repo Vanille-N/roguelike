@@ -71,7 +71,9 @@ abstract class Item (var owner: Owner) extends Publisher {
     }
 
     def setOwner (newOwner: Owner) {
+        val former = owner
         abandonOwner
+        val tmp = owner
         newOwner match {
             case PosOwned(position) => {
                 position.room.body.listenTo(this)
@@ -150,14 +152,14 @@ abstract class Item (var owner: Owner) extends Publisher {
             is_enough(accessor(o.stats))
         }
         cost_type match {
-            case HP   => { attr_is_enough(_.health) }
-            case SPD  => { attr_is_enough(_.speed) }
-            case POW  => { attr_is_enough(_.power) }
-            case DEF  => { attr_is_enough(_.resistance) }
-            case DEC  => { attr_is_enough(_.decisiveness) }
-            case ALL  => { o.stats.list.exists(is_enough(_)) }
-            case ANY  => { o.stats.list.forall(is_enough(_)) }
-            case NONE => { true }
+            case HP   => attr_is_enough(_.health)
+            case SPD  => attr_is_enough(_.speed)
+            case POW  => attr_is_enough(_.power)
+            case DEF  => attr_is_enough(_.resistance)
+            case DEC  => attr_is_enough(_.decisiveness)
+            case ALL  => o.stats.list.exists(is_enough(_))
+            case ANY  => o.stats.list.forall(is_enough(_))
+            case NONE => true
         }
     }
 
@@ -170,14 +172,14 @@ abstract class Item (var owner: Owner) extends Publisher {
             augment(accessor(o.stats))
         }
         cost_type match {
-            case HP   => { attr_augment(_.health) }
-            case SPD  => { attr_augment(_.speed) }
-            case POW  => { attr_augment(_.power) }
-            case DEF  => { attr_augment(_.resistance) }
-            case DEC  => { attr_augment(_.decisiveness) }
-            case ALL  => { o.stats.list.foreach(x => augment(x)) }
-            case ANY  => { augment(o.stats.list(Rng.uniform(0, 4))) }
-            case NONE => {}
+            case HP   => attr_augment(_.health)
+            case SPD  => attr_augment(_.speed)
+            case POW  => attr_augment(_.power)
+            case DEF  => attr_augment(_.resistance)
+            case DEC  => attr_augment(_.decisiveness)
+            case ALL  => o.stats.list.foreach(x => augment(x))
+            case ANY  => augment(o.stats.list(Rng.uniform(0, 4)))
+            case NONE => ()
         }
     }
     def payCost (o: Organism) { // apply stat reduction for activation cost
@@ -189,13 +191,13 @@ abstract class Item (var owner: Owner) extends Publisher {
             reduce(accessor(o.stats))
         }
         cost_type match {
-            case HP   => { o.inflictDamage(cost, CauseOfDeath.ItemCost) }
-            case SPD  => { attr_reduce(_.speed) }
-            case POW  => { attr_reduce(_.power) }
-            case DEF  => { attr_reduce(_.resistance) }
-            case DEC  => { attr_reduce(_.decisiveness) }
-            case ALL  => { o.stats.list.foreach(x => reduce(x)) }
-            case ANY  => { reduce(o.stats.list(Rng.uniform(0, 4))) }
+            case HP   => o.inflictDamage(cost, CauseOfDeath.ItemCost)
+            case SPD  => attr_reduce(_.speed)
+            case POW  => attr_reduce(_.power)
+            case DEF  => attr_reduce(_.resistance)
+            case DEC  => attr_reduce(_.decisiveness)
+            case ALL  => o.stats.list.foreach(x => reduce(x))
+            case ANY  => reduce(o.stats.list(Rng.uniform(0, 4)))
             case NONE => ()
         }
     }
@@ -216,13 +218,13 @@ abstract class Item (var owner: Owner) extends Publisher {
                 apply_damage(accessor(o.stats))
             }
             cost_type match {
-                case HP   => { o.inflictDamage(cost, CauseOfDeath.ItemCost) }
-                case SPD  => { attr_apply_damage(_.speed) }
-                case POW  => { attr_apply_damage(_.power) }
-                case DEF  => { attr_apply_damage(_.resistance) }
-                case DEC  => { attr_apply_damage(_.decisiveness) }
-                case ALL  => { o.stats.list.foreach(x => apply_damage(x)) }
-                case ANY  => { apply_damage(o.stats.list(Rng.uniform(0, 4))) }
+                case HP   => o.inflictDamage(cost, CauseOfDeath.ItemCost)
+                case SPD  => attr_apply_damage(_.speed)
+                case POW  => attr_apply_damage(_.power)
+                case DEF  => attr_apply_damage(_.resistance)
+                case DEC  => attr_apply_damage(_.decisiveness)
+                case ALL  => o.stats.list.foreach(x => apply_damage(x))
+                case ANY  => apply_damage(o.stats.list(Rng.uniform(0, 4)))
                 case NONE => ()
             }
             drop
@@ -242,13 +244,6 @@ abstract class Item (var owner: Owner) extends Publisher {
     def levelUp: Unit = { level += 1 }
     def levelDown: Unit = { level -= 1 }
 
-    def setPos (p: Pos) = {
-        abandonOwner
-        if (p != null) {
-            owner = PosOwned(p)
-            p.setItem(this)
-        }
-    }
     // Game evolution: after each turn items move/are used
     def step: Unit = {
         owner match {
@@ -297,7 +292,7 @@ import MakeItem._
 
 // Partition the Items according to their application area:
 // Action on local area + straight movement (bounces on walls)
-abstract class SpatialActionItem (owner: Owner) extends Item(owner) {
+abstract class SpatialActionItem (_owner: Owner) extends Item(_owner) {
     var (mv_vert, mv_horiz): Tuple2[Int, Int] = Rng.weightedChoice(Buffer(
         (0.1, (1,0)), (0.1, (0,1)), (0.1, (-1,0)), (0.1, (0,-1)),
         (0.1, (1,1)), (0.1, (1,-1)), (0.1, (-1,1)), (0.1, (-1,-1)),
@@ -339,10 +334,14 @@ abstract class SpatialActionItem (owner: Owner) extends Item(owner) {
 
     def move: Unit = {
         owner match {
-            case PosOwned(position) => {
+            case PosOwned(pos) => {
                 if (!Rng.choice(moveProba)) return
-                val newPos = position.jump(mv_vert, mv_horiz)
-                if (newPos != null) { setPos(newPos); return }
+                val newPos = pos.jump(mv_vert, mv_horiz)
+                if (newPos != null) {
+                    setOwner(PosOwned(newPos))
+                    newPos.notification
+                    return
+                }
                 durability -= 1
                 if (durability <= 0) {
                     destroy
@@ -376,7 +375,7 @@ abstract class SpatialActionItem (owner: Owner) extends Item(owner) {
 }
 
 // Action on every ( spawner | cell | virus | organism ) of the map, limited nb of uses
-abstract class GlobalActionItem (owner: Owner) extends Item(owner) {
+abstract class GlobalActionItem (_owner: Owner) extends Item(_owner) {
     override def action (o: Organism, t: Organism): Unit = {
         val pos: Pos = owner match {
             case OrgOwned(orga) => orga.position
@@ -393,7 +392,7 @@ abstract class GlobalActionItem (owner: Owner) extends Item(owner) {
 
 /* --- * SpatialActionItem * ---*/
 // Weakens organisms it comes into contact with
-class Alcohol (owner: Owner) extends SpatialActionItem(owner) {
+class Alcohol (_owner: Owner) extends SpatialActionItem(_owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = 20
@@ -404,7 +403,7 @@ class Alcohol (owner: Owner) extends SpatialActionItem(owner) {
 }
 
 // Kills organisms it crosses
-class Knife (owner: Owner) extends SpatialActionItem(owner) {
+class Knife (_owner: Owner) extends SpatialActionItem(_owner) {
     setRadius(3)
     pickable = false
 
@@ -429,7 +428,7 @@ class Knife (owner: Owner) extends SpatialActionItem(owner) {
 /* --- * GlobalActionItem * ---*/
 
 // Randomly moves all organisms around
-class BodyMovement (owner: Owner) extends GlobalActionItem(owner) {
+class BodyMovement (_owner: Owner) extends GlobalActionItem(_owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = 5
@@ -441,11 +440,11 @@ class BodyMovement (owner: Owner) extends GlobalActionItem(owner) {
                 for (org <- position.room.body.organisms) {
                     unpayCost(o)
                     super.action(o, org)
-                    for(i <- 1 to 10) {
-                        org.maybeMove (position.room, Direction.UP)
-                        org.maybeMove (position.room, Direction.DOWN)
-                        org.maybeMove (position.room, Direction.LEFT)
-                        org.maybeMove (position.room, Direction.RIGHT)
+                    import Direction._
+                    for (i <- 1 to 10) {
+                        for (dir <- List(UP, DOWN, LEFT, RIGHT)) {
+                            org.maybeMove(position.room, dir)
+                        }
                     }
                 }
             }
@@ -457,21 +456,13 @@ class BodyMovement (owner: Owner) extends GlobalActionItem(owner) {
     def sacrificeValue = 60
 }
 
-// Kills organisms when picked up
-class Javel (owner: Owner) extends GlobalActionItem(owner: Owner) {
+// Kills on its position
+class Javel (_owner: Owner) extends GlobalActionItem(_owner: Owner) {
     override def action (o: Organism, t: Organism): Unit = {
-        owner match {
-            case OrgOwned(orga) => {
-                for (org <- orga.position.room.body.organisms) {
-                    org.kill(CauseOfDeath.ItemEffect)
-                }
-            }
-            case PosOwned(position) => {
-                for (org <- position.room.body.organisms) {
-                    org.kill(CauseOfDeath.ItemEffect)
-                }
-            }
-            case _ => ()
+        val pos = position
+        if (pos != null) {
+            for (org <- pos.organisms(0).toList) org.kill(CauseOfDeath.ItemEffect)
+            for (org <- pos.organisms(1).toList) org.kill(CauseOfDeath.ItemEffect)
         }
         drop
     }
@@ -481,7 +472,7 @@ class Javel (owner: Owner) extends GlobalActionItem(owner: Owner) {
 }
 
 // Slows down cells
-class Heat (owner: Owner) extends GlobalActionItem(owner) {
+class Heat (_owner: Owner) extends GlobalActionItem(_owner) {
     cost_type = HP
     cost_factor = 10
     damage_factor = -5
@@ -496,7 +487,7 @@ class Heat (owner: Owner) extends GlobalActionItem(owner) {
 /* --- * LocalActionItem * --- */
 
 // Improves cells or viruses depending on who picked it up
-class MembraneReplacement (owner: Owner) extends Item (owner) {
+class MembraneReplacement (_owner: Owner) extends Item (_owner) {
     cost_type = SPD
     cost_factor = 10
     targetStat = HP
@@ -507,7 +498,7 @@ class MembraneReplacement (owner: Owner) extends Item (owner) {
 }
 
 // Strengthens viruses
-class Spike (owner: Owner) extends Item (owner) {
+class Spike (_owner: Owner) extends Item (_owner) {
     cost_type = SPD
     cost_factor = 3
     targetStat = POW
@@ -518,7 +509,7 @@ class Spike (owner: Owner) extends Item (owner) {
 }
 
 // Cell: spd++, hp--; Virus: unusable ;; newspeed.residual = speed.residual_factor * level ++ base_speed.residual
-class CytoplasmLeak (owner: Owner) extends Item (owner) {
+class CytoplasmLeak (_owner: Owner) extends Item (_owner) {
     cost_type = HP
     cost_factor = 20
     targetStat = SPD
@@ -528,7 +519,7 @@ class CytoplasmLeak (owner: Owner) extends Item (owner) {
     def sacrificeValue = 70
 }
 
-class Key (owner: Owner) extends Item(owner) {
+class Key (_owner: Owner) extends Item(_owner) {
     override def pickUp (o: Organism): Boolean = {
         o.position.room.listenTo(this)
         publish(PickedUpItem(this, o))
@@ -537,12 +528,8 @@ class Key (owner: Owner) extends Item(owner) {
     }
     override def step {
         super.step
-        owner match {
-            case PosOwned(position) => position.notification
-            case OrgOwned(orga) => orga.position.notification
-            case PlayOwned(player) => player.position.notification
-            case _ => ()
-        }
+        val pos = position
+        if (pos != null) pos.notification
     }
 
     override def toString = "Key"
@@ -577,18 +564,19 @@ class CompactInventory() {
         this
     }
 
-    def decompress: Set[Item] = {
+    def decompress(player: Player): Set[Item] = {
         var inventory: Set[Item] = Set()
+        val owner = PlayOwned(player)
         for ((it, num) <- contents) {
             for (j <- 1 to num) {
                 val instance = it match {
-                    case ALCOHOL => new Alcohol(null)
-                    case MOVE => new BodyMovement(null)
-                    case JAVEL => new Javel(null)
-                    case HEAT => new Heat(null)
-                    case SPIKE => new Spike(null)
-                    case LEAK => new CytoplasmLeak(null)
-                    case MEMBRANE => new MembraneReplacement(null)
+                    case ALCOHOL => new Alcohol(owner)
+                    case MOVE => new BodyMovement(owner)
+                    case JAVEL => new Javel(owner)
+                    case HEAT => new Heat(owner)
+                    case SPIKE => new Spike(owner)
+                    case LEAK => new CytoplasmLeak(owner)
+                    case MEMBRANE => new MembraneReplacement(owner)
                     case _ => null
                 }
                 if (instance != null) inventory.add(instance)

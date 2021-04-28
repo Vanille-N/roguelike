@@ -49,10 +49,6 @@ extends Publisher with Reactor {
         publish(Notification(this))
     }
 
-    def setItem (i: Item) = {
-       items.add(i)
-       notification
-    }
     def addOrganism (o: Organism) = { // organism enters the tile
         val idx = if (o.isFriendly) 1 else 0
         organisms(idx).add(o)

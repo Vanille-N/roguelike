@@ -71,7 +71,7 @@ extends Reactor with Publisher {
 
     def addItem (i: Item, p: Pos) = {
         body.items.add(i)
-        i.setPos(p)
+        i.setOwner(PosOwned(p))
     }
 
     def isValid (i: Int, j: Int): Boolean = {
