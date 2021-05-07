@@ -46,7 +46,7 @@ extends Publisher with Reactor {
     var hostileSpawner: PhysicalSpawner = null
 
     def notification {
-        publish(Notification(this))
+        publish(Notification(i, j))
     }
 
     def addOrganism (o: Organism) = { // organism enters the tile

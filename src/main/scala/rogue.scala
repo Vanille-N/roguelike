@@ -1,4 +1,5 @@
 import scala.collection.mutable.Set
+import scala.collection.mutable.ArrayBuffer
 import scala.swing._
 import event._
 
@@ -31,6 +32,7 @@ class Game (
     var globalPanel : GridBagPanel = null
 
     var startingStats = player.startingStats.deepCopy
+    var waitingNotifications = ArrayBuffer[Tuple2[Int,Int]]()
 
     val progressbar = new ProgressBar {
         visible = true
@@ -64,7 +66,8 @@ class Game (
     val localRoom = new LocalRoom(body.room.rows, body.room.cols)
     val displayGrid = new DisplayGrid(localRoom)
     displayGrid.map(listenTo(_))
-    localRoom.syncWithRoom(body.room)
+    body.room.locs.map(listenTo(_))
+    localRoom.syncWithRoom(body.room, (player.position.i, player.position.j), List())
 
     var command = new Command(body, this)
     listenTo(command)
@@ -112,7 +115,8 @@ class Game (
     }
 
     def step {
-        localRoom.syncWithRoom(body.room)
+        localRoom.syncWithRoom(body.room, (player.position.i, player.position.j), waitingNotifications.toList)
+        waitingNotifications.clear
         displayGrid.map(_.updateVisuals)
         progressbar.value = winCondition.completion
     }
@@ -138,6 +142,9 @@ class Game (
             else logs.text += str
         }
         case ClearLogs() => { logs.text = "" }
+        case Notification(i:Int, j:Int) => {
+            waitingNotifications.append((i,j))
+        }
         case RefreshDisplay() => {
             displayGrid.map(_.updateVisuals)
         }

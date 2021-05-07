@@ -7,9 +7,7 @@ import event._
  * - visual feedback for tile contents
  */
 
-case class Notification (pos: Pos) extends Event
-case class Focus (pos: Pos) extends Event
-case class UnFocus (pos: Pos) extends Event
+case class Notification (i: Int, j: Int) extends Event
 
 // one tile
 class DisplayPos (val dual: LocalPos) extends Button {
@@ -98,7 +96,11 @@ class LocalRoom (
         (i, j) => new LocalPos(i, j)
     }
 
-    def syncWithRoom (room: Room) {
+    def syncWithRoom (
+        room: Room,
+        focusPos: Tuple2[Int,Int],
+        notifications: List[Tuple2[Int,Int]],
+      ) {
         for (i <- 0 to rows-1; j <- 0 to cols-1) {
             var pos = locs(i)(j)
             var src = room.locs(i,j)
@@ -108,6 +110,11 @@ class LocalRoom (
             pos.hasHostileSpawner = (src.hostileSpawner != null)
             pos.hasArtefacts = (src.artefacts.size != 0)
             pos.hasItems = (src.items.size != 0)
+            pos.needsFocus = (pos.i == focusPos._1 && pos.j == focusPos._2)
+            pos.hasNotification = false
+        }
+        for (notif <- notifications) {
+            locs(notif._1)(notif._2).hasNotification = true
         }
     }
 }

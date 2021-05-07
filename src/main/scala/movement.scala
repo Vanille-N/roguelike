@@ -14,13 +14,11 @@ class Player () {
     var position: Pos = null;
     def placeOnMap (p: Pos) {
         position = p
-        p.publish(Focus(p))
     }
 
     def move (dir: Direction): Boolean = { // moves without concern for walls
         val newPosition = position.tryAdd(dir)
         if (newPosition != null) {
-            position.publish(UnFocus(position))
             placeOnMap(newPosition)
             true
         } else false
