@@ -12,12 +12,10 @@ case class Focus (pos: Pos) extends Event
 case class UnFocus (pos: Pos) extends Event
 
 // one tile
-class DisplayPos (val dual: Pos) extends Button {
+class DisplayPos (val dual: LocalPos) extends Button {
     var isFocused: Boolean = false // position of cursor
     var notifyLevel: Int = 0 // visual feedback for important events
 
-    listenTo(dual)
-    val room = dual.room
     val i = dual.i
     val j = dual.j
     this.focusable = false
@@ -33,22 +31,26 @@ class DisplayPos (val dual: Pos) extends Button {
     focusPainted = false
 
     def updateVisuals {
+        notifyLevel = 3 * notifyLevel / 4
+        if (dual.hasNotification) notifyLevel = 255
+        isFocused = dual.needsFocus
+
         // text
         val totalStrength = dual.strength(0) + dual.strength(1)
         var t0 = if (totalStrength > 0) dual.strength(0).toString else ""
         var t1 = if (totalStrength > 0) dual.strength(1).toString else ""
-        if (dual.hostileSpawner != null) { // '+' indicates a spawner
+        if (dual.hasHostileSpawner) { // '+' indicates a spawner
             t0 += "+"
-            if (dual.friendlySpawner == null && totalStrength == 0) t1 += "."
+            if (!dual.hasFriendlySpawner && totalStrength == 0) t1 += "."
         }
-        if (dual.friendlySpawner != null) {
+        if (dual.hasFriendlySpawner) {
             t1 += "+"
-            if (dual.hostileSpawner == null && totalStrength == 0) t0 += "."
+            if (!dual.hasHostileSpawner && totalStrength == 0) t0 += "."
         }
-        if (dual.artefacts.size != 0) t1 += "A" // 'i' indicates an item
-            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
-        if (dual.items.size != 0) t1 += "i" // 'i' indicates an item
-            text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>" // html required to have multiline texs
+        // html required to have multiline text
+        if (dual.hasArtefacts) t1 += "A" // 'A' indicates an artefact
+        if (dual.hasItems) t1 += "i" // 'i' indicates an item
+        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(
             Scheme.red, dual.strength(0) / 100.0,
@@ -62,33 +64,64 @@ class DisplayPos (val dual: Pos) extends Button {
 
     // user interface
     listenTo(mouse.clicks)
-    listenTo(room.body)
 
     reactions += {
-        case MouseClicked(_, _ ,0, _ , _ ) =>
-            { publish(DisplayContents(dual)) }
+        case MouseClicked(_, _,0 , _, _) =>
+            { publish(DisplayContents(dual.i, dual.j)) }
         case UIElementResized(_) => {
             font = new Font("default", Font.BOLD,
                 (size.width / dual.strength(0).toString.length.max(dual.strength(1).toString.length).max(3)).min(
                 size.height / 2))
         }
-        case LoopStep() => notifyLevel = 3 * notifyLevel / 4
-        case Notification(_) => notifyLevel = 255
-        case Focus(_) => isFocused = true
-        case UnFocus(_) => isFocused = false
     }
 }
 
 // Aggregate functions for positions
-class DisplayGrid (room: Room) {
+class DisplayGrid (room: LocalRoom) {
     val rows = room.rows
     val cols = room.cols
     val elem = IndexedSeq.tabulate(rows, cols) {
         (i, j) => {
-            new DisplayPos(room.locs(i,j))
+            new DisplayPos(room.locs(i)(j))
         }
     }
     def map[U] (f: DisplayPos => U) = elem.map(_.map(f(_)))
     def filter (f: DisplayPos => Boolean) = elem.flatten.filter(f(_))
     def apply (i: Int, j: Int) = elem(i)(j)
+}
+
+class LocalRoom (
+    val rows: Int,
+    val cols: Int,
+) {
+    val locs = IndexedSeq.tabulate(rows, cols) {
+        (i, j) => new LocalPos(i, j)
+    }
+
+    def syncWithRoom (room: Room) {
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            var pos = locs(i)(j)
+            var src = room.locs(i,j)
+            pos.strength(0) = src.strength(0)
+            pos.strength(1) = src.strength(1)
+            pos.hasFriendlySpawner = (src.friendlySpawner != null)
+            pos.hasHostileSpawner = (src.hostileSpawner != null)
+            pos.hasArtefacts = (src.artefacts.size != 0)
+            pos.hasItems = (src.items.size != 0)
+        }
+    }
+}
+
+class LocalPos (
+    val i: Int,
+    val j: Int,
+) {
+    var strength = Array(0, 0)
+    var hasFriendlySpawner: Boolean = false
+    var hasHostileSpawner: Boolean = false
+    var hasArtefacts: Boolean = false
+    var hasItems: Boolean = false
+
+    var needsFocus: Boolean = false
+    var hasNotification: Boolean = false
 }

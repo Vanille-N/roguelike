@@ -9,7 +9,7 @@ import event._
  */
 
 case class LeftClicked (o: Object) extends Event
-case class DisplayContents (p: Pos) extends Event
+case class DisplayContents (i: Int, j: Int) extends Event
 case class LevelClear(player: Player) extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
@@ -61,8 +61,10 @@ class Game (
     var selection_names: Array[String] = Array("_")
     var selection_current: String = "_"
 
-    val displayGrid = new DisplayGrid(body.room)
+    val localRoom = new LocalRoom(body.room.rows, body.room.cols)
+    val displayGrid = new DisplayGrid(localRoom)
     displayGrid.map(listenTo(_))
+    localRoom.syncWithRoom(body.room)
 
     var command = new Command(body, this)
     listenTo(command)
@@ -110,6 +112,7 @@ class Game (
     }
 
     def step {
+        localRoom.syncWithRoom(body.room)
         displayGrid.map(_.updateVisuals)
         progressbar.value = winCondition.completion
     }
@@ -121,7 +124,10 @@ class Game (
     
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        case DisplayContents(p: Pos) => { command.locsClicked(p); command.commandRequest(this.cmdline.text) }
+        case DisplayContents(i, j) => {
+            this.cmdline.text += " $i $j"
+            command.commandRequest(this.cmdline.text)
+        }
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized {command.keyPressed(c)} }
         case EditDone(`cmdline`) => { command.commandRequest(this.cmdline.text) }
