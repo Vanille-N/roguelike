@@ -117,6 +117,21 @@ class LocalRoom (
             locs(notif._1)(notif._2).hasNotification = true
         }
     }
+
+    def transfer (other: LocalRoom) {
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            var pos = locs(i)(j)
+            var src = other.locs(i)(j)
+            pos.strength(0) = src.strength(0)
+            pos.strength(1) = src.strength(1)
+            pos.hasFriendlySpawner = src.hasFriendlySpawner
+            pos.hasHostileSpawner = src.hasHostileSpawner
+            pos.hasArtefacts = src.hasArtefacts
+            pos.hasItems = src.hasItems
+            pos.needsFocus = src.needsFocus
+            pos.hasNotification = src.hasNotification
+        }
+    }
 }
 
 class LocalPos (
