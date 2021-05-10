@@ -49,10 +49,13 @@ class Game (
     listenTo(body.room);
     body.room.locs.map(listenTo(_))
 
-    def sync (info: LocalToRemote): RemoteToLocal = {
-        info.waitingCommand match {
-            case None => {}
-            case Some(cmd) => command.commandRequest(cmd)
+    def sync (info: List[LocalToRemote]): List[RemoteToLocal] = {
+        for (msg <- info) {
+            msg match {
+                case AnsCommandRequest(cmd) => {
+                    command.commandRequest(cmd)
+                }
+            }
         }
         val localRoom = new LocalRoom(body.room.rows, body.room.cols)
         localRoom.syncWithRoom(
@@ -60,16 +63,18 @@ class Game (
             (player.position.i, player.position.j),
             waitingNotifications.toList,
         )
-        val response = new RemoteToLocal(
-            localRoom,
-            winCondition.completion,
-            clearLogs,
-            logText,
+        val response = ArrayBuffer(
+            MsgRoomInfo(localRoom),
+            MsgWinCondition(winCondition.completion)
         )
+        if (clearLogs) {
+            response.append(MsgClearLogs())
+        }
+        response.append(MsgLogText(logText))
         waitingNotifications.clear
         logText = ""
         clearLogs = false
-        response
+        response.toList
     }
 
     // what to carry from a level to the next
@@ -149,7 +154,7 @@ class LocalGame (
     
     val localRoom = new LocalRoom(rows, cols)
     val displayGrid = new DisplayGrid(localRoom)
-    var waitingCommand: Option[String] = None
+    var waitingMsg = ArrayBuffer[LocalToRemote]()
     displayGrid.map(listenTo(_))
     
     // Set up the elements of the user interface.
@@ -192,14 +197,26 @@ class LocalGame (
         panel
     }
 
-    def sync (info: RemoteToLocal): LocalToRemote = {
-        localRoom.transfer(info.localRoom)
-        displayGrid.map(_.updateVisuals)
-        progressbar.value = info.winConditionCompletion
-        if (info.clearLogs) logs.text = ""
-        logs.text += info.logText
-        val response =  new LocalToRemote(waitingCommand)
-        waitingCommand = None
+    def sync (info: List[RemoteToLocal]): List[LocalToRemote] = {
+        for (msg <- info) {
+            msg match {
+                case MsgRoomInfo(room) => {
+                    localRoom.transfer(room)
+                    displayGrid.map(_.updateVisuals)
+                }
+                case MsgWinCondition(compl) => {
+                    progressbar.value = compl
+                }
+                case MsgClearLogs() => {
+                    logs.text = ""
+                }
+                case MsgLogText(txt) => {
+                    logs.text += txt
+                }
+            }
+        }
+        val response = waitingMsg.toList
+        waitingMsg.clear
         response
     }
 
@@ -225,7 +242,7 @@ class LocalGame (
             case Key.Semicolon => cmdline.requestFocusInWindow
             case Key.Colon => cmdline.requestFocusInWindow
             case Key.Escape => globalPanel.requestFocusInWindow
-            case _ => waitingCommand = Some(bind_keys(c))
+            case _ => waitingMsg.append(AnsCommandRequest(bind_keys(c)))
         }
     }
 
@@ -238,7 +255,7 @@ class LocalGame (
         //}
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized { keyPressed(c) } }
-        case EditDone(`cmdline`) => { waitingCommand = Some(this.cmdline.text) }
+        case EditDone(`cmdline`) => { waitingMsg.append(AnsCommandRequest(this.cmdline.text)) }
 
         case RefreshDisplay() => {
             displayGrid.map(_.updateVisuals)
@@ -246,16 +263,14 @@ class LocalGame (
     }
 }
 
-class RemoteToLocal (
-    val localRoom: LocalRoom,
-    val winConditionCompletion: Int,
-    val clearLogs: Boolean,
-    val logText: String,
-) {}
+sealed trait RemoteToLocal
+case class MsgRoomInfo(room: LocalRoom) extends RemoteToLocal
+case class MsgWinCondition(completion: Int) extends RemoteToLocal
+case class MsgClearLogs() extends RemoteToLocal
+case class MsgLogText(msg: String) extends RemoteToLocal
 
-class LocalToRemote (
-    val waitingCommand: Option[String]
-) {}
+sealed trait LocalToRemote
+case class AnsCommandRequest(cmd: String) extends LocalToRemote
 
 import java.util.{Timer,TimerTask}
 
@@ -272,7 +287,7 @@ object main extends SimpleSwingApplication {
     })
     var games = Array[Game]()
     var locals = Array[LocalGame]()
-    var transfer = Array[LocalToRemote]()
+    var transfer = Array[List[LocalToRemote]]()
 
     def updateMaxLevel {
         maxLevelNum = levelNum.max(maxLevelNum)
@@ -289,7 +304,7 @@ object main extends SimpleSwingApplication {
             new LocalGame(bodyPart.room.rows, bodyPart.room.cols)
         })
         transfer = players.map(pl => {
-            new LocalToRemote(None)
+            List()
         })
     }
 

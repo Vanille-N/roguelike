@@ -41,7 +41,7 @@ sealed trait Owner;
 case class PosOwned(p: Pos) extends Owner;
 case class OrgOwned(o: Organism) extends Owner;
 case class UnOwned() extends Owner;
-case class PlayOwned(p: Player) extends Owner
+case class PlayOwned(p: Player) extends Owner;
 
 abstract class Item (var owner: Owner) extends Publisher {
     var pickable: Boolean = true
