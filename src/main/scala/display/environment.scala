@@ -132,6 +132,15 @@ class LocalRoom (
             pos.hasNotification = src.hasNotification
         }
     }
+
+    override def toString: String = {
+        var res = s"$rows $cols"
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            val pos = locs(i)(j)
+            res += s",$pos"
+        }
+        res
+    }
 }
 
 class LocalPos (
@@ -146,4 +155,26 @@ class LocalPos (
 
     var needsFocus: Boolean = false
     var hasNotification: Boolean = false
+
+    def fromString (str: String) {
+        val split = str.split(" ")
+        strength(0) = split(1).toInt
+        strength(1) = split(2).toInt
+        hasFriendlySpawner = split(3) == "true"
+        hasHostileSpawner = split(4) == "true"
+        hasArtefacts = split(5) == "true"
+        hasItems = split(6) == "true"
+        needsFocus = split(7) == "true"
+        hasNotification = split(8) == "true"
+    }
+
+    override def toString: String = {
+        var res = s"${strength(0)} ${strength(1)}"
+        res += s" ${hasHostileSpawner} ${hasFriendlySpawner}"
+        res += s" ${hasArtefacts} ${hasItems}"
+        res += s" ${needsFocus} ${hasNotification}"
+        res
+    }
+
+
 }
