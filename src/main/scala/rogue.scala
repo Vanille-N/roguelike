@@ -242,7 +242,14 @@ class LocalGame (
             case Key.Semicolon => cmdline.requestFocusInWindow
             case Key.Colon => cmdline.requestFocusInWindow
             case Key.Escape => globalPanel.requestFocusInWindow
-            case _ => waitingMsg.append(AnsCommandRequest(bind_keys(c)))
+            case _ => {
+                try {
+                    val k = bind_keys(c)
+                    waitingMsg.append(AnsCommandRequest(k))
+                } catch {
+                    case e: NoSuchElementException => {}
+                }
+            }
         }
     }
 
@@ -374,7 +381,7 @@ object main extends SimpleSwingApplication {
         makeBodyPart
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
-        
+ 
         val timer = new Timer
         timer.schedule(new TimerTask() {
             def run {

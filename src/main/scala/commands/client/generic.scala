@@ -67,9 +67,9 @@ extends ClientCommandManager (body, game) {
             if (body.isPlaying) return ""
             body.isPlaying = true
             if (splited_command.length == 1) {
-                runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { body.step; game.step }
+                runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { body.step }
             } else {
-                runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(splited_command(1).toInt,TimeUnit.SECONDS)) { body.step; game.step }
+                runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(splited_command(1).toInt,TimeUnit.SECONDS)) { body.step }
             }
             return ""
         }
@@ -82,8 +82,8 @@ extends ClientCommandManager (body, game) {
             else { other_play }
         }
         def other_step: String = {// make a/n step
-            if (splited_command.length == 1) { body.step; game.step }
-            else { for(i <- 1 to (splited_command(1).toInt)) { body.step; game.step } }
+            if (splited_command.length == 1) { body.step }
+            else { for(i <- 1 to (splited_command(1).toInt)) { body.step } }
             return ""
         }
 

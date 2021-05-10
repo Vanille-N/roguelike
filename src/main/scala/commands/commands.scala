@@ -193,11 +193,6 @@ class Command (body: BodyPart, game: Game) extends Publisher {
     )
 
 
-    def commandFromKey (key: Key.Value) : String = {   // Get a string command from the use of a key
-        try bind_keys(key)
-        catch { case e: java.util.NoSuchElementException => { "" } }
-    }
-
     //def locsClicked ( p: Pos ): Unit = {
     //    if (current_command == "") {// no current command -> display the location's content
     //        publish(PrintInLogs(p.listContents))
