@@ -203,6 +203,33 @@ class LocalGame (
         response
     }
 
+    val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.
+        (Key.Up,         "Up"),
+        (Key.K,          "Up"),
+        (Key.Down,       "Down"),
+        (Key.J,          "Down"),
+        (Key.Right,      "Right"),
+        (Key.L,          "Right"),
+        (Key.Left,       "Left"),
+        (Key.H,          "Left"),
+        (Key.Q,          "quit"),
+        (Key.P,          "play"),
+        (Key.S,          "stop"),
+        (Key.Space,      "toggle"),
+        (Key.O,          "list"),
+        (Key.N,          "step-multiple"),
+        (Key.Enter,      "click-cell")
+    )
+    def keyPressed(c: Key.Value) {
+        c match {
+            case Key.Semicolon => cmdline.requestFocusInWindow
+            case Key.Colon => cmdline.requestFocusInWindow
+            case Key.Escape => globalPanel.requestFocusInWindow
+            case _ => waitingCommand = Some(bind_keys(c))
+        }
+    }
+
+
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         //case DisplayContents(i, j) => {
@@ -210,7 +237,7 @@ class LocalGame (
         //    command.commandRequest(this.cmdline.text)
         //}
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
-        //case KeyPressed(_, c, _, _) =>  { synchronized { command.keyPressed(c) } }
+        case KeyPressed(_, c, _, _) =>  { synchronized { keyPressed(c) } }
         case EditDone(`cmdline`) => { waitingCommand = Some(this.cmdline.text) }
 
         case RefreshDisplay() => {

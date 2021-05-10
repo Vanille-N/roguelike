@@ -94,9 +94,6 @@ extends ClientCommandManager (body, game) {
             case "quit"          => { realExecuteCommand(Array[String]("stop")) ; Runtime.getRuntime().halt(0) }
             case "step"          => { return other_step }
             case "step-multiple" => { realExecuteCommand(Array[String]("step", body.repeat.toString)); body.repeat = 1; return "" }
-            case "focus-cmdline" => { game.cmdline.requestFocusInWindow(); return "" }
-            case "focus-win"     => { game.globalPanel.requestFocusInWindow(); return "" }
-            case "q"             => { game.globalPanel.requestFocusInWindow(); return "" }
             case "clear"         => { publish(ClearLogs()); return "" }
             case "sacrifice"     => { publish(Sacrifice()); return "" }
             case _               => { publish(PrintInLogs("Error: Command `" + splited_command(0) + "` unknown")); return "" }

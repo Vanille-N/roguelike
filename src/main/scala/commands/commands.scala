@@ -175,36 +175,6 @@ class Command (body: BodyPart, game: Game) extends Publisher {
     // defines the active command at any given time.
     var current_command: String = ""
 
-    val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.
-        (Key.Semicolon,  "focus-cmdline"),
-        (Key.Colon  ,    "focus-cmdline"),
-        (Key.Numpad0,    "0"),
-        (Key.Numpad1,    "1"),
-        (Key.Numpad2,    "2"),
-        (Key.Numpad3,    "3"),
-        (Key.Numpad4,    "4"),
-        (Key.Numpad5,    "5"),
-        (Key.Numpad6,    "6"),
-        (Key.Numpad7,    "7"),
-        (Key.Numpad8,    "8"),
-        (Key.Numpad9,    "9"),
-        (Key.Escape,     "repeat-reset"),
-        (Key.Up,         "Up"),
-        (Key.K,          "Up"),
-        (Key.Down,       "Down"),
-        (Key.J,          "Down"),
-        (Key.Right,      "Right"),
-        (Key.L,          "Right"),
-        (Key.Left,       "Left"),
-        (Key.H,          "Left"),
-        (Key.Q,          "quit"),
-        (Key.P,          "play"),
-        (Key.S,          "stop"),
-        (Key.Space,      "toggle"),
-        (Key.O,          "list"),
-        (Key.N,          "step-multiple"),
-        (Key.Enter,      "click-cell")
-    )
     var aliases: Map[String, String] = Map ()// defines aliases (not used yet)
 
     // creates the different classes to deal with commands
@@ -228,18 +198,13 @@ class Command (body: BodyPart, game: Game) extends Publisher {
         catch { case e: java.util.NoSuchElementException => { "" } }
     }
 
-    def locsClicked ( p: Pos ): Unit = {
-        if (current_command == "") {// no current command -> display the location's content
-            publish(PrintInLogs(p.listContents))
-        } else {// there is a current command, append the coordinates of the location to the command line.
-            game.cmdline.text += " " + p.i + " " + p.j
-        }
-    }
-
-    def keyPressed (c: Key.Value): Unit = {// Called when the user presses a key outside of the cmdline TextArea.
-        val command: String = commandFromKey(c)
-        if(command != "") commandRequest(command)
-    }
+    //def locsClicked ( p: Pos ): Unit = {
+    //    if (current_command == "") {// no current command -> display the location's content
+    //        publish(PrintInLogs(p.listContents))
+    //    } else {// there is a current command, append the coordinates of the location to the command line.
+    //        game.cmdline.text += " " + p.i + " " + p.j
+    //    }
+    //}
 
     def unSplitCommand(arr: Array[String]): String = {
         var out: String = ""
@@ -256,10 +221,8 @@ class Command (body: BodyPart, game: Game) extends Publisher {
         else if (command.split("\\s+").head == "abort") {// if the line starts with abort, abort the current command.
             publish(PrintInLogs("Aborting ..."))
             current_command = ""
-            game.cmdline.text = ""
+            publish(ClearLogs())
             return
-        } else if (command == "click_cell") {// fake a click on the current location of the player
-            locsClicked (game.player.position)
         } else {
             if(current_command != "") current_command += " " + command
             else current_command = command
@@ -272,7 +235,7 @@ class Command (body: BodyPart, game: Game) extends Publisher {
             .executeCommand
 
         current_command = toBeExecuted(current_command)
-        game.cmdline.text = ""
+        publish(ClearLogs())
     }
 }
 
