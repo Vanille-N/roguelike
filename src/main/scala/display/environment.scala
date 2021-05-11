@@ -114,7 +114,9 @@ class LocalRoom (
             pos.hasNotification = false
         }
         for (notif <- notifications) {
-            locs(notif._1)(notif._2).hasNotification = true
+            if (notif != null) {
+                locs(notif._1)(notif._2).hasNotification = true
+            }
         }
     }
 

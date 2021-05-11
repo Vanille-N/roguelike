@@ -74,8 +74,8 @@ extends ClientCommandManager (body, game) {
             return ""
         }
         def other_stop : String = {// stop the automatic step by step.
-            if (body.isPlaying) { runner.cancel(); body.isPlaying = false; "" }
-            else return ""
+            if (body.isPlaying) { runner.cancel(); body.isPlaying = false }
+            ""
         }
         def other_toggle : String = {// toggle the step by step.
             if (body.isPlaying) { other_stop }
@@ -84,7 +84,7 @@ extends ClientCommandManager (body, game) {
         def other_step: String = {// make a/n step
             if (splited_command.length == 1) { body.step }
             else { for(i <- 1 to (splited_command(1).toInt)) { body.step } }
-            return ""
+            ""
         }
 
         splited_command(0) match {// main switch to define which function fits with the command at hand.

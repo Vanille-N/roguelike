@@ -1,7 +1,11 @@
 import scala.collection.mutable.Set
 import scala.collection.mutable.ArrayBuffer
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.swing._
 import event._
+import akka.actor._
 
 /* Main game loop
  * - global application layout
@@ -371,16 +375,42 @@ object main extends SimpleSwingApplication {
     }
     games.map(g => listenTo(g.winCondition))
     games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
-    
+ 
+    def step {
+        for (i <- 0 to games.size-1) {
+            val info = games(i).sync(transfer(i))
+            val response = locals(i).sync(info)
+            transfer(i) = response
+        }
+    }
+    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
+    var runner: Cancellable = null
+    var running = false
+    def launchRunner {
+        runner = scheduler.schedule(
+            FiniteDuration(1, TimeUnit.SECONDS),
+            FiniteDuration(100, TimeUnit.MILLISECONDS)
+        ) { step }
+        running = true
+    }
+    launchRunner
+
     def loadLevel {
+        if (running) {
+            println("Cancel")
+            runner.cancel
+            running = false
+        }
         deafTo(bodyPart)
         games.map(g => deafTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => deafTo(cmd)))
         games.map(g => g.player.inventory = g.player.saveInventory.decompress(g.player))
         println(s"Entering level $levelNum")
         makeBodyPart
+        top.contents = locals(0).newGame
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
+        games(0).command.commandRequest("play")
  
         val timer = new Timer
         timer.schedule(new TimerTask() {
@@ -388,8 +418,10 @@ object main extends SimpleSwingApplication {
                 locals(0).globalPanel.requestFocusInWindow
             }
         }, 1)
+        launchRunner
     }
 
+    
     reactions += {
         case LevelClear(player) => {
             games.foreach(g => {
@@ -413,13 +445,6 @@ object main extends SimpleSwingApplication {
         }
         case GameSave(f) => {
             GameLoader.saveFile(f, new CompactGame(maxLevelNum, players(0).saveInventory, players(0).startingStats.deepCopy))
-        }
-        case LoopStep() => {
-            for (i <- 0 to games.size-1) {
-                val info = games(i).sync(transfer(i))
-                val response = locals(i).sync(info)
-                transfer(i) = response
-            }
         }
     }
 }
