@@ -230,7 +230,7 @@ class Command (body: BodyPart, game: Game) extends Publisher {
             .executeCommand
 
         current_command = toBeExecuted(current_command)
-        publish(ClearLogs())
+        //publish(ClearLogs())
     }
 }
 

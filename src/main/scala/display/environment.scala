@@ -160,14 +160,14 @@ class LocalPos (
 
     def fromString (str: String) {
         val split = str.split(" ")
-        strength(0) = split(1).toInt
-        strength(1) = split(2).toInt
-        hasFriendlySpawner = split(3) == "true"
-        hasHostileSpawner = split(4) == "true"
-        hasArtefacts = split(5) == "true"
-        hasItems = split(6) == "true"
-        needsFocus = split(7) == "true"
-        hasNotification = split(8) == "true"
+        strength(0) = split(0).toInt
+        strength(1) = split(1).toInt
+        hasFriendlySpawner = split(2) == "true"
+        hasHostileSpawner = split(3) == "true"
+        hasArtefacts = split(4) == "true"
+        hasItems = split(5) == "true"
+        needsFocus = split(6) == "true"
+        hasNotification = split(7) == "true"
     }
 
     override def toString: String = {

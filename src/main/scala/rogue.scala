@@ -74,11 +74,17 @@ class Game (
         if (clearLogs) {
             response.append(MsgClearLogs())
         }
+        clearLogs = false
         response.append(MsgLogText(logText))
         waitingNotifications.clear
         logText = ""
-        clearLogs = false
         response.toList
+    }
+
+    def syncStr (data: String): String = {
+        val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.outgoing_fromString(_))
+        val response = sync(info)
+        response.map(ServerTranslator.incoming_toString(_)).mkString("|||")
     }
 
     // what to carry from a level to the next
@@ -224,6 +230,12 @@ class LocalGame (
         response
     }
 
+    def syncStr (data: String): String = {
+        val info: List[RemoteToLocal] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.incoming_fromString(_))
+        val response = sync(info)
+        response.map(ServerTranslator.outgoing_toString(_)).mkString("|||")
+    }
+
     val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.
         (Key.Up,         "Up"),
         (Key.K,          "Up"),
@@ -289,7 +301,7 @@ object ServerTranslator {
             case MsgRoomInfo(room) => s"ROOM;$room"
             case MsgWinCondition(completion) => s"COMP;$completion"
             case MsgClearLogs() => "CLEAR;"
-            case MsgLogText(txt) => s"LOG;$txt"
+            case MsgLogText(txt) => if (txt != "") { s"LOG;$txt" } else { "" }
         }
     }
 
@@ -310,7 +322,7 @@ object ServerTranslator {
         val cols = dim(1).toInt
         var room = new LocalRoom(rows, cols)
         for (i <- 0 to rows-1; j <- 0 to cols-1) {
-            room.locs(i)(j).fromString(split(i*cols+j))
+            room.locs(i)(j).fromString(split(i*cols+j + 1))
         }
         room
     }
@@ -344,7 +356,7 @@ object main extends SimpleSwingApplication {
     })
     var games = Array[Game]()
     var locals = Array[LocalGame]()
-    var transfer = Array[List[LocalToRemote]]()
+    var transfer = Array[String]()
 
     def updateMaxLevel {
         maxLevelNum = levelNum.max(maxLevelNum)
@@ -360,9 +372,7 @@ object main extends SimpleSwingApplication {
         locals = players.map(pl => {
             new LocalGame(bodyPart.room.rows, bodyPart.room.cols)
         })
-        transfer = players.map(pl => {
-            List()
-        })
+        transfer = players.map(pl => "")
     }
 
     val top = new MainFrame {
@@ -378,8 +388,8 @@ object main extends SimpleSwingApplication {
  
     def step {
         for (i <- 0 to games.size-1) {
-            val info = games(i).sync(transfer(i))
-            val response = locals(i).sync(info)
+            val info = games(i).syncStr(transfer(i))
+            val response = locals(i).syncStr(info)
             transfer(i) = response
         }
     }
