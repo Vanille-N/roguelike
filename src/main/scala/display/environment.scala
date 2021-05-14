@@ -121,6 +121,10 @@ class LocalRoom (
     }
 
     def transfer (other: LocalRoom) {
+        if (rows != other.rows || cols != other.cols) {
+            // Have yet to receive info from the server
+            return
+        }
         for (i <- 0 to rows-1; j <- 0 to cols-1) {
             var pos = locs(i)(j)
             var src = other.locs(i)(j)

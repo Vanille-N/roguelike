@@ -50,20 +50,34 @@ extends Publisher with Reactor {
     }
 
     def addOrganism (o: Organism) = { // organism enters the tile
-        val idx = if (o.isFriendly) 1 else 0
-        organisms(idx).add(o)
-        strength(idx) += o.strength
-        blocking(idx).addSkill(o.skills.blocking)
+        if (o != null) {
+            val idx = if (o.isFriendly) 1 else 0
+            organisms(idx).add(o)
+            strength(idx) += o.strength
+            blocking(idx).addSkill(o.skills.blocking)
+        }
+        verifyStrength
     }
     def removeOrganism (o: Organism) = { // organism exits the tile
-        val idx = if (o.isFriendly) 1 else 0
-        organisms(idx).remove(o)
-        strength(idx) -= o.strength
-        blocking(idx).removeSkill(o.skills.blocking)
+        if (o != null) {
+            val idx = if (o.isFriendly) 1 else 0
+            organisms(idx).remove(o)
+            strength(idx) -= o.strength
+            blocking(idx).removeSkill(o.skills.blocking)
+        }
+        verifyStrength
     }
     def kill (o: Organism) = { // organism is dead
         removeOrganism(o)
         room.body.organisms.remove(o) // also remove from global index
+    }
+    def verifyStrength {
+        for (idx <- 0 to 1) {
+            // For unknown reasons strength sometimes gets out of sync
+            if (strength(idx) < 0 || (strength(idx) > 0 && organisms(idx).size == 0)) {
+                strength(idx) = organisms(idx).map(_.strength).sum
+            }
+        }
     }
 
     // Vector addition on positions may fail if the resulting position
