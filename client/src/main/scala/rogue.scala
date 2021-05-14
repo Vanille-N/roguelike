@@ -316,8 +316,10 @@ object main extends SimpleSwingApplication with Publisher {
     listenTo(client)
     reactions += {
         case ReceivedFromServer(s) => {
+            println(s"<<< $s")
             val data = s.split("///")
             if (data.size > 0 && data(0) == "NEWGAME") {
+                println("New Game ", data(1))
                 makeLocalGame(data(1))
                 top.contents = local.newGame
 
@@ -329,12 +331,13 @@ object main extends SimpleSwingApplication with Publisher {
                 }, 1)
             } else {
                 transfer = local.syncStr(s)
+                println(transfer)
             }
         }
     }
  
     var running = false
-    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
+    val scheduler: Scheduler = ActorSystem.create("gui-timer").scheduler
     var runner: Cancellable = null
     def step {
         if (!running) return

@@ -294,7 +294,7 @@ class LocalGame (
 
 import java.util.{Timer,TimerTask}
 
-object main extends App with Publisher {
+object main extends App with Reactor with Publisher {
     val server = new Server
     var levelNum = 1
     var maxLevelNum = levelNum
@@ -326,16 +326,19 @@ object main extends App with Publisher {
     games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
 
     var running = false
-    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
+    val scheduler: Scheduler = ActorSystem.create("game-timer").scheduler
     var runner: Cancellable = null
 
     listenTo(server)
     reactions += {
         case FromClientToServer(s) => {
+            println("Received message")
             transfer(0) = s
+            println(s"<<< ${transfer(0)}")
         }
     }
     def step {
+        println("Step")
         if (!running) return
         for (i <- 0 to games.size-1) {
             val info = games(i).syncStr(transfer(i))
@@ -350,6 +353,7 @@ object main extends App with Publisher {
         running = true
     }
     launchRunner
+    println("Launched main server loop")
 
     def loadLevel {
         if (running) {
@@ -357,17 +361,21 @@ object main extends App with Publisher {
             runner.cancel
             running = false
         }
-        deafTo(bodyPart)
-        games.map(g => deafTo(g.winCondition))
-        games.map(g => g.command.subCommands.foreach(cmd => deafTo(cmd)))
-        games.map(g => g.player.inventory = g.player.saveInventory.decompress(g.player))
+        if (bodyPart != null) {
+            deafTo(bodyPart)
+            games.map(g => deafTo(g.winCondition))
+            games.map(g => g.command.subCommands.foreach(cmd => deafTo(cmd)))
+            games.map(g => g.player.inventory = g.player.saveInventory.decompress(g.player))
+        }
         println(s"Entering level $levelNum")
         makeBodyPart
         server.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}")
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
         games(0).command.commandRequest("play")
+        launchRunner
     }
+    loadLevel
  
     reactions += {
         case LevelClear(player) => {

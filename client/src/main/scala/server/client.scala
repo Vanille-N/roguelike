@@ -28,6 +28,7 @@ class Client (source: Publisher) extends Reactor with Publisher {
 			line = new String(buffer)
 
 			publish (ReceivedFromServer(line))
+            println("Received message")
 		}
 	}
 
@@ -35,6 +36,7 @@ class Client (source: Publisher) extends Reactor with Publisher {
 
 	reactions += {
 		case SendMessage (s: String) => {
+            println(s">>> $s")
 			out_stream.println(line)
 			out_stream.flush()
 		}
@@ -45,8 +47,8 @@ class Client (source: Publisher) extends Reactor with Publisher {
 		socket.close()
 	}
 
-    def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
+    def scheduler: Scheduler = ActorSystem.create("client-timer").scheduler
     var runner: Cancellable = null
-	runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { check_incoming }
+	runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(100,TimeUnit.MILLISECONDS)) { check_incoming }
 
 }

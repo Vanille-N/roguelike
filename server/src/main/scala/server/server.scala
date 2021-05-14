@@ -77,7 +77,7 @@ class Server extends Publisher {
 	def close: Unit = { socket_connection.close }
 
 	def check_incoming: Unit = {
-		if(input_stream.available() < 1) ()
+		if (input_stream.available() < 1) ()
 		else {
 			// Lecture de l'entrée
 			val buffer = new Array[Byte](input_stream.available)
@@ -85,7 +85,7 @@ class Server extends Publisher {
 
 			// Conversion en string, affichage et renvoi
 			line = new String(buffer)
-			publish (FromClientToServer(line));
+			publish(FromClientToServer(line));
 		}
 	}
 
@@ -94,7 +94,7 @@ class Server extends Publisher {
 		output_stream.flush()
 	}
 
-    def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
+    def scheduler: Scheduler = ActorSystem.create("server-timer").scheduler
     var runner: Cancellable = null
-	runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { check_incoming }
+	runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(100,TimeUnit.MILLISECONDS)) { check_incoming }
 }
