@@ -292,17 +292,12 @@ class LocalGame (
     }
 }
 
-
-sealed trait LocalToRemote
-case class AnsCommandRequest(cmd: String) extends LocalToRemote
-
 import java.util.{Timer,TimerTask}
 
-object main extends SimpleSwingApplication {
+object GameManager extends Publisher {
     var levelNum = 1
     var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
-
     var players = Array[Player]({
         var pl = new Player()
         pl.saveInventory = new CompactInventory()
@@ -310,12 +305,12 @@ object main extends SimpleSwingApplication {
         pl
     })
     var games = Array[Game]()
-    var locals = Array[LocalGame]()
     var transfer = Array[String]()
-
+    
     def updateMaxLevel {
         maxLevelNum = levelNum.max(maxLevelNum)
     }
+
     def makeBodyPart {
         val level = new Level(levelNum, maxLevelNum)
         bodyPart = new BodyPart(level, players.toList)
@@ -324,32 +319,26 @@ object main extends SimpleSwingApplication {
             pl.placeOnMap(bodyPart.room.locs(10, 10))
             new Game(bodyPart, level.makeWinCondition(bodyPart, pl), pl)
         })
-        locals = players.map(pl => {
-            new LocalGame(bodyPart.room.rows, bodyPart.room.cols)
-        })
         transfer = players.map(pl => "")
-    }
-
-    val top = new MainFrame {
-        title = "BodyPart"
-        contents = {
-            makeBodyPart;
-            locals(0).newGame
-        } 
-        centerOnScreen()
     }
     games.map(g => listenTo(g.winCondition))
     games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
- 
+
     var running = false
     val scheduler: Scheduler = ActorSystem.create("timer").scheduler
     var runner: Cancellable = null
+
+    listenTo(server)
+    reactions += {
+        case FromClientToServer(s) => {
+            transfer(0) = s
+        }
+    }
     def step {
         if (!running) return
-        for (i <- 0 to games.size-1) {
+        for (i <- 0 to games.size) {
             val info = games(i).syncStr(transfer(i))
-            val response = locals(i).syncStr(info)
-            transfer(i) = response
+            server.send_server(info)
         }
     }
     def launchRunner {
@@ -373,21 +362,12 @@ object main extends SimpleSwingApplication {
         games.map(g => g.player.inventory = g.player.saveInventory.decompress(g.player))
         println(s"Entering level $levelNum")
         makeBodyPart
-        top.contents = locals(0).newGame
+        server.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}")
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
         games(0).command.commandRequest("play")
- 
-        val timer = new Timer
-        timer.schedule(new TimerTask() {
-            def run {
-                locals(0).globalPanel.requestFocusInWindow
-            }
-        }, 1)
-        launchRunner
     }
-
-    
+ 
     reactions += {
         case LevelClear(player) => {
             games.foreach(g => {
@@ -413,4 +393,62 @@ object main extends SimpleSwingApplication {
             GameLoader.saveFile(f, new CompactGame(maxLevelNum, players(0).saveInventory, players(0).startingStats.deepCopy))
         }
     }
+}
+
+
+
+object main extends SimpleSwingApplication with Publisher {
+    var transfer = ""
+    var local: LocalGame = null
+
+    def makeLocalGame (data: String) {
+        val split = data.split(" ")
+        val rows = split(0).toInt
+        val cols = split(1).toInt
+        local = new LocalGame(rows, cols)
+        transfer = ""
+    }
+
+    val top = new MainFrame {
+        title = "BodyPart"
+        contents = { new GridBagPanel }
+        centerOnScreen()
+    }
+
+    val client = new Client(this)
+    listenTo(client)
+    reactions += {
+        case ReceivedFromServer(s) => {
+            val data = s.split("///")
+            if (data.size > 0 && data(0) == "NEWGAME") {
+                makeLocalGame(data(1))
+                top.contents = local.newGame
+
+                val timer = new Timer
+                timer.schedule(new TimerTask() {
+                    def run {
+                        local.globalPanel.requestFocusInWindow
+                    }
+                }, 1)
+            } else {
+                transfer = local.syncStr(s)
+            }
+        }
+    }
+ 
+    var running = false
+    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
+    var runner: Cancellable = null
+    def step {
+        if (!running) return
+        publish(SendMessage(transfer))
+    }
+    def launchRunner {
+        runner = scheduler.schedule(
+            FiniteDuration(1, TimeUnit.SECONDS),
+            FiniteDuration(100, TimeUnit.MILLISECONDS)
+        ) { step }
+        running = true
+    }
+    launchRunner
 }

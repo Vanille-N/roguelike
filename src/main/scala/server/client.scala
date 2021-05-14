@@ -9,9 +9,9 @@ import event._
 
 import scala.io.StdIn.readLine
 case class SendMessage (line: String) extends Event
-case class RecievedFromServer (line: String) extends Event
+case class ReceivedFromServer (line: String) extends Event
 
-class client (source: Publisher) extends Publisher {
+class Client (source: Publisher) extends Reactor with Publisher {
 	val socket: Socket = new Socket("localhost",8888)
 	val in_stream: BufferedInputStream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream (new BufferedOutputStream(socket.getOutputStream()))
@@ -26,10 +26,9 @@ class client (source: Publisher) extends Publisher {
 			// Conversion en string
 			line = new String(buffer)
 
-			publish (RecievedFromServer(line))
+			publish (ReceivedFromServer(line))
 		}
 	}
-
 
 	listenTo (source)
 

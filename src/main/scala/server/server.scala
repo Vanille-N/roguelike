@@ -7,13 +7,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.swing._
 import event._
 
-case class FromServerToClient (line: String) extends Event
+case class FromClientToServer (line: String) extends Event
 
 sealed trait RemoteToLocal
 case class MsgRoomInfo(room: LocalRoom) extends RemoteToLocal
 case class MsgWinCondition(completion: Int) extends RemoteToLocal
 case class MsgClearLogs() extends RemoteToLocal
 case class MsgLogText(msg: String) extends RemoteToLocal
+
+sealed trait LocalToRemote
+case class AnsCommandRequest(cmd: String) extends LocalToRemote
 
 object ServerTranslator {
     def incoming_toString (msg: RemoteToLocal): String = {
@@ -49,7 +52,7 @@ object ServerTranslator {
 
     def outgoing_toString (msg: LocalToRemote): String = {
         msg match {
-            case AnsCommandRequest(cmd) => s"CMD///$cmd"
+            case AnsCommandRequest(cmd) => if (cmd != "") { s"CMD///$cmd" } else { "" }
         }
     }
 
@@ -81,7 +84,7 @@ object server extends Publisher {
 
 			// Conversion en string, affichage et renvoi
 			line = new String(buffer)
-			publish (FromServerToClient(line));
+			publish (FromClientToServer(line));
 		}
 	}
 
