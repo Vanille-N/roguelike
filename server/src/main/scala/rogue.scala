@@ -14,13 +14,10 @@ import event._
  * - move/battle/spawn coordination
  */
 
-case class LeftClicked (o: Object) extends Event
-case class DisplayContents (i: Int, j: Int) extends Event
 case class LevelClear(player: Player) extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
 case class Sacrifice() extends Event
-case class RefreshDisplay() extends Event
 
 case class LevelLoad(num: Int) extends Event
 case class GameLoad(game: CompactGame) extends Event
@@ -63,7 +60,8 @@ class Game (
             }
         }
         val localRoom = new LocalRoom(body.room.rows, body.room.cols)
-        localRoom.syncWithRoom(
+        syncLocalWithRoom(
+            localRoom,
             body.room,
             (player.position.i, player.position.j),
             waitingNotifications.toList,
@@ -81,6 +79,32 @@ class Game (
         logText = ""
         response.toList
     }
+
+    def syncLocalWithRoom (
+        local: LocalRoom,
+        room: Room,
+        focusPos: Tuple2[Int,Int],
+        notifications: List[Tuple2[Int,Int]],
+      ) {
+        for (i <- 0 to local.rows-1; j <- 0 to local.cols-1) {
+            var pos = local.locs(i)(j)
+            var src = room.locs(i,j)
+            pos.strength(0) = src.strength(0)
+            pos.strength(1) = src.strength(1)
+            pos.hasFriendlySpawner = (src.friendlySpawner != null)
+            pos.hasHostileSpawner = (src.hostileSpawner != null)
+            pos.hasArtefacts = (src.artefacts.size != 0)
+            pos.hasItems = (src.items.size != 0)
+            pos.needsFocus = (pos.i == focusPos._1 && pos.j == focusPos._2)
+            pos.hasNotification = false
+        }
+        for (notif <- notifications) {
+            if (notif != null) {
+                local.locs(notif._1)(notif._2).hasNotification = true
+            }
+        }
+    }
+
 
     def syncStr (data: String): String = {
         val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.outgoing_fromString(_))

@@ -21,8 +21,7 @@ extends ClientCommandManager (body, game) {
             case "Right" => { game.player.move(RIGHT) }
             case _       => { publish(PrintInLogs(s"Error: Direction `${splited_command(0)}` unknown")) }
         }
-        publish(RefreshDisplay())
-        return ""
+        ""
     }
 }
 

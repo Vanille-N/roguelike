@@ -16,7 +16,8 @@ case class PrintInLogs (str: String, ln_after: Boolean = true, ln_before: Boolea
 case class SendCommandToServer (player_id: Int, command: String) extends Event
 case class ClearLogs() extends Event
 
-
+// Information known about a game used for visual display
+// Updated by means of transfers of LocalRoom
 class LocalGame (
     rows: Int,
     cols: Int,
@@ -53,7 +54,6 @@ class LocalGame (
     def newGame: GridBagPanel = {
         val grid = new GridPanel(rows, cols)
         displayGrid.map(grid.contents += _)
-
 
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,

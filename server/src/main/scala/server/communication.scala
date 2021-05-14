@@ -1,11 +1,17 @@
-import java.net.ServerSocket
-import java.io.{ BufferedInputStream, PrintStream, BufferedOutputStream }
-import akka.actor._
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.swing._
-import event._
+// WARNING
+// This file is symlinked between
+//       {client,server}/src/main/scala/server/communication.scala
+//
+// When modifying it take care not to
+// - use classes that one party has no knowledge of
+// - redefine classes
+//
+// This file is and should remain self-contained
+// in terms of class definitions
+
+import swing.event._
+
+case class Notification (i: Int, j: Int) extends Event
 
 sealed trait RemoteToLocal
 case class MsgRoomInfo(room: LocalRoom) extends RemoteToLocal
@@ -59,5 +65,82 @@ object ServerTranslator {
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))
         }
+    }
+}
+
+
+
+// Minimal information required to transfer the contents
+// of a room relevant for display
+class LocalRoom (
+    val rows: Int,
+    val cols: Int,
+) {
+    val locs = IndexedSeq.tabulate(rows, cols) {
+        (i, j) => new LocalPos(i, j)
+    }
+
+    // in-place deep clone
+    def transfer (other: LocalRoom) {
+        if (rows != other.rows || cols != other.cols) {
+            // Have yet to receive info from the server
+            return
+        }
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            var pos = locs(i)(j)
+            var src = other.locs(i)(j)
+            pos.strength(0) = src.strength(0)
+            pos.strength(1) = src.strength(1)
+            pos.hasFriendlySpawner = src.hasFriendlySpawner
+            pos.hasHostileSpawner = src.hasHostileSpawner
+            pos.hasArtefacts = src.hasArtefacts
+            pos.hasItems = src.hasItems
+            pos.needsFocus = src.needsFocus
+            pos.hasNotification = src.hasNotification
+        }
+    }
+
+    override def toString: String = {
+        var res = s"$rows $cols"
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            val pos = locs(i)(j)
+            res += s",$pos"
+        }
+        res
+    }
+}
+
+// Information required for each position
+class LocalPos (
+    val i: Int,
+    val j: Int,
+) {
+    var strength = Array(0, 0)
+    var hasFriendlySpawner: Boolean = false
+    var hasHostileSpawner: Boolean = false
+    var hasArtefacts: Boolean = false
+    var hasItems: Boolean = false
+
+    var needsFocus: Boolean = false
+    var hasNotification: Boolean = false
+
+    def fromString (str: String) {
+        val split = str.split(" ")
+        strength(0) = split(0).toInt
+        strength(1) = split(1).toInt
+        hasFriendlySpawner = split(2) == "true"
+        hasHostileSpawner = split(3) == "true"
+        hasArtefacts = split(4) == "true"
+        hasItems = split(5) == "true"
+        needsFocus = split(6) == "true"
+        hasNotification = split(7) == "true"
+    }
+
+    override def toString: String = {
+        var res = s"${strength(0)} ${strength(1)}"
+        res += s" ${hasHostileSpawner} ${hasFriendlySpawner}"
+        res += s" ${hasArtefacts} ${hasItems}"
+        res += s" ${needsFocus} ${hasNotification}"
+        res
     }
 }
