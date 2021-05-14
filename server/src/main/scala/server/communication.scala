@@ -89,9 +89,11 @@ class LocalRoom (
         for (i <- 0 to rows-1; j <- 0 to cols-1) {
             var pos = locs(i)(j)
             var src = other.locs(i)(j)
-            pos.strength(0) = src.strength(0)
-            pos.strength(1) = src.strength(1)
+            pos.strengthSelf = src.strengthSelf
+            pos.strengthOther = src.strengthOther
+            pos.strengthCells = src.strengthCells
             pos.hasFriendlySpawner = src.hasFriendlySpawner
+            pos.hasNeutralSpawner = src.hasNeutralSpawner
             pos.hasHostileSpawner = src.hasHostileSpawner
             pos.hasArtefacts = src.hasArtefacts
             pos.hasItems = src.hasItems
@@ -115,30 +117,35 @@ class LocalPos (
     val i: Int,
     val j: Int,
 ) {
-    var strength = Array(0, 0)
-    var hasFriendlySpawner: Boolean = false
-    var hasHostileSpawner: Boolean = false
-    var hasArtefacts: Boolean = false
-    var hasItems: Boolean = false
+    var strengthSelf = 0
+    var strengthOther = 0
+    var strengthCells = 0
+    var hasFriendlySpawner = false
+    var hasNeutralSpawner = false
+    var hasHostileSpawner = false
+    var hasArtefacts = false
+    var hasItems = false
 
-    var needsFocus: Boolean = false
-    var hasNotification: Boolean = false
+    var needsFocus = false
+    var hasNotification = false
 
     def fromString (str: String) {
         val split = str.split(" ")
-        strength(0) = split(0).toInt
-        strength(1) = split(1).toInt
-        hasFriendlySpawner = split(2) == "true"
-        hasHostileSpawner = split(3) == "true"
-        hasArtefacts = split(4) == "true"
-        hasItems = split(5) == "true"
-        needsFocus = split(6) == "true"
-        hasNotification = split(7) == "true"
+        strengthSelf = split(0).toInt
+        strengthOther = split(1).toInt
+        strengthCells = split(2).toInt
+        hasFriendlySpawner = split(3) == "true"
+        hasNeutralSpawner = split(4) == "true"
+        hasHostileSpawner = split(5) == "true"
+        hasArtefacts = split(6) == "true"
+        hasItems = split(7) == "true"
+        needsFocus = split(8) == "true"
+        hasNotification = split(9) == "true"
     }
 
     override def toString: String = {
-        var res = s"${strength(0)} ${strength(1)}"
-        res += s" ${hasHostileSpawner} ${hasFriendlySpawner}"
+        var res = s"${strengthSelf} ${strengthOther} ${strengthCells}"
+        res += s" ${hasHostileSpawner} ${hasNeutralSpawner} ${hasFriendlySpawner}"
         res += s" ${hasArtefacts} ${hasItems}"
         res += s" ${needsFocus} ${hasNotification}"
         res

@@ -29,10 +29,10 @@ class DisplayPos (val dual: LocalPos) extends Button {
         isFocused = dual.needsFocus
 
         // text
-        val totalStrength = dual.strength(0) + dual.strength(1)
-        var t0 = if (totalStrength > 0) dual.strength(0).toString else ""
-        var t1 = if (totalStrength > 0) dual.strength(1).toString else ""
-        if (dual.hasHostileSpawner) { // '+' indicates a spawner
+        val totalStrength = dual.strengthSelf + dual.strengthOther + dual.strengthCells
+        var t0 = if (totalStrength > 0) dual.strengthSelf.toString else ""
+        var t1 = if (totalStrength > 0) (dual.strengthOther + dual.strengthCells).toString else ""
+        if (dual.hasHostileSpawner || dual.hasNeutralSpawner) { // '+' indicates a spawner
             t0 += "+"
             if (!dual.hasFriendlySpawner && totalStrength == 0) t1 += "."
         }
@@ -46,8 +46,8 @@ class DisplayPos (val dual: LocalPos) extends Button {
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(
-            Scheme.red, dual.strength(0) / 100.0,
-            Scheme.green, dual.strength(1) / 100.0
+            Scheme.red, dual.strengthSelf / 100.0,
+            Scheme.green, (dual.strengthOther + dual.strengthCells) / 100.0
         )
         background = Scheme.setBlueChannel(background, notifyLevel)
         if (isFocused) background = Scheme.white
@@ -63,7 +63,7 @@ class DisplayPos (val dual: LocalPos) extends Button {
             { publish(DisplayContents(dual.i, dual.j)) }
         case UIElementResized(_) => {
             font = new Font("default", Font.BOLD,
-                (size.width / dual.strength(0).toString.length.max(dual.strength(1).toString.length).max(3)).min(
+                (size.width / dual.strengthSelf.toString.length.max((dual.strengthOther + dual.strengthCells).toString.length).max(3)).min(
                 size.height / 2))
         }
     }

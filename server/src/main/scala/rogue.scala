@@ -89,8 +89,9 @@ class Game (
         for (i <- 0 to local.rows-1; j <- 0 to local.cols-1) {
             var pos = local.locs(i)(j)
             var src = room.locs(i,j)
-            pos.strength(0) = src.strength(0)
-            pos.strength(1) = src.strength(1)
+            pos.strengthSelf = src.strength(0)
+            pos.strengthOther = 0
+            pos.strengthCells = src.strength(1)
             pos.hasFriendlySpawner = (src.friendlySpawner != null)
             pos.hasHostileSpawner = (src.hostileSpawner != null)
             pos.hasArtefacts = (src.artefacts.size != 0)
