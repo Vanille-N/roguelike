@@ -1,0 +1,19 @@
+# Repeat:
+
+The user can press the keypad 0 to 9 keys (when
+focussing on the board (press `q` in in the
+command line).
+
+Each press of a digit on the numpad will chage an
+internal integer variable `repeat`.
+When pressing `n` to make the game evolve,
+`repeat` steps will be achieved.
+
+Pressing Escape will turn thus variable back to 1.
+
+
+
+Caution: `step n` may freeze the program for a
+long period of time for "big" values of `n` (e.g.
+> 1000)
+

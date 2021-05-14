@@ -1,0 +1,12 @@
+The following commands enable save file
+management and level navigation
+
+`level N`
+    load level N, N has to be lower that the
+    maximum unlocked level
+
+`load FILE`
+    load save file FILE
+
+`save FILE`
+    write current game to FILE for future loading

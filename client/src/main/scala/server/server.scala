@@ -66,7 +66,8 @@ object ServerTranslator {
 
 
 
-object server extends Publisher {
+class Server extends Publisher {
+    println("Started server")
 	val socket_connection = new ServerSocket (8888)
 	val socket = socket_connection.accept()
 	val input_stream = new BufferedInputStream(socket.getInputStream())

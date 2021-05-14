@@ -1,0 +1,44 @@
+Modes:
+  | console mode: allows to enter commands
+  ||> to enter: this mode, press ':' in key-driven
+      mode.
+  ||> to exit: use the command 'q'
+  |
+  | key-driven mode: allows to control the game
+    through key presses
+  ||> to enter: this mode, quit other modes
+  |
+  | mouse mode: allows to get the content of a
+    cell.
+  ||> to exit: use the left-button of the mouse
+
+
+If there is no conflicts, one may use an uppercase
+reperesentant of a key as command.
+
+  ┌───────────────────────────────────────────────────────┐
+  │ (Command | key)   -> action                           │
+  │ (Up      | K)     -> go up                            │
+  │ (Down    | J)     -> go down                          │
+  │ (Left    | H)     -> go left                          │
+  │ (Right   | L)     -> go right                         │
+  │ (quit    | Q)     -> exit the game                    │
+  │ (clear   | C)     -> clear the command line           │
+  │ (step    | N)     -> step by step advance of the game │
+  │ (list    | O)     -> list the organisms               │
+  │ (show n  | _)     -> show the organism n              │
+  │ (help    | ?)     -> print this msg                   │
+  │ (play [n]| ' ')   -> make a step each [n=1] second(s) │
+  │ (stop    | ' ')   -> stop autoplaying                 │
+  └───────────────────────────────────────────────────────┘
+
+For more, use
+    help commands
+    help set
+    help select
+    help directions
+    help list
+    help item
+    help repeat
+    help behavior
+    help level

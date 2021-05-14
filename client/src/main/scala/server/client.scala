@@ -12,6 +12,7 @@ case class SendMessage (line: String) extends Event
 case class ReceivedFromServer (line: String) extends Event
 
 class Client (source: Publisher) extends Reactor with Publisher {
+    println("Connecting to server")
 	val socket: Socket = new Socket("localhost",8888)
 	val in_stream: BufferedInputStream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream (new BufferedOutputStream(socket.getOutputStream()))
