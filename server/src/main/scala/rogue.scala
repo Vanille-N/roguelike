@@ -142,7 +142,7 @@ class Game (
             for (o <- body.organisms) {
                 if (o.isFriendly) {
                     points += o.sacrificeValue
-                    o.kill(CauseOfDeath.Sacrifice)
+                    o.kill(SacrificeKill())
                     o.sync
                 }
             }

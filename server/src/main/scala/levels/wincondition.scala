@@ -36,7 +36,7 @@ class WinByPosition(
     reactions += {
         case LoopStep() => {
             pos.notification
-            if (pos.strength(1) > strengthThreshold) {
+            if (pos.strength(player.id) > strengthThreshold) {
                 count += 1
                 if (count == turnCount) win
             } else count = 0
@@ -79,7 +79,7 @@ class WinByKillCount(
     }
     listenTo(body.room)
     reactions += {
-        case OrganismDeath(o, _, CauseOfDeath.Virus1) => {
+        case OrganismDeath(o, _, VirusKill(i)) if i == player.id => {
             if (!o.isFriendly && (name == "" || o.name == name)) {
                 count += 1
                 if (count == killCount) win

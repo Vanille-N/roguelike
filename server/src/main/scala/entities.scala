@@ -10,18 +10,14 @@ import MakeItem._
 import StatType._
 
 
-object CauseOfDeath extends Enumeration {
-    type CauseOfDeath = Value
-    val Virus1 = Value("Player 1")
-    val Virus2 = Value("Player 2")
-    val Cell = Value("Cell")
-    val Artefact = Value("Artefact")
-    val OldAge = Value("Old age")
-    val Sacrifice = Value("Sacrifice")
-    val ItemCost = Value("Item cost")
-    val ItemEffect = Value("Item effect")
-}
-import CauseOfDeath._
+sealed trait CauseOfDeath
+case class VirusKill(id: Int) extends CauseOfDeath
+case class CellKill() extends CauseOfDeath
+case class ArtefactKill() extends CauseOfDeath
+case class OldAgeKill() extends CauseOfDeath
+case class SacrificeKill() extends CauseOfDeath
+case class ItemCostKill() extends CauseOfDeath
+case class ItemEffectKill() extends CauseOfDeath
 
 /* Entities: all living things
  * - interaction with other entities (attack)
@@ -40,7 +36,7 @@ abstract class Organism (
     def isFriendly: Boolean = false
     def name: String
 
-    var lastDamagedBy: CauseOfDeath = OldAge 
+    var lastDamagedBy: CauseOfDeath = OldAgeKill()
 
     var items: Set[Item] = Set() // held by organism
 
@@ -113,7 +109,11 @@ abstract class Organism (
         if (ennemy.stats.power.residual > 0) {
             if (this.skills.immunity.get <= ennemy.skills.power.get) {
                 val damage = Rng.uniform(5, 10) * ennemy.stats.power.residual / (this.stats.resistance.residual.max(1))
-                val ennemyType = if (ennemy.isFriendly) { CauseOfDeath.Virus1 } else { CauseOfDeath.Cell }
+                val ennemyType = if (ennemy.asIndex > 0) {
+                    VirusKill(ennemy.asIndex)
+                } else {
+                    CellKill()
+                }
                 inflictDamage(damage, ennemyType)
                 this.stats.speed.residual = 0 // can't move until end of turn if you were attacked
                 ennemy.stats.speed.residual = 0 // ennemy has to stop to attack you
@@ -190,8 +190,7 @@ abstract class Organism (
                 case Some(item) => MakeItem.build_item(item, PosOwned(position))
             }
         } else {
-            val idx = if (isFriendly) 1 else 0
-            position.strength(idx) += this.updateStrength
+            position.strength(asIndex) += this.updateStrength
         }
     }
 

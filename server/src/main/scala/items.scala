@@ -189,7 +189,7 @@ abstract class Item (var owner: Owner) extends Publisher {
             reduce(accessor(o.stats))
         }
         cost_type match {
-            case HP   => o.inflictDamage(cost, CauseOfDeath.ItemCost)
+            case HP   => o.inflictDamage(cost, ItemCostKill())
             case SPD  => attr_reduce(_.speed)
             case POW  => attr_reduce(_.power)
             case DEF  => attr_reduce(_.resistance)
@@ -216,7 +216,7 @@ abstract class Item (var owner: Owner) extends Publisher {
                 apply_damage(accessor(o.stats))
             }
             cost_type match {
-                case HP   => o.inflictDamage(cost, CauseOfDeath.ItemCost)
+                case HP   => o.inflictDamage(cost, ItemCostKill())
                 case SPD  => attr_apply_damage(_.speed)
                 case POW  => attr_apply_damage(_.power)
                 case DEF  => attr_apply_damage(_.resistance)
@@ -361,7 +361,7 @@ abstract class SpatialActionItem (_owner: Owner) extends Item(_owner) {
                 for (orga <- l.organisms.toList) {
                     for (o <- orga.toList) {
                         if (OrgOwned(o) != owner) {
-                            o.inflictDamage(damage, CauseOfDeath.ItemEffect)
+                            o.inflictDamage(damage, ItemEffectKill())
                         }
                     }
                 }
@@ -410,7 +410,7 @@ class Knife (_owner: Owner) extends SpatialActionItem(_owner) {
             l.notification
             for (orga <- l.organisms.toList) {
                 for (o <- orga.toList) {
-                    o.kill(CauseOfDeath.ItemEffect)
+                    o.kill(ItemEffectKill())
                 }
             }
         }
@@ -459,8 +459,8 @@ class Javel (_owner: Owner) extends GlobalActionItem(_owner: Owner) {
     override def action (o: Organism, t: Organism): Unit = {
         val pos = position
         if (pos != null) {
-            for (org <- pos.organisms(0).toList) org.kill(CauseOfDeath.ItemEffect)
-            for (org <- pos.organisms(1).toList) org.kill(CauseOfDeath.ItemEffect)
+            for (org <- pos.organisms(0).toList) org.kill(ItemEffectKill())
+            for (org <- pos.organisms(1).toList) org.kill(ItemEffectKill())
         }
         drop
     }

@@ -49,7 +49,7 @@ extends Reactor with Publisher {
         // + remove all organisms that should die
         organisms.foreach(o => {
             if (o.isFriendly && Rng.choice(0.07)) {
-                o.inflictDamage(1, CauseOfDeath.OldAge)
+                o.inflictDamage(1, OldAgeKill())
             }
             o.sync
         })

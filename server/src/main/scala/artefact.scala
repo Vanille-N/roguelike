@@ -91,7 +91,7 @@ class Murderer (// Artefact that kills any organisms in its reach
     override def step: Unit = {
         for (o <- findOrganism) {
             if (o.skills.immunity.get < 5 ) {
-                o.kill(CauseOfDeath.Artefact)
+                o.kill(ArtefactKill())
                 o.sync
             }
         }
