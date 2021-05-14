@@ -7,133 +7,14 @@ import scala.swing._
 import event._
 import akka.actor._
 
-/* Main game loop
- * - global application layout
- * - user interface
- * - move/battle/spawn coordination
- */
-
 case class LeftClicked (o: Object) extends Event
 case class DisplayContents (i: Int, j: Int) extends Event
-case class LevelClear(player: Player) extends Event
 case class LoopStep() extends Event
-case class PickedUpKey(o: Organism) extends Event
-case class Sacrifice() extends Event
 case class RefreshDisplay() extends Event
+case class PrintInLogs (str: String, ln_after: Boolean = true, ln_before: Boolean = false) extends Event
+case class SendCommandToServer (player_id: Int, command: String) extends Event
+case class ClearLogs() extends Event
 
-case class LevelLoad(num: Int) extends Event
-case class GameLoad(game: CompactGame) extends Event
-case class GameSave(file: String) extends Event
-case class SaveList() extends Event
-
-/* -- Main environment -- */
-
-class Game (
-    body: BodyPart,
-    val winCondition: WinCondition,
-    val player: Player,
-) extends Reactor with Publisher {
-    var startingStats = player.startingStats.deepCopy
-    var waitingNotifications = ArrayBuffer[Tuple2[Int,Int]]()
-    var clearLogs: Boolean = false
-    var logText: String = ""
- 
-    /* selection_organisms is an array of tuples.
-    ** | Each tuple is of thr form:
-    ** | | ._1 -> friendly organisms (viruses)
-    ** | | ._2 -> non friendly organisms (cells)
-    */
-    var selection_organisms: Array[Tuple2[Set[Organism],Set[Organism]]] = Array(Tuple2(Set(), Set()))
-    var selection_names: Array[String] = Array("_")
-    var selection_current: String = "_"
- 
-    var command = new Command(body, this)
-    listenTo(command)
-    command.subCommands.foreach(listenTo(_))
-    listenTo(body.room);
-    body.room.locs.map(listenTo(_))
-
-    def sync (info: List[LocalToRemote]): List[RemoteToLocal] = {
-        for (msg <- info) {
-            msg match {
-                case AnsCommandRequest(cmd) => {
-                    command.commandRequest(cmd)
-                }
-            }
-        }
-        val localRoom = new LocalRoom(body.room.rows, body.room.cols)
-        localRoom.syncWithRoom(
-            body.room,
-            (player.position.i, player.position.j),
-            waitingNotifications.toList,
-        )
-        val response = ArrayBuffer(
-            MsgRoomInfo(localRoom),
-            MsgWinCondition(winCondition.completion)
-        )
-        if (clearLogs) {
-            response.append(MsgClearLogs())
-        }
-        clearLogs = false
-        response.append(MsgLogText(logText))
-        waitingNotifications.clear
-        logText = ""
-        response.toList
-    }
-
-    def syncStr (data: String): String = {
-        val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.outgoing_fromString(_))
-        val response = sync(info)
-        response.map(ServerTranslator.incoming_toString(_)).mkString("|||")
-    }
-
-    // what to carry from a level to the next
-    def migrateInventory: CompactInventory = {
-        (new CompactInventory).compress(player.inventory)
-    }
-    
-    // User clicks on dungeon cell or item button ou type a command
-    reactions += {
-        //case DisplayContents(i, j) => {
-        //    this.cmdline.text += " $i $j"
-        //    command.commandRequest(this.cmdline.text)
-        //}
-        case PrintInLogs(str: String, ln_after: Boolean, ln_before: Boolean) => {
-            if (ln_after && ln_before) logText += "\n" + str + "\n"
-            else if (ln_after) logText += str + "\n"
-            else if (ln_before) logText += "\n" + str
-            else logText += str
-        }
-        case ClearLogs() => {
-            clearLogs = true;
-            logText = ""
-        }
-        case Notification(i:Int, j:Int) => {
-            waitingNotifications.append((i,j))
-        }
-        case Sacrifice() => {
-            var points = 0
-            for (it <- player.inventory) {
-                points += it.sacrificeValue
-            }
-            player.inventory = Set() // empty inventory
-            for (o <- body.organisms) {
-                if (o.isFriendly) {
-                    points += o.sacrificeValue
-                    o.kill(CauseOfDeath.Sacrifice)
-                    o.sync
-                }
-            }
-            logText += s"\n${points} sacrifice points obtained\n"
-            val l = startingStats.sacrificeBoost(points)
-            logText += s"boosted:"
-            logText += s"  SPD: ${l(0)}; HP: ${l(1)}; DEC: ${l(4)}\n"
-            logText += s"  POW: ${l(2)}; DEF: ${l(3)}\n"
-        }
-    }
-    command.commandRequest("help")
-    logText += winCondition.message
-}
 
 class LocalGame (
     rows: Int,

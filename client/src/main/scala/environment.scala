@@ -1,203 +1,162 @@
-import Math._
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.Set
-import swing._
+import scala.swing._
+import javax.swing.BorderFactory._
+import java.awt.Font
 import event._
 
 /* Environment: tiles of the "dungeon"
- * - interaction with organisms
- * - battle procedure
+ * - visual feedback for tile contents
  */
 
-object Direction extends Enumeration { // allowed moves for organisms
-    type Direction = Value
-    val UP = Value("up")
-    val DOWN = Value("down")
-    val LEFT = Value("left")
-    val RIGHT = Value("right")
-    val STAY = Value("stay")
-
-    def toTuple (d: Direction): Tuple2[Int, Int] = {
-        d match {
-            case UP => (0, -1)
-            case DOWN => (0, 1)
-            case LEFT => (-1, 0)
-            case RIGHT => (1, 0)
-            case STAY => (0, 0)
-        }
-    }
-}
-import Direction._
+case class Notification (i: Int, j: Int) extends Event
 
 // one tile
-class Pos (val room: Room, val i: Int, val j: Int)
-extends Publisher with Reactor {
-    // for all members of type Array[...] with two indexes, information
-    // on friendly organisms is stored in (1) and hostile in (0)
-    // This explains the `if (isFriendly) 1 else 0` in the rest of the file
-    var organisms: Array[Set[Organism]] = Array(Set(), Set()) // all organisms
-    // organisms(0) -> non friendly organisms (cells)
-    // organisms(1) -> friendly organisms (viruses)
-    var items: Set[Item] = Set() // all items that are on the floor
-    var artefacts: Set[Artefact] = Set() // all items that are on the floor
-    var strength: Array[Int] = Array(0, 0) // arbitrary measure of strength
-    var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord()) // are celles allowed to step over this tile ?
-    var friendlySpawner: PhysicalSpawner = null
-    var hostileSpawner: PhysicalSpawner = null
+class DisplayPos (val dual: LocalPos) extends Button {
+    var isFocused: Boolean = false // position of cursor
+    var notifyLevel: Int = 0 // visual feedback for important events
 
-    def notification {
-        publish(Notification(i, j))
-    }
-
-    def addOrganism (o: Organism) = { // organism enters the tile
-        if (o != null) {
-            val idx = if (o.isFriendly) 1 else 0
-            organisms(idx).add(o)
-            strength(idx) += o.strength
-            blocking(idx).addSkill(o.skills.blocking)
-        }
-        verifyStrength
-    }
-    def removeOrganism (o: Organism) = { // organism exits the tile
-        if (o != null) {
-            val idx = if (o.isFriendly) 1 else 0
-            organisms(idx).remove(o)
-            strength(idx) -= o.strength
-            blocking(idx).removeSkill(o.skills.blocking)
-        }
-        verifyStrength
-    }
-    def kill (o: Organism) = { // organism is dead
-        removeOrganism(o)
-        room.body.organisms.remove(o) // also remove from global index
-    }
-    def verifyStrength {
-        for (idx <- 0 to 1) {
-            // For unknown reasons strength sometimes gets out of sync
-            if (strength(idx) < 0 || (strength(idx) > 0 && organisms(idx).size == 0)) {
-                strength(idx) = organisms(idx).map(_.strength).sum
-            }
-        }
-    }
-
-    // Vector addition on positions may fail if the resulting position
-    // is outside of the grid
-    def tryAdd (i: Direction): Pos = {
-        val dpos = Direction.toTuple(i)
-        val newJ = this.j + dpos._1
-        val newI = this.i + dpos._2
-        if (room.isValid(newI, newJ)) {
-            room.locs(newI, newJ)
-        } else null
-    }
-    def jump (vert: Int, horiz: Int) : Pos = {
-        val newJ = this.j + horiz
-        val newI = this.i + vert
-        if (room.isValid(newI, newJ)) {
-            room.locs(newI, newJ)
-        } else null
-    }
-
-    // distances on locations
-    def distanceL1 (other: Pos): Int = {
-        (this.i - other.i).abs + (this.j - other.j).abs
-    }
-    def distanceL2 (other: Pos): Double = {
-        sqrt(pow(this.i - other.i, 2) + pow(this.j - other.j, 2))
-    }
+    val i = dual.i
+    val j = dual.j
+    this.focusable = false
 
     override def toString: String = {
-        "(" + i + "," + j + ")"
+        "[" + i + "," + j + "]"
     }
 
-    // interaction with spawners
-    val maxLivingOrgs = 500
-    def setFriendlySpawner (s: PhysicalSpawner) { friendlySpawner = s; s.position = this }
-    def setHostileSpawner (s: PhysicalSpawner) { hostileSpawner = s; s.position = this }
-    def trySpawn (nbAlive: Int) {
-        if (friendlySpawner != null) friendlySpawner.step
-        if (hostileSpawner != null && nbAlive < maxLivingOrgs) hostileSpawner.step
-    }
-    def forceSpawn {
-        if (friendlySpawner != null) friendlySpawner.spawn
-        if (hostileSpawner != null) hostileSpawner.spawn
+    // visual appearance
+    border = createEmptyBorder
+    preferredSize = new Dimension(20, 20)
+    font = new Font("default", 0, 20)
+    focusPainted = false
+
+    def updateVisuals {
+        notifyLevel = 3 * notifyLevel / 4
+        if (dual.hasNotification) notifyLevel = 255
+        isFocused = dual.needsFocus
+
+        // text
+        val totalStrength = dual.strength(0) + dual.strength(1)
+        var t0 = if (totalStrength > 0) dual.strength(0).toString else ""
+        var t1 = if (totalStrength > 0) dual.strength(1).toString else ""
+        if (dual.hasHostileSpawner) { // '+' indicates a spawner
+            t0 += "+"
+            if (!dual.hasFriendlySpawner && totalStrength == 0) t1 += "."
+        }
+        if (dual.hasFriendlySpawner) {
+            t1 += "+"
+            if (!dual.hasHostileSpawner && totalStrength == 0) t0 += "."
+        }
+        // html required to have multiline text
+        if (dual.hasArtefacts) t1 += "A" // 'A' indicates an artefact
+        if (dual.hasItems) t1 += "i" // 'i' indicates an item
+        text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
+        // color
+        background = Scheme.mix(
+            Scheme.red, dual.strength(0) / 100.0,
+            Scheme.green, dual.strength(1) / 100.0
+        )
+        background = Scheme.setBlueChannel(background, notifyLevel)
+        if (isFocused) background = Scheme.white
+        var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
+        foreground = if (bgShade > 0.5) Scheme.black else Scheme.white
     }
 
-    def battle {
-        // For now, battles are nondeterministic.
-        // Each organism in turn picks an ennemy that is still alive and tries to attack it.
-        // This attack may fail due to skills.
-        var orgs: Buffer[Organism] = Buffer()
-        var split: Array[Buffer[Organism]] = Array(Buffer(), Buffer())
-        for (i <- 0 to 1) {
-            organisms(i).foreach(x => {
-                if (x.stats.health.residual > 0) {
-                    orgs.append(x); split(i).append(x)
-                }
-            })
-        }
-        // battles happen in a random order
-        orgs = Rng.shuffle(orgs)
-        split(0) = Rng.shuffle(split(0))
-        split(1) = Rng.shuffle(split(1))
-        orgs.foreach(x => {
-            val idx = if (x.isFriendly) 0 else 1
-            if (split(idx).size > 0) {
-                // chose target
-                val target = split(idx)(0)
-                target.attackedBy(x)
-                if (target.stats.health.residual <= 0) {
-                    // target is dead, remove from attackable
-                    if (split(idx).size > 1) {
-                        val n = split(idx).size
-                        split(idx)(0) = split(idx)(n - 1)
-                    }
-                    split(idx).trimEnd(1)
-                } else {
-                    // target is still alive, pick next target randomly
-                    if (split(idx).size > 1) {
-                        val n = split(idx).size
-                        val swap = Rng.uniform(0, n - 1)
-                        val tmp = split(idx)(n - 1)
-                        split(idx)(n - 1) = split(idx)(0)
-                        split(idx)(0) = tmp
-                    }
-                }
-            }
-        })
-    }
+    // user interface
+    listenTo(mouse.clicks)
 
-    def listContents: String = { // show all organisms on the tile
-        var s = "At position (" + i + "," + j + ")\n"
-        var k = 0
-        if (organisms(1).size > 0) {
-            s += "  " + organisms(1).size + " virus\n"
-            organisms(1).foreach(o => {
-                s += "    " + k + "- " +  o + "\n"
-                k += 1
-            })
+    reactions += {
+        case MouseClicked(_, _,0 , _, _) =>
+            { publish(DisplayContents(dual.i, dual.j)) }
+        case UIElementResized(_) => {
+            font = new Font("default", Font.BOLD,
+                (size.width / dual.strength(0).toString.length.max(dual.strength(1).toString.length).max(3)).min(
+                size.height / 2))
         }
-        if (organisms(0).size > 0) {
-            s += "  " + organisms(0).size + " cells\n"
-            organisms(0).foreach(o => {
-                s += "    " + k + "- " +  o + "\n"
-                k += 1
-            })
-        }
-        if (items.size > 0) {
-            items.foreach(i => {s += "  Item " +  i + "\n"})
-        }
-        if (organisms(0).size + organisms(1).size == 0) {
-            s += "  empty\n"
-        }
-        s
     }
 }
 
 // Aggregate functions for positions
-class Grid (room: Room, rows: Int, cols: Int) {
-    val elem = IndexedSeq.tabulate(rows, cols) { (i, j) => new Pos(room, i, j) }
-    def map[U] (f: Pos => U) = elem.map(_.map(f(_)))
-    def filter (f: Pos => Boolean) = elem.flatten.filter(f(_))
+class DisplayGrid (room: LocalRoom) {
+    val rows = room.rows
+    val cols = room.cols
+    val elem = IndexedSeq.tabulate(rows, cols) {
+        (i, j) => {
+            new DisplayPos(room.locs(i)(j))
+        }
+    }
+    def map[U] (f: DisplayPos => U) = elem.map(_.map(f(_)))
+    def filter (f: DisplayPos => Boolean) = elem.flatten.filter(f(_))
     def apply (i: Int, j: Int) = elem(i)(j)
+}
+
+class LocalRoom (
+    val rows: Int,
+    val cols: Int,
+) {
+    val locs = IndexedSeq.tabulate(rows, cols) {
+        (i, j) => new LocalPos(i, j)
+    }
+
+    def transfer (other: LocalRoom) {
+        if (rows != other.rows || cols != other.cols) {
+            // Have yet to receive info from the server
+            return
+        }
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            var pos = locs(i)(j)
+            var src = other.locs(i)(j)
+            pos.strength(0) = src.strength(0)
+            pos.strength(1) = src.strength(1)
+            pos.hasFriendlySpawner = src.hasFriendlySpawner
+            pos.hasHostileSpawner = src.hasHostileSpawner
+            pos.hasArtefacts = src.hasArtefacts
+            pos.hasItems = src.hasItems
+            pos.needsFocus = src.needsFocus
+            pos.hasNotification = src.hasNotification
+        }
+    }
+
+    override def toString: String = {
+        var res = s"$rows $cols"
+        for (i <- 0 to rows-1; j <- 0 to cols-1) {
+            val pos = locs(i)(j)
+            res += s",$pos"
+        }
+        res
+    }
+}
+
+class LocalPos (
+    val i: Int,
+    val j: Int,
+) {
+    var strength = Array(0, 0)
+    var hasFriendlySpawner: Boolean = false
+    var hasHostileSpawner: Boolean = false
+    var hasArtefacts: Boolean = false
+    var hasItems: Boolean = false
+
+    var needsFocus: Boolean = false
+    var hasNotification: Boolean = false
+
+    def fromString (str: String) {
+        val split = str.split(" ")
+        strength(0) = split(0).toInt
+        strength(1) = split(1).toInt
+        hasFriendlySpawner = split(2) == "true"
+        hasHostileSpawner = split(3) == "true"
+        hasArtefacts = split(4) == "true"
+        hasItems = split(5) == "true"
+        needsFocus = split(6) == "true"
+        hasNotification = split(7) == "true"
+    }
+
+    override def toString: String = {
+        var res = s"${strength(0)} ${strength(1)}"
+        res += s" ${hasHostileSpawner} ${hasFriendlySpawner}"
+        res += s" ${hasArtefacts} ${hasItems}"
+        res += s" ${needsFocus} ${hasNotification}"
+        res
+    }
+
+
 }

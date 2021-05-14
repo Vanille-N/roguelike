@@ -7,8 +7,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.swing._
 import event._
 
-case class FromClientToServer (line: String) extends Event
-
 sealed trait RemoteToLocal
 case class MsgRoomInfo(room: LocalRoom) extends RemoteToLocal
 case class MsgWinCondition(completion: Int) extends RemoteToLocal
@@ -62,39 +60,4 @@ object ServerTranslator {
             case "CMD" => AnsCommandRequest(split(1))
         }
     }
-}
-
-
-
-class Server extends Publisher {
-    println("Started server")
-	val socket_connection = new ServerSocket (8888)
-	val socket = socket_connection.accept()
-	val input_stream = new BufferedInputStream(socket.getInputStream())
-	val output_stream = new PrintStream(new BufferedOutputStream (socket.getOutputStream()))
-	var line: String = ""
-
-	def close: Unit = { socket_connection.close }
-
-	def check_incoming: Unit = {
-		if(input_stream.available() < 1) ()
-		else {
-			// Lecture de l'entrée
-			val buffer = new Array[Byte](input_stream.available)
-			input_stream.read(buffer)
-
-			// Conversion en string, affichage et renvoi
-			line = new String(buffer)
-			publish (FromClientToServer(line));
-		}
-	}
-
-	def send_server (message: String): Unit = {
-		output_stream.print(message)
-		output_stream.flush()
-	}
-
-    def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
-    var runner: Cancellable = null
-	runner = scheduler.schedule(FiniteDuration(0,TimeUnit.SECONDS), FiniteDuration(1,TimeUnit.SECONDS)) { check_incoming }
 }
