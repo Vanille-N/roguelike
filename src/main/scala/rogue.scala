@@ -247,6 +247,7 @@ class LocalGame (
         (Key.H,          "Left"),
         (Key.P,          "play"),
         (Key.S,          "stop"),
+        (Key.Q,          "quit"),
         (Key.Space,      "toggle"),
         (Key.O,          "list"),
         (Key.N,          "step-multiple"),
