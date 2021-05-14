@@ -272,14 +272,16 @@ class LocalGame (
 
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        //case DisplayContents(i, j) => {
-        //    this.cmdline.text += " $i $j"
-        //    command.commandRequest(this.cmdline.text)
-        //}
+        case DisplayContents(i, j) => {
+			waitingMsg.append(AnsCommandRequest(s" $i $j"))
+			println(s"Touche $i $j enfoncée")
+        }
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized { keyPressed(c) } }
-        case EditDone(`cmdline`) => { waitingMsg.append(AnsCommandRequest(this.cmdline.text)) }
-
+        case EditDone(`cmdline`) => {
+			waitingMsg.append(AnsCommandRequest(this.cmdline.text))
+			cmdline.text = ""
+		}
         case RefreshDisplay() => {
             displayGrid.map(_.updateVisuals)
         }
