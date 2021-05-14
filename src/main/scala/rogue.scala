@@ -245,7 +245,6 @@ class LocalGame (
         (Key.L,          "Right"),
         (Key.Left,       "Left"),
         (Key.H,          "Left"),
-        (Key.Q,          "quit"),
         (Key.P,          "play"),
         (Key.S,          "stop"),
         (Key.Space,      "toggle"),
@@ -278,8 +277,14 @@ class LocalGame (
         //}
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
         case KeyPressed(_, c, _, _) =>  { synchronized { keyPressed(c) } }
-        case EditDone(`cmdline`) => { waitingMsg.append(AnsCommandRequest(this.cmdline.text)) }
-
+        case EditDone(`cmdline`) => {
+            if (this.cmdline.text == "q") {
+                globalPanel.requestFocusInWindow()
+            } else {
+                waitingMsg.append(AnsCommandRequest(this.cmdline.text));
+            }
+            this.cmdline.text = ""
+        }
         case RefreshDisplay() => {
             displayGrid.map(_.updateVisuals)
         }
@@ -329,7 +334,7 @@ object ServerTranslator {
 
     def outgoing_toString (msg: LocalToRemote): String = {
         msg match {
-            case AnsCommandRequest(cmd) => s"CMD///$cmd"
+            case AnsCommandRequest(cmd) => if (cmd != "") { s"CMD///$cmd" } else { "" }
         }
     }
 
@@ -386,16 +391,17 @@ object main extends SimpleSwingApplication {
     games.map(g => listenTo(g.winCondition))
     games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
  
+    var running = false
+    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
+    var runner: Cancellable = null
     def step {
+        if (!running) return
         for (i <- 0 to games.size-1) {
             val info = games(i).syncStr(transfer(i))
             val response = locals(i).syncStr(info)
             transfer(i) = response
         }
     }
-    val scheduler: Scheduler = ActorSystem.create("timer").scheduler
-    var runner: Cancellable = null
-    var running = false
     def launchRunner {
         runner = scheduler.schedule(
             FiniteDuration(1, TimeUnit.SECONDS),

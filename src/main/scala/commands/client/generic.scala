@@ -82,23 +82,28 @@ extends ClientCommandManager (body, game) {
             else { other_play }
         }
         def other_step: String = {// make a/n step
-            if (splited_command.length == 1) { body.step }
-            else { for(i <- 1 to (splited_command(1).toInt)) { body.step } }
+            if (body.isPlaying) return ""
+            if (splited_command.length == 1) {
+                body.step
+            } else {
+                for (i <- 1 to (splited_command(1).toInt)) {
+                    body.step
+                }
+            }
             ""
         }
 
         splited_command(0) match {// main switch to define which function fits with the command at hand.
-            case "play"          => { return other_play }
-            case "stop"          => { return other_stop }
-            case "toggle"        => { return other_toggle }
-            case "quit"          => { realExecuteCommand(Array[String]("stop")) ; Runtime.getRuntime().halt(0) }
-            case "step"          => { return other_step }
-            case "step-multiple" => { realExecuteCommand(Array[String]("step", body.repeat.toString)); body.repeat = 1; return "" }
-            case "clear"         => { publish(ClearLogs()); return "" }
-            case "sacrifice"     => { publish(Sacrifice()); return "" }
-            case _               => { publish(PrintInLogs("Error: Command `" + splited_command(0) + "` unknown")); return "" }
+            case "play"          => { other_play }
+            case "stop"          => { other_stop }
+            case "toggle"        => { other_toggle }
+            case "quit"          => { realExecuteCommand(Array[String]("stop")) ; Runtime.getRuntime().halt(0); "" }
+            case "step"          => { other_step }
+            case "step-multiple" => { realExecuteCommand(Array[String]("step", body.repeat.toString)); body.repeat = 1; "" }
+            case "clear"         => { publish(ClearLogs()); "" }
+            case "sacrifice"     => { publish(Sacrifice()); "" }
+            case _               => { publish(PrintInLogs("Error: Command `" + splited_command(0) + "` unknown")); "" }
         }
-        return ""
     }
 }
 
