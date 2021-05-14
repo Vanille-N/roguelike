@@ -1,4 +1,4 @@
-import scala.swing._
+import swing._
 import event._
 
 import Direction._

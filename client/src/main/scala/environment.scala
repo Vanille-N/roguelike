@@ -1,13 +1,8 @@
-import scala.swing._
 import javax.swing.BorderFactory._
 import java.awt.Font
+
+import swing._
 import event._
-
-/* Environment: tiles of the "dungeon"
- * - visual feedback for tile contents
- */
-
-case class Notification (i: Int, j: Int) extends Event
 
 // one tile
 class DisplayPos (val dual: LocalPos) extends Button {

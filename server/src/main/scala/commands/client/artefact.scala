@@ -1,5 +1,6 @@
+import collection.mutable.Map
+
 import ArtefactType._
-import scala.collection.mutable.Map
 
 // The following class deals with the artefacts management
 class ArtefactsCommand (body: BodyPart, game: Game)

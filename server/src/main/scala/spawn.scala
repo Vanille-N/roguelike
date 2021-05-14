@@ -1,5 +1,6 @@
-import scala.collection.mutable.Buffer
-import scala.swing._
+import collection.mutable.Buffer
+
+import swing._
 import event._
 
 import Rng.Distribution

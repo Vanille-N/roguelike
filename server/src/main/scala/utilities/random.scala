@@ -1,6 +1,6 @@
-import scala.util.Random
-import scala.collection.Iterable
-import scala.collection.mutable.Buffer
+import util.Random
+import collection.Iterable
+import collection.mutable.Buffer
 
 /* Wrapper around util.Random
  * - uniform random integers

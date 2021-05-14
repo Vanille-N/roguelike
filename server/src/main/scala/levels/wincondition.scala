@@ -1,4 +1,4 @@
-import scala.swing._
+import swing._
 
 abstract class WinCondition (player: Player)
 extends Reactor with Publisher {

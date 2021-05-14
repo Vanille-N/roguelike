@@ -1,6 +1,6 @@
 import Math._
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.Set
+import scala.collection.mutable.{ Buffer, Set }
+
 import swing._
 import event._
 

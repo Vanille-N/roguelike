@@ -1,5 +1,4 @@
-import scala.collection.mutable.Set
-import scala.Tuple2
+import collection.mutable.Set
 
 // The following class is required to select organisms.
 class SelectionCommand (body: BodyPart, game: Game)

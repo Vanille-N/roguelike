@@ -1,6 +1,8 @@
-import scala.collection.mutable.Set
-import scala.swing._
+import collection.mutable.Set
+
+import swing._
 import event._
+
 import ArtefactType._
 
 class BodyPart (val level: Level, val players: List[Player])

@@ -1,6 +1,7 @@
-import java.io.File
-import java.io.PrintWriter
-import scala.io.Source
+import io.Source
+
+import java.io.{ File, PrintWriter }
+
 import MakeItem._
 
 object GameLoader {

@@ -1,10 +1,12 @@
+import concurrent.duration.FiniteDuration
+import concurrent.ExecutionContext.Implicits.global
+
 import java.net.ServerSocket
 import java.io.{ BufferedInputStream, PrintStream, BufferedOutputStream }
-import akka.actor._
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.swing._
+import akka.actor._
+
+import swing._
 import event._
 
 case class FromClientToServer (line: String) extends Event

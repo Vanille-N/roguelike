@@ -1,9 +1,8 @@
+import concurrent.duration.FiniteDuration
+import concurrent.ExecutionContext.Implicits.global
+
 import java.util.concurrent.TimeUnit
 import akka.actor._
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.swing._
-import event._
 
 import Direction._
 

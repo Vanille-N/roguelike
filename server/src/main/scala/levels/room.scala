@@ -1,5 +1,6 @@
-import scala.swing._
-import scala.io.Source
+import io.Source
+
+import swing._
 
 /* Room
  * - initialize from text file

@@ -1,6 +1,6 @@
-import java.io.FileNotFoundException
-import java.io.IOException
-import scala.io.Source
+import io.Source
+
+import java.io.{ FileNotFoundException, IOException }
 
 import Direction._
 

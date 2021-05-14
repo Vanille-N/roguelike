@@ -1,9 +1,7 @@
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.Buffer
-import scala.collection.mutable.HashMap
-import scala.collection.mutable.Set
+import scala.collection.mutable.{ ListBuffer, Buffer, HashMap, Set }
 import Math._
-import scala.swing._
+
+import swing._
 import event._
 
 // What stat is targeted by an item

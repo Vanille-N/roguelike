@@ -1,11 +1,12 @@
-import scala.collection.mutable.Set
-import scala.collection.mutable.ArrayBuffer
+import collection.mutable.{ Set, ArrayBuffer }
+import concurrent.duration.FiniteDuration
+import concurrent.ExecutionContext.Implicits.global
+
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.swing._
-import event._
 import akka.actor._
+
+import swing._
+import event._
 
 case class LeftClicked (o: Object) extends Event
 case class DisplayContents (i: Int, j: Int) extends Event

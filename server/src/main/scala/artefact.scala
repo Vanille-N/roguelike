@@ -1,6 +1,7 @@
-import scala.collection.mutable.Set
 import Math._
-import scala.swing._
+import collection.mutable.Set
+
+import swing._
 import event._
 
 case class StepForward() extends Event
