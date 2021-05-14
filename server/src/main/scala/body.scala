@@ -25,7 +25,7 @@ extends Reactor with Publisher {
             val i = Array(0, 0)
             val j = Array(0, 0)
             for (o <- organisms) {
-                val idx = if (o.isFriendly) 1 else 0
+                val idx = o.asBinary
                 i(idx) += o.position.i
                 j(idx) += o.position.j
                 count(idx) += 1

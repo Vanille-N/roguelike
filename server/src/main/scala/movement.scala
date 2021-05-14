@@ -8,7 +8,7 @@ import Direction._
  */
 
 // cursor controled by the player
-class Player () {
+class Player (val id: Int) {
     var position: Pos = null;
     def placeOnMap (p: Pos) {
         position = p

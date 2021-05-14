@@ -58,7 +58,7 @@ class WinByPickup(
     listenTo(body)
     reactions += {
         case PickedUpKey(o) => {
-            if (o.isFriendly) { // TODO: check that o.player == player
+            if (o.asIndex == player.id) {
                 count += 1
                 if (count == pickupCount) win
             }

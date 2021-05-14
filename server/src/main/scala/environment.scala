@@ -30,20 +30,20 @@ object Direction extends Enumeration { // allowed moves for organisms
 import Direction._
 
 // one tile
-class Pos (val room: Room, val i: Int, val j: Int)
+class Pos (val room: Room, val i: Int, val j: Int, nbPlayers: Int)
 extends Publisher with Reactor {
     // for all members of type Array[...] with two indexes, information
     // on friendly organisms is stored in (1) and hostile in (0)
-    // This explains the `if (isFriendly) 1 else 0` in the rest of the file
-    var organisms: Array[Set[Organism]] = Array(Set(), Set()) // all organisms
+    // If there are more indexes it is usually cells in (0) and
+    // each player's viruses in (player.id)
+    var organisms: Array[Set[Organism]] = Array.fill(2) { Set() } // all organisms
     // organisms(0) -> non friendly organisms (cells)
-    // organisms(1) -> friendly organisms (viruses)
+    // organisms(k) -> friendly organisms (viruses of player k)
     var items: Set[Item] = Set() // all items that are on the floor
     var artefacts: Set[Artefact] = Set() // all items that are on the floor
-    var strength: Array[Int] = Array(0, 0) // arbitrary measure of strength
-    var blocking: Array[SkillRecord] = Array(new SkillRecord(), new SkillRecord()) // are celles allowed to step over this tile ?
-    var friendlySpawner: PhysicalSpawner = null
-    var hostileSpawner: PhysicalSpawner = null
+    var strength = Array[Int](nbPlayers) // arbitrary measure of strength
+    var blocking: Array[SkillRecord] = Array.fill(2) { new SkillRecord() } // are cells allowed to step over this tile ?
+    var spawner: Array[PhysicalSpawner] = Array.fill(nbPlayers) { null }
 
     def notification {
         publish(Notification(i, j))
@@ -51,19 +51,17 @@ extends Publisher with Reactor {
 
     def addOrganism (o: Organism) = { // organism enters the tile
         if (o != null) {
-            val idx = if (o.isFriendly) 1 else 0
-            organisms(idx).add(o)
-            strength(idx) += o.strength
-            blocking(idx).addSkill(o.skills.blocking)
+            organisms(o.asBinary).add(o)
+            strength(o.asIndex) += o.strength
+            blocking(o.asBinary).addSkill(o.skills.blocking)
         }
         verifyStrength
     }
     def removeOrganism (o: Organism) = { // organism exits the tile
         if (o != null) {
-            val idx = if (o.isFriendly) 1 else 0
-            organisms(idx).remove(o)
-            strength(idx) -= o.strength
-            blocking(idx).removeSkill(o.skills.blocking)
+            organisms(o.asBinary).remove(o)
+            strength(o.asIndex) -= o.strength
+            blocking(o.asBinary).removeSkill(o.skills.blocking)
         }
         verifyStrength
     }
@@ -72,7 +70,7 @@ extends Publisher with Reactor {
         room.body.organisms.remove(o) // also remove from global index
     }
     def verifyStrength {
-        for (idx <- 0 to 1) {
+        for (idx <- 0 to nbPlayers) {
             // For unknown reasons strength sometimes gets out of sync
             if (strength(idx) < 0 || (strength(idx) > 0 && organisms(idx).size == 0)) {
                 strength(idx) = organisms(idx).map(_.strength).sum
@@ -112,15 +110,16 @@ extends Publisher with Reactor {
 
     // interaction with spawners
     val maxLivingOrgs = 500
-    def setFriendlySpawner (s: PhysicalSpawner) { friendlySpawner = s; s.position = this }
-    def setHostileSpawner (s: PhysicalSpawner) { hostileSpawner = s; s.position = this }
+    def setSpawner (idx: Int, s: PhysicalSpawner) { spawner(idx) = s; s.position = this }
     def trySpawn (nbAlive: Int) {
-        if (friendlySpawner != null) friendlySpawner.step
-        if (hostileSpawner != null && nbAlive < maxLivingOrgs) hostileSpawner.step
+        for (sp <- spawner) {
+            if (sp != null) sp.step
+        }
     }
     def forceSpawn {
-        if (friendlySpawner != null) friendlySpawner.spawn
-        if (hostileSpawner != null) hostileSpawner.spawn
+        for (sp <- spawner) {
+            if (sp != null) sp.step
+        }
     }
 
     def battle {
@@ -128,7 +127,7 @@ extends Publisher with Reactor {
         // Each organism in turn picks an ennemy that is still alive and tries to attack it.
         // This attack may fail due to skills.
         var orgs: Buffer[Organism] = Buffer()
-        var split: Array[Buffer[Organism]] = Array(Buffer(), Buffer())
+        var split: Array[Buffer[Organism]] = Array.fill(2) { Buffer() }
         for (i <- 0 to 1) {
             organisms(i).foreach(x => {
                 if (x.stats.health.residual > 0) {
@@ -141,7 +140,7 @@ extends Publisher with Reactor {
         split(0) = Rng.shuffle(split(0))
         split(1) = Rng.shuffle(split(1))
         orgs.foreach(x => {
-            val idx = if (x.isFriendly) 0 else 1
+            val idx = x.asBinary
             if (split(idx).size > 0) {
                 // chose target
                 val target = split(idx)(0)
@@ -195,8 +194,8 @@ extends Publisher with Reactor {
 }
 
 // Aggregate functions for positions
-class Grid (room: Room, rows: Int, cols: Int) {
-    val elem = IndexedSeq.tabulate(rows, cols) { (i, j) => new Pos(room, i, j) }
+class Grid (room: Room, rows: Int, cols: Int, nbPlayers: Int) {
+    val elem = IndexedSeq.tabulate(rows, cols) { (i, j) => new Pos(room, i, j, nbPlayers) }
     def map[U] (f: Pos => U) = elem.map(_.map(f(_)))
     def filter (f: Pos => Boolean) = elem.flatten.filter(f(_))
     def apply (i: Int, j: Int) = elem(i)(j)

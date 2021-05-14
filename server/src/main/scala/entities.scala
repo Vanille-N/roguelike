@@ -49,6 +49,9 @@ abstract class Organism (
         p.addOrganism(this)
     }
 
+    def asIndex: Int
+    def asBinary: Int = { asIndex.max(1) }
+
     var strength: Int = 0 // arbitrary measure of strength
 
     // Adjust the strength according to the health of the Organism
@@ -206,6 +209,8 @@ class Virus ( // friendly
     override def isFriendly = true
     var name = "virus"
 
+    def asIndex: Int = { player.id }
+
     behavior = {() => { (player.position, SEEK) }}
 }
 
@@ -216,5 +221,8 @@ class Cell ( // hostile
     val defaultBehavior: Behavior = FLEE,
     itemDrop: Distribution[MakeItem] = Buffer(),
 ) extends Organism (stats, skills, itemDrop) {
+    
+    def asIndex: Int = 0
+
     behavior = {() => { (this.position.room.body.organismsBarycenter(1), defaultBehavior ) }}
 }

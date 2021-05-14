@@ -45,7 +45,7 @@ extends ClientCommandManager (body, game) {
         }
 
         def behavior_cursor: String = {
-            game.selection_organisms(game.selection_names.indexOf(game.selection_current))._1.foreach(o => {
+            game.selection_organisms(game.selection_names.indexOf(game.selection_current)).foreach(o => {
                 o.behavior = { () => (game.player.position, SEEK) }
             })
             publish(PrintInLogs("The friendly organisms have changed their target"))
@@ -89,9 +89,8 @@ extends ClientCommandManager (body, game) {
                 case 3 => {
                     val i = splited_command(1).toInt
                     val j = splited_command(2).toInt
-                    game.selection_organisms(game.selection_names.indexOf(game.selection_current))._1.foreach(o => {
+                    game.selection_organisms(game.selection_names.indexOf(game.selection_current)).foreach(o => {
                         o.behavior = { () => (body.room.locs(i, j), SEEK) }
-                        if(!o.isFriendly) publish(PrintInLogs("dskjfh kdsjhf klf flkqs"))
                     })
                     publish(PrintInLogs("The friendly organisms have changed their target"))
                     return ""

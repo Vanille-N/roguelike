@@ -36,12 +36,7 @@ class Game (
     var clearLogs: Boolean = false
     var logText: String = ""
  
-    /* selection_organisms is an array of tuples.
-    ** | Each tuple is of thr form:
-    ** | | ._1 -> friendly organisms (viruses)
-    ** | | ._2 -> non friendly organisms (cells)
-    */
-    var selection_organisms: Array[Tuple2[Set[Organism],Set[Organism]]] = Array(Tuple2(Set(), Set()))
+    var selection_organisms: Array[Set[Organism]] = Array(Set())
     var selection_names: Array[String] = Array("_")
     var selection_current: String = "_"
  
@@ -89,11 +84,12 @@ class Game (
         for (i <- 0 to local.rows-1; j <- 0 to local.cols-1) {
             var pos = local.locs(i)(j)
             var src = room.locs(i,j)
-            pos.strengthSelf = src.strength(0)
-            pos.strengthOther = 0
-            pos.strengthCells = src.strength(1)
-            pos.hasFriendlySpawner = (src.friendlySpawner != null)
-            pos.hasHostileSpawner = (src.hostileSpawner != null)
+            pos.strengthSelf = src.strength(player.id)
+            pos.strengthOther = src.strength.sum - src.strength(player.id) - src.strength(0)
+            pos.strengthCells = src.strength(0)
+            pos.hasFriendlySpawner = src.spawner(player.id) != null
+            pos.hasNeutralSpawner = src.spawner.zipWithIndex.filter(x => x._2 != 0 && x._2 != player.id).find(_._1 != null) != None
+            pos.hasHostileSpawner = src.spawner(0) != null
             pos.hasArtefacts = (src.artefacts.size != 0)
             pos.hasItems = (src.items.size != 0)
             pos.needsFocus = (pos.i == focusPos._1 && pos.j == focusPos._2)
@@ -169,7 +165,7 @@ object main extends App with Reactor with Publisher {
     var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
     var players = Array[Player]({
-        var pl = new Player()
+        var pl = new Player(1)
         pl.saveInventory = new CompactInventory()
         pl.startingStats = (new DefaultVirusSpawner(pl)).stats
         pl
