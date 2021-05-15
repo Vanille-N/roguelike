@@ -113,9 +113,9 @@ class LocalGame (
     }
 
     def syncStr (data: String): String = {
-        val info: List[RemoteToLocal] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.incoming_fromString(_))
+        val info: List[RemoteToLocal] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.dowload_fromString(_))
         val response = sync(info)
-        response.map(ServerTranslator.outgoing_toString(_)).mkString("|||")
+        response.map(ServerTranslator.upload_toString(_)).mkString("|||")
     }
 
     val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.

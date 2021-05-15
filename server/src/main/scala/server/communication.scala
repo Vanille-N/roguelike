@@ -23,7 +23,7 @@ sealed trait LocalToRemote
 case class AnsCommandRequest(cmd: String) extends LocalToRemote
 
 object ServerTranslator {
-    def incoming_toString (msg: RemoteToLocal): String = {
+    def download_toString (msg: RemoteToLocal): String = {
         msg match {
             case MsgRoomInfo(room) => s"ROOM;$room"
             case MsgWinCondition(completion) => s"COMP;$completion"
@@ -32,7 +32,7 @@ object ServerTranslator {
         }
     }
 
-    def incoming_fromString (str: String): RemoteToLocal = {
+    def dowload_fromString (str: String): RemoteToLocal = {
         val split = str.split(";")
         split(0) match {
             case "ROOM" => MsgRoomInfo(parseRoom(split(1)))
@@ -54,13 +54,13 @@ object ServerTranslator {
         room
     }
 
-    def outgoing_toString (msg: LocalToRemote): String = {
+    def upload_toString (msg: LocalToRemote): String = {
         msg match {
             case AnsCommandRequest(cmd) => if (cmd != "") { s"CMD///$cmd" } else { "" }
         }
     }
 
-    def outgoing_fromString (str: String): LocalToRemote = {
+    def upload_fromString (str: String): LocalToRemote = {
         val split = str.split("///")
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))

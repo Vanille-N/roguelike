@@ -104,9 +104,9 @@ class Game (
 
 
     def syncStr (data: String): String = {
-        val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.outgoing_fromString(_))
+        val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.upload_fromString(_))
         val response = sync(info)
-        response.map(ServerTranslator.incoming_toString(_)).mkString("|||")
+        response.map(ServerTranslator.dowload_toString(_)).mkString("|||")
     }
 
     // what to carry from a level to the next
