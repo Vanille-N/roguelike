@@ -41,9 +41,9 @@ extends Publisher with Reactor {
     // organisms(k) -> friendly organisms (viruses of player k)
     var items: Set[Item] = Set() // all items that are on the floor
     var artefacts: Set[Artefact] = Set() // all items that are on the floor
-    var strength = Array[Int](nbPlayers) // arbitrary measure of strength
+    var strength: Array[Int] = Array.fill(nbPlayers+1) { 0 } // arbitrary measure of strength
     var blocking: Array[SkillRecord] = Array.fill(2) { new SkillRecord() } // are cells allowed to step over this tile ?
-    var spawner: Array[PhysicalSpawner] = Array.fill(nbPlayers) { null }
+    var spawner: Array[PhysicalSpawner] = Array.fill(nbPlayers+1) { null }
 
     def notification {
         publish(Notification(i, j))
