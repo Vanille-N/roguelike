@@ -62,6 +62,7 @@ object ServerTranslator {
 
     def upload_fromString (str: String): LocalToRemote = {
         val split = str.split("///")
+        println(str)
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))
         }
@@ -134,20 +135,23 @@ class LocalPos (
         strengthSelf = split(0).toInt
         strengthOther = split(1).toInt
         strengthCells = split(2).toInt
-        hasFriendlySpawner = split(3) == "true"
-        hasNeutralSpawner = split(4) == "true"
-        hasHostileSpawner = split(5) == "true"
-        hasArtefacts = split(6) == "true"
-        hasItems = split(7) == "true"
-        needsFocus = split(8) == "true"
-        hasNotification = split(9) == "true"
+        hasFriendlySpawner = bool(split(3)(0))
+        hasNeutralSpawner = bool(split(3)(1))
+        hasHostileSpawner = bool(split(3)(2))
+        hasArtefacts = bool(split(3)(3))
+        hasItems = bool(split(3)(4))
+        needsFocus = bool(split(3)(5))
+        hasNotification = bool(split(3)(6))
     }
+
+    def bit (b: Boolean): Char = { if (b) '1' else '0' }
+    def bool (c: Char): Boolean = { (c == '1') }
 
     override def toString: String = {
         var res = s"${strengthSelf} ${strengthOther} ${strengthCells}"
-        res += s" ${hasHostileSpawner} ${hasNeutralSpawner} ${hasFriendlySpawner}"
-        res += s" ${hasArtefacts} ${hasItems}"
-        res += s" ${needsFocus} ${hasNotification}"
+        res += s" ${bit(hasFriendlySpawner)}${bit(hasNeutralSpawner)}${bit(hasHostileSpawner)}"
+        res += s"${bit(hasArtefacts)}${bit(hasItems)}"
+        res += s"${bit(needsFocus)}${bit(hasNotification)}"
         res
     }
 }

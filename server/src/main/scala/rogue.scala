@@ -106,7 +106,7 @@ class Game (
     def syncStr (data: String): String = {
         val info: List[LocalToRemote] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.upload_fromString(_))
         val response = sync(info)
-        response.map(ServerTranslator.dowload_toString(_)).mkString("|||")
+        response.map(ServerTranslator.download_toString(_)).mkString("|||")
     }
 
     // what to carry from a level to the next
@@ -116,10 +116,6 @@ class Game (
     
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
-        //case DisplayContents(i, j) => {
-        //    this.cmdline.text += " $i $j"
-        //    command.commandRequest(this.cmdline.text)
-        //}
         case PrintInLogs(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logText += "\n" + str + "\n"
             else if (ln_after) logText += str + "\n"
@@ -196,7 +192,7 @@ object main extends App with Reactor with Publisher {
 
     listenTo(server)
     reactions += {
-        case FromClientToServer(s) => {
+        case ReceivedFromClient(s) => {
             println("Received message")
             transfer(0) = s
             println(s"<<< ${transfer(0)}")
@@ -213,7 +209,7 @@ object main extends App with Reactor with Publisher {
     def launchRunner {
         runner = scheduler.schedule(
             FiniteDuration(1, TimeUnit.SECONDS),
-            FiniteDuration(100, TimeUnit.MILLISECONDS)
+            FiniteDuration(1000, TimeUnit.MILLISECONDS)
         ) { step }
         running = true
     }

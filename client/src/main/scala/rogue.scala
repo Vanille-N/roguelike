@@ -194,8 +194,9 @@ object main extends SimpleSwingApplication with Publisher {
         centerOnScreen()
     }
 
-    val client = new Client(this)
+    val client = new Client
     listenTo(client)
+
     reactions += {
         case ReceivedFromServer(s) => {
             println(s"<<< $s")
@@ -213,7 +214,7 @@ object main extends SimpleSwingApplication with Publisher {
                 }, 1)
             } else {
                 transfer = local.syncStr(s)
-                println(transfer)
+                println(s"transfer: $transfer")
             }
         }
     }
@@ -223,7 +224,7 @@ object main extends SimpleSwingApplication with Publisher {
     var runner: Cancellable = null
     def step {
         if (!running) return
-        publish(SendMessage(transfer))
+        if (transfer != "") client.send_server(transfer)
     }
     def launchRunner {
         runner = scheduler.schedule(
