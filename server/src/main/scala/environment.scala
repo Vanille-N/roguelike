@@ -50,19 +50,15 @@ extends Publisher with Reactor {
     }
 
     def addOrganism (o: Organism) = { // organism enters the tile
-        if (o != null) {
-            organisms(o.asIndex).add(o)
-            strength(o.asIndex) += o.strength
-            blocking(o.asBinary).addSkill(o.skills.blocking)
-        }
+        organisms(o.asIndex).add(o)
+        strength(o.asIndex) += o.strength
+        blocking(o.asBinary).addSkill(o.skills.blocking)
         verifyStrength
     }
     def removeOrganism (o: Organism) = { // organism exits the tile
-        if (o != null) {
-            organisms(o.asIndex).remove(o)
-            strength(o.asIndex) -= o.strength
-            blocking(o.asBinary).removeSkill(o.skills.blocking)
-        }
+        organisms(o.asIndex).remove(o)
+        strength(o.asIndex) -= o.strength
+        blocking(o.asBinary).removeSkill(o.skills.blocking)
         verifyStrength
     }
     def kill (o: Organism) = { // organism is dead
@@ -140,7 +136,7 @@ extends Publisher with Reactor {
         split(0) = Rng.shuffle(split(0))
         split(1) = Rng.shuffle(split(1))
         orgs.foreach(x => {
-            val idx = x.asBinary
+            val idx = 1 - x.asBinary
             if (split(idx).size > 0) {
                 // chose target
                 val target = split(idx)(0)

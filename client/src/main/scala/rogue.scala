@@ -111,13 +111,7 @@ class LocalGame (
         waitingMsg.clear
         response
     }
-
-    def syncStr (data: String): String = {
-        val info: List[RemoteToLocal] = data.split("\\|\\|\\|").filter(_ != "").toList.map(ServerTranslator.dowload_fromString(_))
-        val response = sync(info)
-        response.map(ServerTranslator.upload_toString(_)).mkString("|||")
-    }
-
+ 
     val bind_keys: Map[Key.Value, String] = Map(// defines the current key-bindings for the app.
         (Key.Up,         "Up"),
         (Key.K,          "Up"),
@@ -198,22 +192,28 @@ object main extends SimpleSwingApplication with Publisher {
 
     reactions += {
         case ReceivedFromServer(s) => {
-            val data = s.split("///")
-            if (data.size > 0 && data(0) == "NEWGAME") {
-                println("New Game ", data(1))
-                makeLocalGame(data(1))
-                top.contents = local.newGame
+            val messages = s.split("\\|\\|\\|").filter(_ != "").toList
+            var info = ArrayBuffer[RemoteToLocal]()
+            for (msg <- messages) {
+                val data = msg.split("///")
+                if (data.size > 0 && data(0) == "NEWGAME") {
+                    println("New Game ", data(1))
+                    makeLocalGame(data(1))
+                    top.contents = local.newGame
 
-                val timer = new Timer
-                timer.schedule(new TimerTask() {
-                    def run {
-                        local.globalPanel.requestFocusInWindow
-                    }
-                }, 1)
-            } else {
-                transfer = local.syncStr(s)
-                println(s"transfer: $transfer")
+                    val timer = new Timer
+                    timer.schedule(new TimerTask() {
+                        def run {
+                            local.globalPanel.requestFocusInWindow
+                        }
+                    }, 1)
+                    info = ArrayBuffer()
+                } else {
+                    info += ServerTranslator.dowload_fromString(msg)
+                }
             }
+            val response = local.sync(info.toList)
+            transfer += response.map(ServerTranslator.upload_toString(_)).mkString("|||") 
         }
     }
  

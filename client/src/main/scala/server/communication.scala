@@ -61,6 +61,7 @@ object ServerTranslator {
     }
 
     def upload_fromString (str: String): LocalToRemote = {
+        println(s"upload: <$str>")
         val split = str.split("///")
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))
