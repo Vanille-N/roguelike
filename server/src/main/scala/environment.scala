@@ -118,7 +118,7 @@ extends Publisher with Reactor {
     }
     def forceSpawn {
         for (sp <- spawner) {
-            if (sp != null) sp.step
+            if (sp != null) sp.spawn
         }
     }
 

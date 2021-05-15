@@ -50,7 +50,10 @@ extends Reactor with Publisher {
                         )
                         println(s"Added spawner for player ${line(2*j)}")
                     }
-                    case '#' => { wallSpawner.spawn(locs(i, j)); availability(i)(j) = false }
+                    case '#' => {
+                        wallSpawner.spawn(locs(i, j))
+                        availability(i)(j) = false
+                    }
                     case 'R' => locs(i, j).setSpawner(0,
                         new PhysicalSpawner(redCellSpawner, 0.03, 7))
                     case 'W' => locs(i, j).setSpawner(0,
@@ -71,12 +74,6 @@ extends Reactor with Publisher {
     }
 
     locs.map(listenTo(_))
-
-    def makeWall (p: Pos, q: Pos) = {
-        for (i <- p.i to q.i; j <- p.j to q.j) {
-            wallSpawner.spawn(locs(i, j))
-        }
-    }
 
     def addOrganism (o: Organism, p: Pos) = {
         o.updateStrength
