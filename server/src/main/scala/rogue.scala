@@ -203,6 +203,7 @@ object main extends App with Reactor with Publisher {
         if (!running) return
         for (i <- 0 to games.size-1) {
             val info = games(i).syncStr(transfer(i))
+            transfer(i) = ""
             server.send_server(info)
         }
     }

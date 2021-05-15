@@ -36,7 +36,7 @@ extends Publisher with Reactor {
     // on friendly organisms is stored in (1) and hostile in (0)
     // If there are more indexes it is usually cells in (0) and
     // each player's viruses in (player.id)
-    var organisms: Array[Set[Organism]] = Array.fill(2) { Set() } // all organisms
+    var organisms: Array[Set[Organism]] = Array.fill(nbPlayers+1) { Set() } // all organisms
     // organisms(0) -> non friendly organisms (cells)
     // organisms(k) -> friendly organisms (viruses of player k)
     var items: Set[Item] = Set() // all items that are on the floor
@@ -51,7 +51,7 @@ extends Publisher with Reactor {
 
     def addOrganism (o: Organism) = { // organism enters the tile
         if (o != null) {
-            organisms(o.asBinary).add(o)
+            organisms(o.asIndex).add(o)
             strength(o.asIndex) += o.strength
             blocking(o.asBinary).addSkill(o.skills.blocking)
         }
@@ -59,7 +59,7 @@ extends Publisher with Reactor {
     }
     def removeOrganism (o: Organism) = { // organism exits the tile
         if (o != null) {
-            organisms(o.asBinary).remove(o)
+            organisms(o.asIndex).remove(o)
             strength(o.asIndex) -= o.strength
             blocking(o.asBinary).removeSkill(o.skills.blocking)
         }
@@ -128,10 +128,10 @@ extends Publisher with Reactor {
         // This attack may fail due to skills.
         var orgs: Buffer[Organism] = Buffer()
         var split: Array[Buffer[Organism]] = Array.fill(2) { Buffer() }
-        for (i <- 0 to 1) {
+        for (i <- 0 to nbPlayers) {
             organisms(i).foreach(x => {
                 if (x.stats.health.residual > 0) {
-                    orgs.append(x); split(i).append(x)
+                    orgs.append(x); split(x.asBinary).append(x)
                 }
             })
         }
@@ -169,12 +169,14 @@ extends Publisher with Reactor {
     def listContents: String = { // show all organisms on the tile
         var s = "At position (" + i + "," + j + ")\n"
         var k = 0
-        if (organisms(1).size > 0) {
-            s += "  " + organisms(1).size + " virus\n"
-            organisms(1).foreach(o => {
-                s += "    " + k + "- " +  o + "\n"
-                k += 1
-            })
+        for (i <- 1 to nbPlayers) {
+            if (organisms(i).size > 0) {
+                s += "  " + organisms(i).size + " virus\n"
+                organisms(i).foreach(o => {
+                    s += "    " + k + "- " +  o + "\n"
+                    k += 1
+                })
+            }
         }
         if (organisms(0).size > 0) {
             s += "  " + organisms(0).size + " cells\n"
@@ -186,7 +188,7 @@ extends Publisher with Reactor {
         if (items.size > 0) {
             items.foreach(i => {s += "  Item " +  i + "\n"})
         }
-        if (organisms(0).size + organisms(1).size == 0) {
+        if (organisms.map(_.size).sum == 0) {
             s += "  empty\n"
         }
         s

@@ -129,7 +129,6 @@ class LocalGame (
         (Key.H,          "Left"),
         (Key.P,          "play"),
         (Key.S,          "stop"),
-        (Key.Q,          "quit"),
         (Key.Space,      "toggle"),
         (Key.O,          "list"),
         (Key.N,          "step-multiple"),
@@ -199,7 +198,6 @@ object main extends SimpleSwingApplication with Publisher {
 
     reactions += {
         case ReceivedFromServer(s) => {
-            println(s"<<< $s")
             val data = s.split("///")
             if (data.size > 0 && data(0) == "NEWGAME") {
                 println("New Game ", data(1))
@@ -225,6 +223,7 @@ object main extends SimpleSwingApplication with Publisher {
     def step {
         if (!running) return
         if (transfer != "") client.send_server(transfer)
+        transfer = ""
     }
     def launchRunner {
         runner = scheduler.schedule(

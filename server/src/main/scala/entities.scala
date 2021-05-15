@@ -75,6 +75,7 @@ abstract class Organism (
         ).toInt
         strength - oldStrength
     }
+    updateStrength
 
     // Check that
     // - the organism is allowed to move

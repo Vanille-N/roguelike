@@ -17,8 +17,6 @@ class Client extends Publisher {
 	val socket = new Socket("localhost",8888)
 	val in_stream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream(new BufferedOutputStream(socket.getOutputStream()))
-	var line = ""
-
 
 	def check_incoming {
 		if (in_stream.available() < 1) ()
@@ -26,7 +24,7 @@ class Client extends Publisher {
 			val buffer = new Array[Byte](in_stream.available)
 			in_stream.read(buffer)
 			// Conversion en string
-			line = new String(buffer)
+			val line = new String(buffer)
 
 			publish(ReceivedFromServer(line))
             println("Received message")
@@ -34,7 +32,7 @@ class Client extends Publisher {
 	}
 
     def send_server (message: String) {
-        out_stream.println(line)
+        out_stream.println(message)
         out_stream.flush()
 	}
 

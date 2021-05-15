@@ -62,7 +62,6 @@ object ServerTranslator {
 
     def upload_fromString (str: String): LocalToRemote = {
         val split = str.split("///")
-        println(str)
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))
         }

@@ -13,11 +13,10 @@ case class ReceivedFromClient (line: String) extends Event
 
 class Server extends Publisher {
     println("Started server")
-	val socket_connection = new ServerSocket (8888)
+	val socket_connection = new ServerSocket(8888)
 	val socket = socket_connection.accept()
 	val in_stream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream(new BufferedOutputStream(socket.getOutputStream()))
-	var line = ""
 
 	def close { socket_connection.close }
 
@@ -29,7 +28,7 @@ class Server extends Publisher {
 			in_stream.read(buffer)
 
 			// Conversion en string, affichage et renvoi
-			line = new String(buffer)
+			val line = new String(buffer)
 			publish(ReceivedFromClient(line));
 		}
 	}

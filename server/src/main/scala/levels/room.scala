@@ -40,13 +40,27 @@ extends Reactor with Publisher {
             for (j <- 0 to cols-1) {
                 line(2*j) match {
                     case ' ' => ()
-                    case '1' | '2' => locs(i, j).setSpawner(line(2*j).toInt - '0'.toInt, new PhysicalSpawner(virusSpawners(line(2*j).toInt - '1'.toInt), 0.015, 10))
+                    case '1' | '2' => {
+                        locs(i, j).setSpawner(
+                            line(2*j).toInt - '0'.toInt,
+                            new PhysicalSpawner(
+                                virusSpawners(line(2*j).toInt - '1'.toInt),
+                                0.015, 10
+                            )
+                        )
+                        println(s"Added spawner for player ${line(2*j)}")
+                    }
                     case '#' => { wallSpawner.spawn(locs(i, j)); availability(i)(j) = false }
-                    case 'R' => locs(i, j).setSpawner(0, new PhysicalSpawner(redCellSpawner, 0.03, 7))
-                    case 'W' => locs(i, j).setSpawner(0, new PhysicalSpawner(whiteCellSpawner, 0.02, 5))
-                    case 'N' => locs(i, j).setSpawner(0, new PhysicalSpawner(neuronSpawner, 0.01, 1))
-                    case 'P' => locs(i, j).setSpawner(0, new PhysicalSpawner(phagocytosisSpawner, 0.01, 2))
-                    case 'L' => locs(i, j).setSpawner(0, new PhysicalSpawner(lymphocyteSpawner, 0.02, 8))
+                    case 'R' => locs(i, j).setSpawner(0,
+                        new PhysicalSpawner(redCellSpawner, 0.03, 7))
+                    case 'W' => locs(i, j).setSpawner(0,
+                        new PhysicalSpawner(whiteCellSpawner, 0.02, 5))
+                    case 'N' => locs(i, j).setSpawner(0,
+                        new PhysicalSpawner(neuronSpawner, 0.01, 1))
+                    case 'P' => locs(i, j).setSpawner(0,
+                        new PhysicalSpawner(phagocytosisSpawner, 0.01, 2))
+                    case 'L' => locs(i, j).setSpawner(0,
+                        new PhysicalSpawner(lymphocyteSpawner, 0.02, 8))
                 }
             }
         }

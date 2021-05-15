@@ -46,8 +46,8 @@ class DisplayPos (val dual: LocalPos) extends Button {
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
         background = Scheme.mix(
-            Scheme.red, dual.strengthSelf / 100.0,
-            Scheme.green, (dual.strengthOther + dual.strengthCells) / 100.0
+            Scheme.green, dual.strengthSelf / 100.0,
+            Scheme.red, (dual.strengthOther + dual.strengthCells) / 100.0
         )
         background = Scheme.setBlueChannel(background, notifyLevel)
         if (isFocused) background = Scheme.white
