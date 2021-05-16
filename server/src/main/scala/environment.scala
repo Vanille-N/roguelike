@@ -154,8 +154,8 @@ extends Publisher with Reactor {
                     if (split(idx).size > 1) {
                         val n = split(idx).size
                         val swap = Rng.uniform(0, n - 1)
-                        val tmp = split(idx)(n - 1)
-                        split(idx)(n - 1) = split(idx)(0)
+                        val tmp = split(idx)(swap)
+                        split(idx)(swap) = split(idx)(0)
                         split(idx)(0) = tmp
                     }
                 }
