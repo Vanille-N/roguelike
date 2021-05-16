@@ -232,11 +232,11 @@ object main extends App with Reactor with Publisher {
 
     // if all clients have responded, advance the computation
     def step {
-		clientInnactivityCounter += 1
+	clientInnactivityCounter += 1
         if (!running) return
-		for(i <- clientDisconnected) clientOk(i) = true
+	for(i <- clientDisconnected) clientOk(i) = true
         if (clientOk.find(!_) != None
-			&& inactivityCounter < inactivityTimeout) return // Some client is still computing
+	    && inactivityCounter < inactivityTimeout) return // Some client is still computing
         println("Step")
         for (i <- 0 to games.size-1) {
             clientOk(i) = false
@@ -245,15 +245,13 @@ object main extends App with Reactor with Publisher {
             servers(i).send_server(info)
         }
         bodyPart.step
-		if (clientInnactivityCounter == inactivityTimeout) {
-			for(i <- 0 to games.size-1) {
-				if (!clientOk(i))
-					clientDisconnected = clientDisconnected.+(i)
-			}
-			if (clientDisconnected.size == games.size)
-				Runtime.getRuntime().halt(0)
-		}
-		clientInnactivityCounter = 0
+	if (clientInnactivityCounter == inactivityTimeout) {
+	    for (i <- 0 to games.size-1) {
+	        if (!clientOk(i)) clientDisconnected = clientDisconnected.+(i)
+	    }
+	    if (clientDisconnected.size == games.size) Runtime.getRuntime().halt(0)
+	}
+	clientInnactivityCounter = 0
     }
     def launchRunner {
         runner = scheduler.schedule(
