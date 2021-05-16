@@ -5,6 +5,8 @@ import concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.TimeUnit
 import akka.actor._
 
+import scala.util.matching.Regex
+
 import java.net.{ InetSocketAddress, SocketException }
 
 import swing._
@@ -193,9 +195,15 @@ object main extends SimpleSwingApplication with Publisher {
         centerOnScreen()
     }
 
-	def getSocket (host: String,  port: Int, timeout: Int): Socket = {
+	def getSocket (defaultHost: String,  defaultPort: Int, timeout: Int): Socket = {
+		var port: Int = defaultPort
+		var host: String = defaultHost
 		var connected: Boolean = false
 		var socket = new Socket ()
+		val hostRegexp = raw"([0-9]{4}\.){3}[0-9]{4}".r
+		val portRegexp = "[0-9]{3,5}".r
+		var error: String = ""
+
 		while (! connected) {
 			try {
 				socket = new Socket()
@@ -203,15 +211,31 @@ object main extends SimpleSwingApplication with Publisher {
 				socket.connect(new InetSocketAddress(host, port))
 				connected = true
 			} catch {
-				case e: SocketException => {
+				case _: Throwable => {
+					val hostBox = new TextField(host, 19)
+					val portBox = new TextField(s"$port", 5)
+					val hostRegexp = new Regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")
+					val portRegexp = new Regex("^[0-9]{3,5}$")
 					val dialog = new Dialog {
 						visible = true
 						title = "Server connection error"
 						contents = {
 							val dialog = this
 							new BoxPanel(Orientation.Vertical) {
-								contents += new Label ("Unable to connect to the server")
-								contents += Button("Try again") { dialog.close() }
+								contents += new Label (s"Unable to connect to the server $host:$port ($error)")
+								contents += hostBox
+								contents += portBox
+								contents += Button("Try again") {
+									if (hostRegexp.findAllIn(hostBox.text).toList.length == 1) {
+										host = hostBox.text
+										println(s"${host} is a host: yay !")
+									} else error = s"${hostBox.text} is not an IP address"
+									if (portRegexp.findAllIn(portBox.text).toList.length == 1) {
+										port = portBox.text.toInt
+										println(s"${port} is a port: yay !")
+									} else error = s"${portBox.text} is not a port number"
+									dialog.close()
+									}
 								contents += Button("Quit")      { Runtime.getRuntime().halt(0) }
 								border = Swing.EmptyBorder(10, 10, 10, 10)
 							}
@@ -224,6 +248,7 @@ object main extends SimpleSwingApplication with Publisher {
 				}
 			}
 		}
+		println(s"Connected to $host:$port")
 		socket
 	}
 
