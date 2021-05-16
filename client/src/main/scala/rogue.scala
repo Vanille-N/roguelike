@@ -5,7 +5,7 @@ import concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.TimeUnit
 import akka.actor._
 
-import java.net.InetSocketAddress
+import java.net.{ InetSocketAddress, SocketException }
 
 import swing._
 import event._
@@ -191,15 +191,47 @@ object main extends SimpleSwingApplication with Publisher {
         centerOnScreen()
     }
 
+	def getSocket (host: String,  port: Int, timeout: Int): Socket = {
+		var connected: Boolean = false
+		var socket = new Socket ()
+		while (! connected) {
+			try {
+				socket = new Socket()
+				socket.setSoTimeout(timeout)
+				socket.connect(new InetSocketAddress(host, port))
+				connected = true
+			} catch {
+				case e: SocketException => {
+					val dialog = new Dialog {
+						visible = true
+						title = "Server connection error"
+						contents = {
+							val dialog = this
+							new BoxPanel(Orientation.Vertical) {
+								contents += new Label ("Unable to connect to the server")
+								contents += Button("Try again") { dialog.close() }
+								contents += Button("Quit")      { Runtime.getRuntime().halt(0) }
+								border = Swing.EmptyBorder(10, 10, 10, 10)
+							}
+						}
+						centerOnScreen()
+						}
+					while (dialog != null && dialog.visible) {
+						Thread.sleep(100)
+					}
+				}
+			}
+		}
+		socket
+	}
+
     val socket = try {
         val src = Source.fromFile("client.cfg")
         val line = src.getLines.next.split(" ")
         val host = line(0)
         val port = line(1).toInt
         val timeout = line(2).toInt
-        val socket = new Socket()
-        socket.setSoTimeout(timeout)
-        socket.connect(new InetSocketAddress(host, port))
+        val socket = getSocket(host, port, timeout)
         println(s"Listening on $host:$port")
         socket
     } catch {
@@ -229,6 +261,7 @@ object main extends SimpleSwingApplication with Publisher {
             sys.exit(1)
         }
     }
+
     val client = new Connection(0, socket)
     listenTo(client)
     reactions += {
