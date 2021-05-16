@@ -75,6 +75,7 @@ class Game (
         response.toList
     }
 
+    // extract relevant information to send over the server
     def syncLocalWithRoom (
         local: LocalRoom,
         room: Room,
@@ -113,7 +114,6 @@ class Game (
         (new CompactInventory).compress(player.inventory)
     }
     
-    // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case PrintInLogs(str: String, ln_after: Boolean, ln_before: Boolean) => {
             if (ln_after && ln_before) logText += "\n" + str + "\n"
@@ -157,6 +157,7 @@ import java.net.ServerSocket
 import io.Source
 
 object main extends App with Reactor with Publisher {
+    // read server configuration and accept connections
     val src = Source.fromFile("server.cfg")
     val line = src.getLines.toArray 
     val servers: Array[Connection] = line.zipWithIndex.map(x => {
@@ -168,6 +169,8 @@ object main extends App with Reactor with Publisher {
     })
     println(s"${servers.size} players connected")
     src.close
+
+    // initialize players and games from connections
     var levelNum = 1
     var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
@@ -184,6 +187,7 @@ object main extends App with Reactor with Publisher {
         maxLevelNum = levelNum.max(maxLevelNum)
     }
 
+    // instanciate new level
     def makeBodyPart {
         val level = new Level(levelNum, maxLevelNum)
         bodyPart = new BodyPart(level, players.toList)
@@ -201,6 +205,7 @@ object main extends App with Reactor with Publisher {
     val scheduler: Scheduler = ActorSystem.create("game-timer").scheduler
     var runner: Cancellable = null
 
+    // records which clients have responded so that none is left behind
     var clientOk = Array.fill(players.size) { false }
 
     servers.map(listenTo(_))
@@ -209,9 +214,10 @@ object main extends App with Reactor with Publisher {
             println("Received message")
             transfer(id-1) = s
             clientOk(id-1) = true
-            println(s"<<< ${transfer(id-1)}")
         }
     }
+
+    // if all clients have responded, advance the computation
     def step {
         if (!running) return
         if (clientOk.find(!_) != None) return // Some client is still computing
@@ -232,6 +238,7 @@ object main extends App with Reactor with Publisher {
         running = true
     }
 
+    // setup timers and other initialization for new level
     def loadLevel {
         if (running) {
             println("Cancel")
