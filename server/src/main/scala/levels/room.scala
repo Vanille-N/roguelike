@@ -21,6 +21,7 @@ extends Reactor with Publisher {
         sp.stats = pl.startingStats
         sp
     })
+    val nbPlayers = players.size
     val neuronSpawner = new DefaultNeuronSpawner()
 
     // initialization from src file
@@ -40,11 +41,13 @@ extends Reactor with Publisher {
             for (j <- 0 to cols-1) {
                 line(2*j) match {
                     case ' ' => ()
-                    case '1' | '2' => {
+                    case '1' | '2' | '3' => {
+                        val idx = line(2*j).toInt - '1'.toInt
+                        if (idx < nbPlayers)
                         locs(i, j).setSpawner(
-                            line(2*j).toInt - '0'.toInt,
+                            idx + 1,
                             new PhysicalSpawner(
-                                virusSpawners(line(2*j).toInt - '1'.toInt),
+                                virusSpawners(idx),
                                 0.015, 10
                             )
                         )
