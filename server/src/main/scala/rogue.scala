@@ -105,7 +105,7 @@ class Game (
     def syncStr (data: String): String = {
         val info: List[LocalToRemote] = data.split("\\|\\|\\|").toList.filter(s => s != "" && s != "\n" && s != "OK" ).map(ServerTranslator.upload_fromString(_))
         val response = sync(info)
-        response.map(ServerTranslator.download_toString(_) + "|||").mkString("")
+        response.map(ServerTranslator.download_toString(_)).mkString("|||")
     }
 
     // what to carry from a level to the next
@@ -239,9 +239,12 @@ object main extends App with Reactor with Publisher {
         }
         println(s"Entering level $levelNum")
         makeBodyPart
-        servers.map(_.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}|||"))
+        servers.map(_.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}"))
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
+        val scoreboard = "Scoreboard\n" + players.map(pl => s"\t* Player ${pl.id}:   ${pl.score} points").mkString("\n")
+        servers.map(srv => srv.send_server(ServerTranslator.download_toString(MsgLogText(s"You are Player ${srv.id}\n"))))
+        servers.map(_.send_server(ServerTranslator.download_toString(MsgLogText(scoreboard))))
         launchRunner
     }
     loadLevel
@@ -249,6 +252,7 @@ object main extends App with Reactor with Publisher {
     reactions += {
         case LevelClear(player) => {
             games.foreach(g => {
+                g.player.score += g.winCondition.completion
                 g.player.saveInventory = g.migrateInventory // inventory is only transfered if level is cleared
                 g.player.startingStats = g.startingStats.deepCopy // same for boosts
             })

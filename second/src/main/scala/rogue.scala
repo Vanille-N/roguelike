@@ -229,10 +229,10 @@ object main extends SimpleSwingApplication with Publisher {
                 }
             }
         }
-        client.send_server("OK|||")
+        client.send_server("OK")
         if (local == null) return // means the game is initializing
         val response = local.sync(info.toList)
-        val outgoing = response.map(ServerTranslator.upload_toString(_) + "|||").mkString("")
+        val outgoing = response.map(ServerTranslator.upload_toString(_)).mkString("|||")
         if (outgoing != "") {
             client.send_server(outgoing)
         }

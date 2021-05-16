@@ -32,7 +32,7 @@ class Client(host: String, port: Int) extends Publisher {
 	}
 
     def send_server (message: String) {
-        out_stream.print(message)
+        out_stream.print(message + "|||")
         out_stream.flush()
 	}
 

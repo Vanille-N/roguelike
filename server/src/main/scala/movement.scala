@@ -9,6 +9,7 @@ import Direction._
 
 // cursor controled by the player
 class Player (val id: Int) {
+    var score = 0
     var position: Pos = null;
     def placeOnMap (p: Pos) {
         position = p
