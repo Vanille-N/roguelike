@@ -209,6 +209,7 @@ object main extends SimpleSwingApplication with Publisher {
             val data = msg.split("///")
             if (data.size > 0 && data(0) == "NEWGAME") {
                 println("New Game ", data(1))
+                running = false
                 makeLocalGame(data(1))
                 top.contents = local.newGame
 
@@ -216,6 +217,7 @@ object main extends SimpleSwingApplication with Publisher {
                 timer.schedule(new TimerTask() {
                     def run {
                         local.globalPanel.requestFocusInWindow
+                        running = true
                     }
                 }, 1)
                 info = ArrayBuffer()

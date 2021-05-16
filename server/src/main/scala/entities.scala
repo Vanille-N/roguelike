@@ -46,7 +46,7 @@ abstract class Organism (
     }
 
     def asIndex: Int
-    def asBinary: Int = { asIndex.max(1) }
+    def asBinary: Int = { asIndex.min(1) }
 
     var strength: Int = 0 // arbitrary measure of strength
 
