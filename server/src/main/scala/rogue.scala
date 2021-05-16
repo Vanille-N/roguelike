@@ -108,7 +108,7 @@ class Game (
         val messages = ArrayBuffer[LocalToRemote]()
         for (msg <- info) {
             try {
-                messages += ServerTranslator.upload_fromString(_)
+                messages += ServerTranslator.upload_fromString(msg)
             } catch {
                 case e: Throwable => println(s"Warning: received corrupted data <$e>")
             }
@@ -201,9 +201,10 @@ object main extends App with Reactor with Publisher {
         val level = new Level(levelNum, maxLevelNum)
         bodyPart = new BodyPart(level, players.toList)
         listenTo(bodyPart)
+        val maxScore = players.map(_.score).max
         games = players.map(pl => {
             pl.placeOnMap(bodyPart.room.locs(10, 10))
-            new Game(bodyPart, level.makeWinCondition(bodyPart, pl), pl)
+            new Game(bodyPart, level.makeWinCondition(bodyPart, pl, players.size, maxScore), pl)
         })
         transfer = players.map(pl => "")
     }

@@ -10,7 +10,12 @@ class Level (val num: Int, val max: Int) {
     def makeRoom (body: BodyPart, players: List[Player]): Room = {
         new Room(body, layoutName, players)
     }
-    def makeWinCondition (body: BodyPart, player: Player): WinCondition = {
+    def makeWinCondition (
+        body: BodyPart,
+        player: Player,
+        nbPlayers: Int,
+        maxScore: Int
+    ): WinCondition = {
         layoutName match {
             case "brain" => new WinByKillCount(
                 body, player, "neuron",
@@ -35,7 +40,7 @@ class Level (val num: Int, val max: Int) {
                 strengthThreshold=200,
                 turnCount=20,
             )
-            case _ => new WinLock(player)
+            case _ => new WinLock(player, nbPlayers, maxScore)
         }
     }
 }

@@ -109,16 +109,31 @@ class WinByPosition(
     override def explanation = s"To complete this level, conquer the marked tile\n(stay for $turnCount turns on it with a strength >$strengthThreshold)"
 }
 
-class WinLock (_player: Player)
-extends WinCondition(_player) {
+class WinLock (
+    _player: Player,
+    nbPlayers: Int,
+    maxScore: Int,
+) extends WinCondition(_player) {
     def explanation = ""
     def completion = 100
     override def win {}
     override def message = {
-        "========================\n" +
-        "#   CONGRATULATIONS    #\n" +
-        "#    Game Cleared      #\n" +
-        "========================\n"
+        if (nbPlayers == 1) {
+            "========================\n" +
+            "#   CONGRATULATIONS    #\n" +
+            "#    Game Cleared      #\n" +
+            "========================\n"
+        } else if (player.score == maxScore) {
+            "========================\n" +
+            "#   CONGRATULATIONS    #\n" +
+            "# You are first place  #\n" +
+            "========================\n"
+        } else {
+            "========================\n" +
+           s"Your score: ${player.score}\n" +
+           s"High score: $maxScore\n" +
+            " You'll do better next time\n"
+        }
     }
 }
 
