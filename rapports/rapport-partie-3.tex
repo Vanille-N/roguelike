@@ -1,0 +1,129 @@
+\documentclass[a4paper,french]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel}
+\usepackage[margin=2cm]{geometry}
+\usepackage{listings}
+
+\newcommand{\ttt}[1]{\texttt{#1}}
+
+\title{Projet Programmation 2 -- Rapport de la partie 3\\Multijoueur et r\'eseau}
+\author{\textsc{Daby-Seesaram} Arnaud, \textsc{Villani} Neven}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Probl\`emes préliminaires rencontr\'es}
+
+Bien que nous ayons beaucoup s\'epar\'e notre code en fichiers pour chaque aspect du jeu,
+nous avons d\'ecouvert en d\'ebutant cette partie que certains aspects \'etaient trop
+m\'elang\'es.
+
+Par exemple notre classe \ttt{Pos} s'occupait \`a la fois d'aspects UI (r\'eactions aux
+clics, affichage graphique) et logiques (ensemble d'organismes par case, items, combats).
+Plus difficile encore, \ttt{BodyPart} s'occupait \`a la fois d'\'el\'ements relatifs au
+jeu (items actifs, organismes vivants) et au joueur (progr\`es de l'objectif, position).\\
+
+Il nous a donc fallu commencer par d\'ecoupler ces r\^oles:
+\begin{itemize}
+    \item \ttt{Room}, \ttt{BodyPart}, \ttt{Game}, \ttt{Pos}: logique du jeu
+    \item \ttt{DisplayGrid}, \ttt{DisplayPos}: affichage graphique
+    \item \ttt{LocalRoom}, \ttt{LocalPos}: dialogue entre \ttt{Room},\ttt{Pos} et \ttt{DisplayRoom},\ttt{DisplayPos}
+\end{itemize}
+
+\ttt{Local*} contiennent les informations absolument minimales pour l'affichage graphique, \ttt{Display*} en sont
+juste des versions locales mises \`a jour r\'eguli\`erement.
+
+Nous avons par ailleurs profit\'e de cette s\'eparation pour extraire une partie de
+\ttt{BodyPart} dans \ttt{Game}, contenant tout ce qui est relatif \`a un seul joueur.
+Nous avons fait attention \`a ce que toutes ces modifications rendent \ttt{BodyPart}
+agnostique au nombre de \ttt{Game} qui existent, et donc en particulier qu'une fois la
+partie r\'eseau mise en place il soit facile de rendre le jeu multijoueur.
+\`A part une chute de performance, rien n'emp\^eche de jouer \`a 3 joueurs voire plus.\\
+
+Cette s\'eparation a pris la majeure partie du temps allou\'e \`a la troisi\`eme partie,
+nous aurions aim\'e avoir un peu plus de temps pour d'autres am\'eliorations mineures.
+
+
+
+\section{R\'ealisation et ajouts}
+
+C\^ot\'e client, un thread est responsable de dialoguer avec le serveur, parser les donn\'ees re\,cues, et
+s\'erialiser les donn\'ees \`a envoyer, un autre met \`a jour l'affichage graphique et enregistre les
+\'ev\`enements (clics, mouvements, commandes).\\
+
+C\^ot\'e serveur il se passe le m\^eme processus de s\'erialisation et d\'es\'erialisation, et apr\`es chaque
+\'etape du jeu la grille est lue et envoy\'ee \`a chaque client, puis une courte pause est faite jusqu'\`a-ce que
+tous les clients aient confirm\'e la bonne r\'eception et \'eventuellement envoy\'e des commandes \`a ex\'ecuter.\\
+
+L'affichage graphique distingue les virus du joueur de ceux des autres joueurs, mais ne distingue pas les 
+adversaires les uns des autres dans le cas de trois joueurs ou plus.
+
+Le syst\`eme de niveaux et d'objectifs a \'et\'e conserv\'e : chaque joueur doit compl\'eter les missions,
+et une fois que l'un d'eux a atteint 100\% chaque joueur gagne autant de points que le pourcentage d'avancement
+de sa mission. Une fois le dernier niveau termin\'e le joueur avec le plus de points gagne.
+
+Heureusement les objectifs ainsi que la cr\'eation de niveaux ont \'et\'e tr\`es faciles \`a rendre multijoueurs.\\
+
+Au bout d'un certain temps, si un joueur est inactif il est d\'eclar\'e forfaitaire : le jeu reprend sans lui.\\
+Ses virus sont toujours g\'en\'er\'es, mais son curseur ne bouge plus.\\
+
+
+\section{Installation}
+
+La proc\'edure de lancement du jeu (et la structure du projet) ont \'et\'e un peu compliqu\'ees par l'ajout d'un serveur,
+mais elles sont \'egalement des preuves que la s\'eparation serveur/client a \'et\'e bien r\'ealis\'ee.
+
+\ttt{server/} contient le code qui ex\'ecute le jeu, \ttt{client/} contient la partie graphique.\\
+
+L'exemple ci-dessous d\'ecrit comment lancer une partie \`a deux joueurs, il s'\'etend facilement \`a 1 ou 3 joueurs.\\
+
+\`A ex\'ecuter une seule fois:
+\begin{lstlisting}
+$ cp -r player{-example,1}
+$ cp -r player{-example,2}
+$ echo "localhost 8888 20000" > player1/client.cfg
+$ echo "localhost 8889 20000" > player2/client.cfg
+$ echo "8888\n8889" > server/server.cfg
+\end{lstlisting}~\\
+
+
+\`A ex\'ecuter \`a chaque nouvelle partie, dans trois shells diff\'erents:
+\begin{lstlisting}
+$ cd server && sbt run
+$ cd player1 && sbt run
+$ cd player2 && sbt run
+\end{lstlisting}~\\
+
+Le dossier \ttt{src} de \ttt{player-example} est un symlink vers \ttt{client/src}, de m\^eme que nous avons choisi
+que \ttt{client/**/communication.scala} soit un symlink vers \ttt{server/**/communication.scala} pour que la partie
+dialogue entre le serveur et le client n'ait \`a \^etre modifi\'ee qu'\`a un seul endroit.\\
+En particulier cela permet sans aucune duplication de code que \ttt{client} et \ttt{server} partagent la m\^eme classe
+\ttt{Connection}, et que les s\'erialisations et d\'es\'erialisations de messages soient group\'ees ensemble.
+
+
+\section{Limitations et am\'eliorations envisag\'ees}
+
+\begin{itemize}
+    \item nous avons envisag\'e de r\'etablir un syst\`eme de \ttt{play}/\ttt{pause} pour pouvoir interrompre le jeu,
+        possiblement lui ajouter des restrictions pour emp\^echer un utilisateur de g\^ener les autres en mettant le
+        jeu en pause \`a r\'ep\'etition
+    \item les items qui sont envoy\'es entre le serveur et le client sont des cha\^ines de caract\`eres avec s\'eparateurs
+        fix\'es comme \ttt{"///"} et \ttt{"|||"}. Cela n'est pas dangereux car l'utilisateur ne peut envoyer
+        que des commandes qui sont valid\'ees par \ttt{Command} et les messages sont encapsul\'es dans un block \ttt{try},
+        mais si un ajout d'une autre fonctionnalit\'e permettait au client d'envoyer au serveur autre chose que des commandes
+        il faudrait ajouter d'autres m\'ecanismes de validation pour \'eviter des injections sous la forme de l'envoi
+        d'une commande \ttt{"|||<commande malicieuse>"} qui serait d\'ecoup\'ee sur le \ttt{"|||"} et interpr\'et\'ee
+        comme une commande vide provenant de l'utilisateur suivie d'un message provenant du client.
+    \item certaines commandes pourraient \^etre d\'eplac\'ees c\^ot\'e client : il pourrait ne pas y avoir besoin de faire
+        appel au serveur pour utiliser \ttt{help}
+    \item les commandes \ttt{load}, \ttt{save} et \ttt{level} sont interdites si il y a deux joueurs ou plus, on pourrait les
+        autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre \`a jour le
+        format de fichier pour accomoder plusieurs joueurs.
+\end{itemize}
+
+
+
+\end{document}
+
