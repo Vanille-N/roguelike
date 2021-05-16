@@ -79,8 +79,8 @@ class WinByKillCount(
     }
     listenTo(body.room)
     reactions += {
-        case OrganismDeath(o, _, VirusKill(i)) if i == player.id => {
-            if (!o.isFriendly && (name == "" || o.name == name)) {
+        case OrganismDeath(o, _, VirusKill(i)) => {
+            if (i == player.id && (name == "" || o.name == name)) {
                 count += 1
                 if (count == killCount) win
             }

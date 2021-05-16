@@ -32,7 +32,7 @@ class Client extends Publisher {
 	}
 
     def send_server (message: String) {
-        out_stream.println(message)
+        out_stream.print(message)
         out_stream.flush()
 	}
 
@@ -44,7 +44,6 @@ class Client extends Publisher {
     def scheduler: Scheduler = ActorSystem.create("client-timer").scheduler
     var runner: Cancellable = scheduler.schedule(
         FiniteDuration(0,TimeUnit.SECONDS),
-        FiniteDuration(1000,TimeUnit.MILLISECONDS)
+        FiniteDuration(50,TimeUnit.MILLISECONDS)
     ) { check_incoming }
-
 }

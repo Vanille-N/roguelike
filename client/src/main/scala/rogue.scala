@@ -92,9 +92,9 @@ class LocalGame (
     def sync (info: List[RemoteToLocal]): List[LocalToRemote] = {
         for (msg <- info) {
             msg match {
-                case MsgRoomInfo(room) => {
-                    localRoom.transfer(room)
-                    displayGrid.map(_.updateVisuals)
+                case MsgRoomInfo(pos) => {
+                    localRoom.transfer(pos)
+                    displayGrid(pos.i, pos.j).updateVisuals
                 }
                 case MsgWinCondition(compl) => {
                     progressbar.value = compl
@@ -170,15 +170,15 @@ class LocalGame (
 import java.util.{Timer,TimerTask}
 
 object main extends SimpleSwingApplication with Publisher {
-    var transfer = ""
+    var incoming = ""
     var local: LocalGame = null
 
     def makeLocalGame (data: String) {
+        local = null
         val split = data.split(" ")
         val rows = split(0).toInt
         val cols = split(1).toInt
         local = new LocalGame(rows, cols)
-        transfer = ""
     }
 
     val top = new MainFrame {
@@ -191,30 +191,7 @@ object main extends SimpleSwingApplication with Publisher {
     listenTo(client)
 
     reactions += {
-        case ReceivedFromServer(s) => {
-            val messages = s.split("\\|\\|\\|").filter(_ != "").toList
-            var info = ArrayBuffer[RemoteToLocal]()
-            for (msg <- messages) {
-                val data = msg.split("///")
-                if (data.size > 0 && data(0) == "NEWGAME") {
-                    println("New Game ", data(1))
-                    makeLocalGame(data(1))
-                    top.contents = local.newGame
-
-                    val timer = new Timer
-                    timer.schedule(new TimerTask() {
-                        def run {
-                            local.globalPanel.requestFocusInWindow
-                        }
-                    }, 1)
-                    info = ArrayBuffer()
-                } else {
-                    info += ServerTranslator.dowload_fromString(msg)
-                }
-            }
-            val response = local.sync(info.toList)
-            transfer += response.map(ServerTranslator.upload_toString(_)).mkString("|||") 
-        }
+        case ReceivedFromServer(s) => incoming += s
     }
  
     var running = false
@@ -222,13 +199,44 @@ object main extends SimpleSwingApplication with Publisher {
     var runner: Cancellable = null
     def step {
         if (!running) return
-        if (transfer != "") client.send_server(transfer)
-        transfer = ""
+        val messages = incoming.split("\\|\\|\\|", -1)
+        incoming = messages(messages.size - 1)
+        var info = ArrayBuffer[RemoteToLocal]()
+        for (i <- 0 to messages.size-2) {
+            val msg = messages(i)
+            val data = msg.split("///")
+            if (data.size > 0 && data(0) == "NEWGAME") {
+                println("New Game ", data(1))
+                makeLocalGame(data(1))
+                top.contents = local.newGame
+
+                val timer = new Timer
+                timer.schedule(new TimerTask() {
+                    def run {
+                        local.globalPanel.requestFocusInWindow
+                    }
+                }, 1)
+                info = ArrayBuffer()
+            } else if (msg != "") {
+                try {
+                    info += ServerTranslator.dowload_fromString(msg)
+                } catch {
+                    case e: Throwable => println(s"Warning: corrupted message\n\t$e\n\t<$msg>")
+                }
+            }
+        }
+        client.send_server("OK|||")
+        if (local == null) return // means the game is initializing
+        val response = local.sync(info.toList)
+        val outgoing = response.map(ServerTranslator.upload_toString(_) + "|||").mkString("")
+        if (outgoing != "") {
+            client.send_server(outgoing)
+        }
     }
     def launchRunner {
         runner = scheduler.schedule(
             FiniteDuration(1, TimeUnit.SECONDS),
-            FiniteDuration(100, TimeUnit.MILLISECONDS)
+            FiniteDuration(50, TimeUnit.MILLISECONDS)
         ) { step }
         running = true
     }

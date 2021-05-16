@@ -127,7 +127,8 @@ extends Publisher with Reactor {
         for (i <- 0 to nbPlayers) {
             organisms(i).foreach(x => {
                 if (x.stats.health.residual > 0) {
-                    orgs.append(x); split(x.asBinary).append(x)
+                    orgs.append(x)
+                    split(x.asBinary).append(x)
                 }
             })
         }

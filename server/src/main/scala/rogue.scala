@@ -61,10 +61,10 @@ class Game (
             (player.position.i, player.position.j),
             waitingNotifications.toList,
         )
-        val response = ArrayBuffer(
-            MsgRoomInfo(localRoom),
-            MsgWinCondition(winCondition.completion)
-        )
+        val response: ArrayBuffer[RemoteToLocal] = ArrayBuffer(MsgWinCondition(winCondition.completion))
+        for (i <- 0 to localRoom.rows-1; j <- 0 to localRoom.cols-1) {
+            response += MsgRoomInfo(localRoom.locs(i)(j))
+        }
         if (clearLogs) {
             response.append(MsgClearLogs())
         }
@@ -102,11 +102,10 @@ class Game (
         }
     }
 
-
     def syncStr (data: String): String = {
-        val info: List[LocalToRemote] = data.split("\\|\\|\\|").toList.filter(_ != "").map(ServerTranslator.upload_fromString(_))
+        val info: List[LocalToRemote] = data.split("\\|\\|\\|").toList.filter(s => s != "" && s != "\n" && s != "OK" ).map(ServerTranslator.upload_fromString(_))
         val response = sync(info)
-        response.map(ServerTranslator.download_toString(_)).mkString("|||")
+        response.map(ServerTranslator.download_toString(_) + "|||").mkString("")
     }
 
     // what to carry from a level to the next
@@ -190,32 +189,36 @@ object main extends App with Reactor with Publisher {
     val scheduler: Scheduler = ActorSystem.create("game-timer").scheduler
     var runner: Cancellable = null
 
+    var clientOk = Array.fill(players.size) { false }
+
     listenTo(server)
     reactions += {
         case ReceivedFromClient(s) => {
             println("Received message")
             transfer(0) = s
+            clientOk(0) = true
             println(s"<<< ${transfer(0)}")
         }
     }
     def step {
-        println("Step")
         if (!running) return
+        if (clientOk.find(!_) != None) return // Some client is still computing
+        println("Step")
         for (i <- 0 to games.size-1) {
+            clientOk(i) = false
             val info = games(i).syncStr(transfer(i))
             transfer(i) = ""
             server.send_server(info)
         }
+        bodyPart.step
     }
     def launchRunner {
         runner = scheduler.schedule(
             FiniteDuration(1, TimeUnit.SECONDS),
-            FiniteDuration(1000, TimeUnit.MILLISECONDS)
+            FiniteDuration(50, TimeUnit.MILLISECONDS)
         ) { step }
         running = true
     }
-    launchRunner
-    println("Launched main server loop")
 
     def loadLevel {
         if (running) {
@@ -231,10 +234,9 @@ object main extends App with Reactor with Publisher {
         }
         println(s"Entering level $levelNum")
         makeBodyPart
-        server.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}")
+        server.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}|||")
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
-        games(0).command.commandRequest("play")
         launchRunner
     }
     loadLevel

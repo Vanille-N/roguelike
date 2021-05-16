@@ -41,6 +41,6 @@ class Server extends Publisher {
     def scheduler: Scheduler = ActorSystem.create("server-timer").scheduler
     var runner: Cancellable = scheduler.schedule(
         FiniteDuration(0,TimeUnit.SECONDS),
-        FiniteDuration(1000,TimeUnit.MILLISECONDS)
+        FiniteDuration(50,TimeUnit.MILLISECONDS)
     ) { check_incoming }
 }
