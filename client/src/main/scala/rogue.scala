@@ -48,14 +48,14 @@ class LocalGame (
     listenTo(cmdline)
     
     val localRoom = new LocalRoom(rows, cols)
-    val displayGrid = new DisplayGrid(localRoom)
+    val displayRoom = new DisplayRoom(localRoom)
     var waitingMsg = ArrayBuffer[LocalToRemote]()
-    displayGrid.map(listenTo(_))
+    displayRoom.map(listenTo(_))
     
     // Set up the elements of the user interface.
     def newGame: GridBagPanel = {
         val grid = new GridPanel(rows, cols)
-        displayGrid.map(grid.contents += _)
+        displayRoom.map(grid.contents += _)
 
         val panel = new GridBagPanel {
             def constraints (x: Int, y: Int,
@@ -82,7 +82,7 @@ class LocalGame (
         }
         panel.foreground = Scheme.darkGray
         panel.background = Scheme.darkGray
-        displayGrid.map(_.updateVisuals)
+        displayRoom.map(_.updateVisuals)
 
         listenTo(panel.keys);
 
@@ -96,7 +96,7 @@ class LocalGame (
             msg match {
                 case MsgRoomInfo(pos) => {
                     localRoom.transfer(pos)
-                    displayGrid(pos.i, pos.j).updateVisuals
+                    displayRoom(pos.i, pos.j).updateVisuals
                 }
                 case MsgWinCondition(compl) => {
                     progressbar.value = compl
@@ -164,7 +164,7 @@ class LocalGame (
             cmdline.text = ""
         }
         case RefreshDisplay() => {
-            displayGrid.map(_.updateVisuals)
+            displayRoom.map(_.updateVisuals)
         }
     }
 }

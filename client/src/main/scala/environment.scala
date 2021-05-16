@@ -71,7 +71,7 @@ class DisplayPos (val dual: LocalPos) extends Button {
 }
 
 // Aggregate functions for positions
-class DisplayGrid (room: LocalRoom) {
+class DisplayRoom (room: LocalRoom) {
     val rows = room.rows
     val cols = room.cols
     val elem = IndexedSeq.tabulate(rows, cols) {
