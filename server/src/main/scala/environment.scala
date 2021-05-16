@@ -106,7 +106,10 @@ extends Publisher with Reactor {
 
     // interaction with spawners
     val maxLivingOrgs = 500
-    def setSpawner (idx: Int, s: PhysicalSpawner) { spawner(idx) = s; s.position = this }
+    def setSpawner (idx: Int, s: PhysicalSpawner) {
+        spawner(idx) = s
+        s.position = this
+    }
     def trySpawn (nbAlive: Int) {
         for (sp <- spawner) {
             if (sp != null) sp.step

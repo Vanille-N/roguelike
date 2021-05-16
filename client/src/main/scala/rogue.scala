@@ -78,13 +78,13 @@ class LocalGame (
             add(progressbar, constraints(0, 3, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
             add(new ScrollPane(logs) { preferredSize = new Dimension(30, 50) }, constraints(1, 1, weightx=0.3, weighty=1.0, fill=GridBagPanel.Fill.Both))
             add(Button("Close") { sys.exit(0) }, constraints(1, 0, weightx=0.4, fill=GridBagPanel.Fill.Horizontal))
-            focusable = true;
+            focusable = true
         }
         panel.foreground = Scheme.darkGray
         panel.background = Scheme.darkGray
         displayRoom.map(_.updateVisuals)
 
-        listenTo(panel.keys);
+        listenTo(panel.keys)
 
         globalPanel = panel
 
@@ -159,7 +159,7 @@ class LocalGame (
             if (cmdline.text == "q") {
                 globalPanel.requestFocusInWindow()
             } else {
-                waitingMsg.append(AnsCommandRequest(cmdline.text));
+                waitingMsg.append(AnsCommandRequest(cmdline.text))
             }
             cmdline.text = ""
         }

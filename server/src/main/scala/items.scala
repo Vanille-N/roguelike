@@ -35,11 +35,11 @@ case class PickedUpItem (i: Item, o: Organism) extends Event // an item has been
 case class UsedItem(i: Item, o: Organism, st: StatType) extends Event // an item has been used over an Organism
 
 
-sealed trait Owner;
-case class PosOwned(p: Pos) extends Owner;
-case class OrgOwned(o: Organism) extends Owner;
-case class UnOwned() extends Owner;
-case class PlayOwned(p: Player) extends Owner;
+sealed trait Owner
+case class PosOwned(p: Pos) extends Owner
+case class OrgOwned(o: Organism) extends Owner
+case class UnOwned() extends Owner
+case class PlayOwned(p: Player) extends Owner
 
 abstract class Item (var owner: Owner) extends Publisher {
     var pickable: Boolean = true

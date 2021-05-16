@@ -31,7 +31,10 @@ class Stat (var base: Int) {
     // In addition to interaction with boost items, this allows in particular
     // - movement spread over several turns because it only affects speed.residual
     // - cells die only at the end of the turn because being attacked affects health.residual
-    def syncBase { current = base; residual = current }
+    def syncBase {
+        current = base
+        residual = current
+    }
     def syncCurrent { residual = current }
 }
 

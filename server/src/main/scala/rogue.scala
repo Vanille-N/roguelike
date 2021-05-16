@@ -43,7 +43,7 @@ class Game (
     var command = new Command(body, this)
     listenTo(command)
     command.subCommands.foreach(listenTo(_))
-    listenTo(body.room);
+    listenTo(body.room)
     body.room.locs.map(listenTo(_))
 
     def sync (info: List[LocalToRemote]): List[RemoteToLocal] = {
@@ -130,7 +130,7 @@ class Game (
             else logText += str
         }
         case ClearLogs() => {
-            clearLogs = true;
+            clearLogs = true
             logText = ""
         }
         case Notification(i:Int, j:Int) => {
