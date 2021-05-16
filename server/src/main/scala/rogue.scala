@@ -159,6 +159,7 @@ object main extends App with Reactor with Publisher {
     val src = Source.fromFile("server.cfg")
     val line = src.getLines.toArray 
     val servers: Array[Server] = line.zipWithIndex.map(x => new Server(x._2 + 1, x._1.toInt))
+    println(s"${servers.size} players connected")
     src.close
     var levelNum = 1
     var maxLevelNum = levelNum
@@ -170,7 +171,7 @@ object main extends App with Reactor with Publisher {
         pl
     })
     var games = Array[Game]()
-    var transfer = Array[String]()
+    var transfer: Array[String] = players.map(_ => "")
     
     def updateMaxLevel {
         maxLevelNum = levelNum.max(maxLevelNum)

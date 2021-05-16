@@ -12,7 +12,7 @@ import event._
 case class ReceivedFromClient (id: Int, line: String) extends Event
 
 class Server(val id: Int, port: Int) extends Publisher {
-    println("Started server")
+    println(s"Started server at $port")
 	val socket_connection = new ServerSocket(port)
 	val socket = socket_connection.accept()
 	val in_stream = new BufferedInputStream(socket.getInputStream())
@@ -29,6 +29,7 @@ class Server(val id: Int, port: Int) extends Publisher {
 
 			// Conversion en string, affichage et renvoi
 			val line = new String(buffer)
+            println(s"<- $id, <$line>")
 			publish(ReceivedFromClient(id, line));
 		}
 	}
