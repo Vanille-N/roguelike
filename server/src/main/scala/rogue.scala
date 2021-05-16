@@ -104,8 +104,16 @@ class Game (
     }
 
     def syncStr (data: String): String = {
-        val info: List[LocalToRemote] = data.split("\\|\\|\\|").toList.filter(s => s != "" && s != "\n" && s != "OK" ).map(ServerTranslator.upload_fromString(_))
-        val response = sync(info)
+        val info: List[String] = data.split("\\|\\|\\|").toList.filter(s => s != "" && s != "\n" && s != "OK" )
+        val messages = ArrayBuffer[LocalToRemote]()
+        for (msg <- info) {
+            try {
+                messages += ServerTranslator.upload_fromString(_)
+            } catch {
+                case e: Throwable => println(s"Warning: received corrupted data <$e>")
+            }
+        }
+        val response = sync(messages.toList)
         response.map(ServerTranslator.download_toString(_)).mkString("|||")
     }
 
@@ -276,18 +284,24 @@ object main extends App with Reactor with Publisher {
             loadLevel
         }
         case LevelLoad(k) => {
-            levelNum = k
-            loadLevel
+            if (players.size == 1) {
+                levelNum = k
+                loadLevel
+            }
         }
         case GameLoad(save) => {
-            maxLevelNum = save.level
-            levelNum = save.level
-            games.map(g => g.player.saveInventory = save.inventory)
-            games.map(g => g.player.startingStats = save.stats)
-            loadLevel
+            if (players.size == 1) {
+                maxLevelNum = save.level
+                levelNum = save.level
+                games.map(g => g.player.saveInventory = save.inventory)
+                games.map(g => g.player.startingStats = save.stats)
+                loadLevel
+            }
         }
         case GameSave(f) => {
-            GameLoader.saveFile(f, new CompactGame(maxLevelNum, players(0).saveInventory, players(0).startingStats.deepCopy))
+            if (players.size == 1) {
+                GameLoader.saveFile(f, new CompactGame(maxLevelNum, players(0).saveInventory, players(0).startingStats.deepCopy))
+            }
         }
     }
 }
