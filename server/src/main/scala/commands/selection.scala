@@ -45,7 +45,7 @@ extends ClientCommandManager (body, game) {
             game.selection_organisms(selection_index) = Set()
             for (i <- 0 to body.room.rows - 1) {
                 for (j <- 0 to body.room.cols - 1) {
-                    game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(1).filter(_.asIndex == game.player.id)
+                    game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(game.player.id)
                 }
             }
             publish(PrintInLogs(s"Added ${(game.selection_organisms(selection_index).size)} viruses."))
@@ -107,7 +107,7 @@ extends ClientCommandManager (body, game) {
                         case "rect" | "1" | "rectangle" => {
                             for (i <- i1 to i2) {
                                 for (j <- j1 to j2) {
-                                    game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(1).filter(_.asIndex == game.player.id)
+                                    game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(game.player.id)
                                 }
                             }
                         }
@@ -117,7 +117,7 @@ extends ClientCommandManager (body, game) {
                             for (i <- i1 - R to i1 + R) {
                                 for (j <- j1 - R to j1 + R) {
                                     if (0 <= i && i < body.room.rows && 0 <= j && j < body.room.cols && ((i1 - i )^2 + (j1 - j)^2) <= R2 ) {
-                                        game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(1).filter(_.asIndex == game.player.id)
+                                        game.selection_organisms(selection_index) ++= body.room.locs(i, j).organisms(game.player.id)
                                     }
                                 }
                             }

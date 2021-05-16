@@ -164,6 +164,7 @@ object main extends App with Reactor with Publisher {
         val id = x._2 + 1
         val port = x._1.toInt
         val socket_connection = new ServerSocket(port)
+        println(s"Waiting for connection on $port")
         val socket = socket_connection.accept()
         new Connection(id, socket)
     })

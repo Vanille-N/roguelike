@@ -82,7 +82,7 @@ class WinByPath(
         case LoopStep() => {
             val pos = body.room.locs(path(num)._1, path(num)._2)
             pos.notification
-            if (pos.strength(1) > strengthThreshold) {
+            if (pos.strength(player.id) > strengthThreshold) {
                 count += 1
                 if (count == turnCount) {
                     if (num == path.length - 1) {

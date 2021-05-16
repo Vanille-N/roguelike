@@ -35,7 +35,6 @@ class Connection(val id: Int, socket: Socket) extends Publisher {
 
 			// Conversion en string, affichage et renvoi
 			val line = new String(buffer)
-            println(s"<- $id, <$line>")
 			publish(Received(id, line));
 		}
 	}

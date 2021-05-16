@@ -42,8 +42,7 @@ extends Publisher {
     def findOrganism: Set[Organism] = {
         var ans: Set[Organism] = Set()
         influenceZone.foreach(p => {
-            ans ++= p.organisms(0)
-            ans ++= p.organisms(1)
+            for (orgs <- p.organisms) ans ++= orgs
         })
         ans.filter(_ != null)
     }
@@ -53,8 +52,11 @@ extends Publisher {
         var ans: Set[Item] = Set[Item]()
         influenceZone.foreach(p => {
             ans ++= p.items
-            for (o <- p.organisms(0)) ans ++= o.items
-            for (o <- p.organisms(1)) ans ++= o.items
+            for (orgs <- p.organisms) {
+                for (org <- orgs) {
+                    ans ++= org.items
+                }
+            }
         })
         ans.filter(_ != null)
     }

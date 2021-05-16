@@ -48,7 +48,7 @@ extends Reactor with Publisher {
         // + synchronize effects of items and damage
         // + remove all organisms that should die
         organisms.foreach(o => {
-            if (o.isFriendly && Rng.choice(0.07)) {
+            if ((o.isFriendly && Rng.choice(0.07)) || (!o.isFriendly && Rng.choice(0.01))) {
                 o.inflictDamage(1, OldAgeKill())
             }
             o.sync

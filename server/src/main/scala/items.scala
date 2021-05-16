@@ -459,8 +459,11 @@ class Javel (_owner: Owner) extends GlobalActionItem(_owner: Owner) {
     override def action (o: Organism, t: Organism): Unit = {
         val pos = position
         if (pos != null) {
-            for (org <- pos.organisms(0).toList) org.kill(ItemEffectKill())
-            for (org <- pos.organisms(1).toList) org.kill(ItemEffectKill())
+            for (orgs <- pos.organisms) {
+                for (org <- orgs) {
+                    org.kill(ItemEffectKill())
+                }
+            }
         }
         drop
     }

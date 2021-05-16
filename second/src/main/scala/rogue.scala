@@ -194,6 +194,7 @@ object main extends SimpleSwingApplication with Publisher {
     val host = line(0)
     val port = line(1).toInt
     val socket = new Socket(host, port)
+    println(s"Listening on $host:$port")
     val client = new Connection(0, socket)
     listenTo(client)
     reactions += {

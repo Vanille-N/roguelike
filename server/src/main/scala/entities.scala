@@ -168,7 +168,6 @@ abstract class Organism (
     }
 
     def inflictDamage (amount: Int, cause: CauseOfDeath) {
-        println(s"Lost $amount from $cause")
         if (stats.health.residual > 0 && skills.immunity.get < 5) {
             stats.health.residual -= amount
             lastDamagedBy = cause
