@@ -4,6 +4,8 @@ project
 .bsp
 *.aux
 *.log
+player1
+player2
 
 # client instances
 player1

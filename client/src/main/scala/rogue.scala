@@ -5,6 +5,8 @@ import concurrent.ExecutionContext.Implicits.global
 import java.util.concurrent.TimeUnit
 import akka.actor._
 
+import java.net.InetSocketAddress
+
 import swing._
 import event._
 
@@ -193,7 +195,10 @@ object main extends SimpleSwingApplication with Publisher {
     val line = src.getLines.next.split(" ")
     val host = line(0)
     val port = line(1).toInt
-    val socket = new Socket(host, port)
+    val timeout = line(2).toInt
+	val socket = new Socket()
+	socket.setSoTimeout(timeout)
+	socket.connect(new InetSocketAddress(host, port))
     println(s"Listening on $host:$port")
     val client = new Connection(0, socket)
     listenTo(client)
