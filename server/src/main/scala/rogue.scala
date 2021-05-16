@@ -216,8 +216,9 @@ object main extends App with Reactor with Publisher {
 
     // records which clients have responded so that none is left behind
     var clientOk = Array.fill(players.size) { false }
-    var clientInnactivityCounter: Int = 0
-    val inactivityTimeout: Int = 30
+    var clientDisconnected: Set[Int] = Set[Int]()
+    var innactivityCounter: Int = 0
+    val inactivityTimeout: Int = 50
 
     servers.map(listenTo(_))
     reactions += {
@@ -232,8 +233,9 @@ object main extends App with Reactor with Publisher {
     def step {
 		clientInnactivityCounter += 1
         if (!running) return
+		for(i <- clientDisconnected) clientOk(i) = true
         if (clientOk.find(!_) != None
-			&& clientInnactivityCounter < inactivityTimeout) return // Some client is still computing
+			&& inactivityCounter < inactivityTimeout) return // Some client is still computing
         println("Step")
         for (i <- 0 to games.size-1) {
             clientOk(i) = false
@@ -242,6 +244,14 @@ object main extends App with Reactor with Publisher {
             servers(i).send_server(info)
         }
         bodyPart.step
+		if (clientInnactivityCounter == inactivityTimeout) {
+			for(i <- 0 to games.size-1) {
+				if (!clientOk(i))
+					clientDisconnected = clientDisconnected.+(i)
+			}
+			if (clientDisconnected.size == games.size)
+				Runtime.getRuntime().halt(0)
+		}
 		clientInnactivityCounter = 0
     }
     def launchRunner {
