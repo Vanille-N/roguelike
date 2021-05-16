@@ -191,15 +191,44 @@ object main extends SimpleSwingApplication with Publisher {
         centerOnScreen()
     }
 
-    val src = Source.fromFile("client.cfg")
-    val line = src.getLines.next.split(" ")
-    val host = line(0)
-    val port = line(1).toInt
-    val timeout = line(2).toInt
-	val socket = new Socket()
-	socket.setSoTimeout(timeout)
-	socket.connect(new InetSocketAddress(host, port))
-    println(s"Listening on $host:$port")
+    val socket = try {
+        val src = Source.fromFile("client.cfg")
+        val line = src.getLines.next.split(" ")
+        val host = line(0)
+        val port = line(1).toInt
+        val timeout = line(2).toInt
+        val socket = new Socket()
+        socket.setSoTimeout(timeout)
+        socket.connect(new InetSocketAddress(host, port))
+        println(s"Listening on $host:$port")
+        socket
+    } catch {
+        case e: java.lang.NumberFormatException => {
+            println(s"$e")
+            println("When reading configuration file client.cfg")
+            println("Provide a valid integer")
+            println("Syntax:")
+            println("        host port timeout")
+            println("e.g.    localhost 8888 2000")
+            sys.exit(1)
+        }
+        case e: java.io.FileNotFoundException => {
+            println(s"$e")
+            println("Configuration must be provided in client.cfg")
+            println("Provide host, port, timeout")
+            println("e.g.")
+            println("$ cat config.cfg")
+            println("localhost 8888 2000")
+            sys.exit(1)
+        }
+        case e: java.lang.ArrayIndexOutOfBoundsException => {
+            println(s"$e")
+            println("Not enough configuration informations were provided")
+            println("Please indicate host, port, and timeout, separated by a single space")
+            println("e.g.    localhost 8888 2000")
+            sys.exit(1)
+        }
+    }
     val client = new Connection(0, socket)
     listenTo(client)
     reactions += {
