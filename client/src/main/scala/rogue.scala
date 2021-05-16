@@ -95,8 +95,10 @@ class LocalGame (
         for (msg <- info) {
             msg match {
                 case MsgRoomInfo(pos) => {
-                    localRoom.transfer(pos)
-                    displayRoom(pos.i, pos.j).updateVisuals
+                    if (pos.i < displayRoom.rows && pos.j < displayRoom.cols) {
+                        localRoom.transfer(pos)
+                        displayRoom(pos.i, pos.j).updateVisuals
+                    }
                 }
                 case MsgWinCondition(compl) => {
                     progressbar.value = compl
