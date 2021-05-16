@@ -153,12 +153,19 @@ class Game (
 }
 
 import java.util.{Timer,TimerTask}
+import java.net.ServerSocket
 import io.Source
 
 object main extends App with Reactor with Publisher {
     val src = Source.fromFile("server.cfg")
     val line = src.getLines.toArray 
-    val servers: Array[Server] = line.zipWithIndex.map(x => new Server(x._2 + 1, x._1.toInt))
+    val servers: Array[Connection] = line.zipWithIndex.map(x => {
+        val id = x._2 + 1
+        val port = x._1.toInt
+        val socket_connection = new ServerSocket(port)
+        val socket = socket_connection.accept()
+        new Connection(id, socket)
+    })
     println(s"${servers.size} players connected")
     src.close
     var levelNum = 1
@@ -198,7 +205,7 @@ object main extends App with Reactor with Publisher {
 
     servers.map(listenTo(_))
     reactions += {
-        case ReceivedFromClient(id, s) => {
+        case Received(id, s) => {
             println("Received message")
             transfer(id-1) = s
             clientOk(id-1) = true

@@ -167,6 +167,7 @@ class LocalGame (
     }
 }
 
+import java.net.Socket
 import java.util.{Timer,TimerTask}
 import io.Source
 
@@ -190,10 +191,13 @@ object main extends SimpleSwingApplication with Publisher {
 
     val src = Source.fromFile("client.cfg")
     val line = src.getLines.next.split(" ")
-    val client = new Client(line(0), line(1).toInt)
+    val host = line(0)
+    val port = line(1).toInt
+    val socket = new Socket(host, port)
+    val client = new Connection(0, socket)
     listenTo(client)
     reactions += {
-        case ReceivedFromServer(s) => incoming += s
+        case Received(_, s) => incoming += s
     }
  
     var running = false
