@@ -14,12 +14,23 @@ object Scheme {
     val lightGray = new Color(170, 170, 170)
     val red = new Color(200, 10, 10)
     val green = new Color(10, 200, 10)
+    val purple = new Color(100, 0, 100)
 
     // Weighted mean of two colors
-    def mix (c1: Color, p1: Double, c2: Color, p2: Double, base: Color = black): Color = {
-        val r = (c1.getRed * p1 + c2.getRed * p2 + base.getRed).max(0).min(255)
-        val g = (c1.getGreen * p1 + c2.getGreen * p2 + base.getGreen).max(0).min(255)
-        val b = (c1.getBlue * p1 + c2.getBlue * p2 + base.getBlue).max(0).min(255)
+    def mix (items: List[Tuple2[Color, Double]]): Color = {
+        var r = 0.0
+        var g = 0.0
+        var b = 0.0
+        items.foreach(_ match {
+            case (c, p) => {
+                r += c.getRed * p
+                g += c.getGreen * p
+                b += c.getBlue * p
+            }
+        })
+        r = r.max(0).min(255)
+        g = g.max(0).min(255)
+        b = b.max(0).min(255)
         new Color(r.toInt, g.toInt, b.toInt)
     }
 

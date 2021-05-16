@@ -45,10 +45,11 @@ class DisplayPos (val dual: LocalPos) extends Button {
         if (dual.hasItems) t1 += "i" // 'i' indicates an item
         text = "<html><center>" + t1 + "<br>" + t0 + "</center></html>"
         // color
-        background = Scheme.mix(
-            Scheme.green, dual.strengthSelf / 100.0,
-            Scheme.red, (dual.strengthOther + dual.strengthCells) / 100.0
-        )
+        background = Scheme.mix(List(
+            (Scheme.green, dual.strengthSelf / 100.0),
+            (Scheme.red, dual.strengthCells / 100.0),
+            (Scheme.purple, dual.strengthOther / 100.0)
+        ))
         background = Scheme.setBlueChannel(background, notifyLevel)
         if (isFocused) background = Scheme.white
         var bgShade = (background.getRed + background.getBlue + background.getGreen) / (255 * 3.0)
