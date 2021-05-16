@@ -153,14 +153,18 @@ class Game (
 }
 
 import java.util.{Timer,TimerTask}
+import io.Source
 
 object main extends App with Reactor with Publisher {
-    val server = new Server
+    val src = Source.fromFile("server.cfg")
+    val line = src.getLines.toArray 
+    val servers: Array[Server] = line.zipWithIndex.map(x => new Server(x._2 + 1, x._1.toInt))
+    src.close
     var levelNum = 1
     var maxLevelNum = levelNum
     var bodyPart: BodyPart = null
-    var players = Array[Player]({
-        var pl = new Player(1)
+    var players: Array[Player] = servers.map(srv => {
+        var pl = new Player(srv.id)
         pl.saveInventory = new CompactInventory()
         pl.startingStats = (new DefaultVirusSpawner(pl)).stats
         pl
@@ -191,13 +195,13 @@ object main extends App with Reactor with Publisher {
 
     var clientOk = Array.fill(players.size) { false }
 
-    listenTo(server)
+    servers.map(listenTo(_))
     reactions += {
-        case ReceivedFromClient(s) => {
+        case ReceivedFromClient(id, s) => {
             println("Received message")
-            transfer(0) = s
-            clientOk(0) = true
-            println(s"<<< ${transfer(0)}")
+            transfer(id-1) = s
+            clientOk(id-1) = true
+            println(s"<<< ${transfer(id-1)}")
         }
     }
     def step {
@@ -208,7 +212,7 @@ object main extends App with Reactor with Publisher {
             clientOk(i) = false
             val info = games(i).syncStr(transfer(i))
             transfer(i) = ""
-            server.send_server(info)
+            servers(i).send_server(info)
         }
         bodyPart.step
     }
@@ -234,7 +238,7 @@ object main extends App with Reactor with Publisher {
         }
         println(s"Entering level $levelNum")
         makeBodyPart
-        server.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}|||")
+        servers.map(_.send_server(s"NEWGAME///${bodyPart.room.rows} ${bodyPart.room.cols}|||"))
         games.map(g => listenTo(g.winCondition))
         games.map(g => g.command.subCommands.foreach(cmd => listenTo(cmd)))
         launchRunner

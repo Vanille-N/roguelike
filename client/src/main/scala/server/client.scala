@@ -12,9 +12,9 @@ import event._
 
 case class ReceivedFromServer (line: String) extends Event
 
-class Client extends Publisher {
+class Client(host: String, port: Int) extends Publisher {
     println("Connecting to server")
-	val socket = new Socket("localhost",8888)
+	val socket = new Socket(host, port)
 	val in_stream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream(new BufferedOutputStream(socket.getOutputStream()))
 

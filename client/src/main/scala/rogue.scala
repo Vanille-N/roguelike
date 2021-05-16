@@ -168,6 +168,7 @@ class LocalGame (
 }
 
 import java.util.{Timer,TimerTask}
+import io.Source
 
 object main extends SimpleSwingApplication with Publisher {
     var incoming = ""
@@ -187,9 +188,10 @@ object main extends SimpleSwingApplication with Publisher {
         centerOnScreen()
     }
 
-    val client = new Client
+    val src = Source.fromFile("client.cfg")
+    val line = src.getLines.next.split(" ")
+    val client = new Client(line(0), line(1).toInt)
     listenTo(client)
-
     reactions += {
         case ReceivedFromServer(s) => incoming += s
     }

@@ -9,11 +9,11 @@ import akka.actor._
 import swing._
 import event._
 
-case class ReceivedFromClient (line: String) extends Event
+case class ReceivedFromClient (id: Int, line: String) extends Event
 
-class Server extends Publisher {
+class Server(val id: Int, port: Int) extends Publisher {
     println("Started server")
-	val socket_connection = new ServerSocket(8888)
+	val socket_connection = new ServerSocket(port)
 	val socket = socket_connection.accept()
 	val in_stream = new BufferedInputStream(socket.getInputStream())
 	val out_stream = new PrintStream(new BufferedOutputStream(socket.getOutputStream()))
@@ -29,7 +29,7 @@ class Server extends Publisher {
 
 			// Conversion en string, affichage et renvoi
 			val line = new String(buffer)
-			publish(ReceivedFromClient(line));
+			publish(ReceivedFromClient(id, line));
 		}
 	}
 
