@@ -246,10 +246,10 @@ object main extends App with Reactor with Publisher {
         }
         bodyPart.step
 	if (clientInnactivityCounter == inactivityTimeout) {
-		for (i <- 0 to games.size-1) {
-			if (!clientOk(i)) clientDisconnected = clientDisconnected.+(i)
-		}
-		if (clientDisconnected.size == games.size) Runtime.getRuntime().halt(0)
+	    for (i <- 0 to games.size-1) {
+	        if (!clientOk(i)) clientDisconnected = clientDisconnected.+(i)
+	    }
+	    if (clientDisconnected.size == games.size) Runtime.getRuntime().halt(0)
 	}
 	clientInnactivityCounter = 0
     }
