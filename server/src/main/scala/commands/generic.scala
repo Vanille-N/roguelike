@@ -53,17 +53,32 @@ extends ClientCommandManager (body, game) {
 
 class OtherCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
-    val acceptedCommands: List[String] = List("clear", "sacrifice")
+    val acceptedCommands: List[String] = List("contents", "clear", "sacrifice")
     help_menus = Nil
 
-    // The two following variables are used to make an automatic and regular step in the game evolution.
-    def scheduler: Scheduler = ActorSystem.create("timer-example").scheduler
-    var runner: Cancellable = null
-
     def realExecuteCommand (splited_command: Array[String]): String = {
+        def showContents {
+            println(splited_command, splited_command(1), splited_command(2))
+            if (!command_syntax_check(
+                splited_command,
+                Array(
+                    (false, "contents"),
+                    (false, s"N:1->${body.room.rows - 1};"),
+                    (true, s"N:1->${body.room.cols - 1};")
+                )
+            )) {
+                publish(PrintInLogs("Syntax: `contents $i $j`"))
+                return
+            }
+            val i = splited_command(1).toInt
+            val j = splited_command(2).toInt
+            publish(PrintInLogs(body.room.locs(i,j).listContents))
+        }
+        
         splited_command(0) match {// main switch to define which function fits with the command at hand.
             case "clear"         => { publish(ClearLogs()); "" }
             case "sacrifice"     => { publish(Sacrifice()); "" }
+            case "contents"      => { showContents; "" }
             case _               => { publish(PrintInLogs("Error: Command `" + splited_command(0) + "` unknown")); "" }
         }
     }

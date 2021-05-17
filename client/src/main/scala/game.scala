@@ -171,7 +171,7 @@ class LocalGame (
     // User clicks on dungeon cell or item button ou type a command
     reactions += {
         case DisplayContents(i, j) => {
-			waitingMsg.append(AnsCommandRequest(s" $i $j"))
+			waitingMsg.append(AnsCommandRequest(s"contents $i $j"))
 			println(s"Touche $i $j enfoncée")
         }
         case LeftClicked(o: Object) =>  { globalPanel.requestFocusInWindow() }
