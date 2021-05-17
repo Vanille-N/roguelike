@@ -8,12 +8,6 @@ import akka.actor._
 import swing._
 import event._
 
-/* Main game loop
- * - global application layout
- * - user interface
- * - move/battle/spawn coordination
- */
-
 case class LevelClear(player: Player) extends Event
 case class LoopStep() extends Event
 case class PickedUpKey(o: Organism) extends Event
@@ -23,8 +17,6 @@ case class LevelLoad(num: Int) extends Event
 case class GameLoad(game: CompactGame) extends Event
 case class GameSave(file: String) extends Event
 case class SaveList() extends Event
-
-/* -- Main environment -- */
 
 class Game (
 	body: BodyPart,
@@ -103,6 +95,7 @@ class Game (
 		}
 	}
 
+    // Read data sent from client and send new data
 	def syncStr (data: String): String = {
 		val info: List[String] = data.split("\\|\\|\\|").toList.filter(s => s != "" && s != "\n" && s != "OK" )
 		val messages = ArrayBuffer[LocalToRemote]()
@@ -164,7 +157,7 @@ import java.util.{Timer,TimerTask}
 import java.net.ServerSocket
 import io.Source
 
-object main extends App with Reactor with Publisher {
+object main extends App with Reactor {
 	// read server configuration and accept connections
 	val src = Source.fromFile("server.cfg")
 	val line = src.getLines.toArray 
@@ -217,15 +210,18 @@ object main extends App with Reactor with Publisher {
 
 	// records which clients have responded so that none is left behind
 	var clientOk = Array.fill(players.size) { false }
-	var clientDisconnected: Set[Int] = Set[Int]()
+	var clientDisconnected: Set[Int] = Set[Int]() // when a client is inactive disconnect him
 	var inactivityCounter: Int = 0
-	val inactivityTimeout: Int = 200
+	val inactivityTimeout: Int = 200 // delay after which a client is considered inactive
+    var initMessages = Array.fill(players.size) { 50 } // number of messages exchanged before inactivity is considered
+    // i.e. allow inactivity during connection before game has started
 
 	servers.map(listenTo(_))
 	reactions += {
 		case Received(id, s) => {
 			println("Received message")
 			transfer(id-1) = s
+            initMessages(id-1) = (initMessages(id-1) - 1).max(0)
 			clientOk(id-1) = true
 		}
 	}
@@ -234,7 +230,7 @@ object main extends App with Reactor with Publisher {
 	def step {
 		inactivityCounter += 1
 		if (!running) return
-		for(i <- clientDisconnected) clientOk(i) = true
+		for (i <- clientDisconnected) clientOk(i) = true
 		if (clientOk.find(!_) != None
 			&& inactivityCounter < inactivityTimeout) return // Some client is still computing
 		println("Step")
@@ -247,7 +243,10 @@ object main extends App with Reactor with Publisher {
 		bodyPart.step
 	if (inactivityCounter == inactivityTimeout) {
 		for (i <- 0 to games.size-1) {
-			if (!clientOk(i)) clientDisconnected = clientDisconnected.+(i)
+			if (!clientOk(i) && initMessages(i) == 0) {
+                clientDisconnected += i
+                servers.map(_.send_server(ServerTranslator.download_toString(MsgLogText(s"Player $i was disconnected\n\t${players.size - clientDisconnected.size} still playing"))))
+            }
 		}
 		if (clientDisconnected.size == games.size) Runtime.getRuntime().halt(0)
 	}
