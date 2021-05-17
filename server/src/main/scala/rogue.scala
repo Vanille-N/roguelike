@@ -211,15 +211,15 @@ object main extends App with Reactor {
 	// records which clients have responded so that none is left behind
 	var clientOk = Array.fill(players.size) { false }
 	var clientDisconnected: Set[Int] = Set[Int]() // when a client is inactive disconnect him
-	var inactivityCounter: Int = 0
+	var inactivityCounter = Array.fill(players.size) { 0 }
 	val inactivityTimeout: Int = 200 // delay after which a client is considered inactive
-    var initMessages = Array.fill(players.size) { 50 } // number of messages exchanged before inactivity is considered
+    var initMessages = Array.fill(players.size) { 100 } // number of messages exchanged before inactivity is considered
     // i.e. allow inactivity during connection before game has started
 
 	servers.map(listenTo(_))
 	reactions += {
 		case Received(id, s) => {
-			println("Received message")
+			println(s"Received message from $id")
 			transfer(id-1) = s
             initMessages(id-1) = (initMessages(id-1) - 1).max(0)
 			clientOk(id-1) = true
@@ -228,29 +228,31 @@ object main extends App with Reactor {
 
 	// if all clients have responded, advance the computation
 	def step {
-		inactivityCounter += 1
-		if (!running) return
-		for (i <- clientDisconnected) clientOk(i) = true
-		if (clientOk.find(!_) != None
-			&& inactivityCounter < inactivityTimeout) return // Some client is still computing
-		println("Step")
+        // transfer info to clients who respond, record those who don't
 		for (i <- 0 to games.size-1) {
-			clientOk(i) = false
-			val info = games(i).syncStr(transfer(i))
-			transfer(i) = ""
-			servers(i).send_server(info)
-		}
-		bodyPart.step
-	if (inactivityCounter == inactivityTimeout) {
-		for (i <- 0 to games.size-1) {
-			if (!clientOk(i) && initMessages(i) == 0) {
-                clientDisconnected += i
-                servers.map(_.send_server(ServerTranslator.download_toString(MsgLogText(s"Player $i was disconnected\n\t${players.size - clientDisconnected.size} still playing"))))
+            if (clientOk(i)) {
+                val info = games(i).syncStr(transfer(i))
+                transfer(i) = ""
+                servers(i).send_server(info)
+                inactivityCounter(i) = 0
+            } else if (initMessages(i) == 0) {
+                inactivityCounter(i) += 1
             }
 		}
-		if (clientDisconnected.size == games.size) Runtime.getRuntime().halt(0)
-	}
-	inactivityCounter = 0
+        if (!running) return
+        for (i <- clientDisconnected) clientOk(i) = true
+        // disconnect anyone who reached their quota of inactivity
+        for (i <- 0 to games.size-1) {
+            if (!clientOk(i) && inactivityCounter(i) > inactivityTimeout) {
+                clientDisconnected += i
+                servers.map(_.send_server(ServerTranslator.download_toString(MsgLogText(s"Player ${i+1} was disconnected\n\t${players.size - clientDisconnected.size} still playing"))))
+            }
+        }
+        if (clientDisconnected.size == games.size) sys.exit(0) // abort the game if no one is playing
+        if (clientOk.find(!_) != None) return // Some client is still computing
+        println("Step")
+		bodyPart.step
+        for (i <- 0 to games.size-1) clientOk(i) = false
 	}
 	def launchRunner {
 		runner = scheduler.schedule(
