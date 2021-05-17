@@ -1,6 +1,6 @@
 // WARNING
 // This file is symlinked between
-//       {client,server}/src/main/scala/server/communication.scala
+//       {client,server}/src/main/scala/communication.scala
 //
 // When modifying it take care not to
 // - use classes that one party has no knowledge of
@@ -22,28 +22,32 @@ import event._
 
 case class Received (id: Int, line: String) extends Event
 
+// To send message: use method send_server
+// To receive message: wait for event Received(_, message)
 class Connection(val id: Int, socket: Socket) extends Publisher {
 	val in_stream = new BufferedInputStream(socket.getInputStream())
-	val out_stream = new PrintStream(new BufferedOutputStream(socket.getOutputStream()))
+	val out_stream = new PrintStream(
+        new BufferedOutputStream(socket.getOutputStream()))
 
 	def check_incoming {
 		if (in_stream.available() < 1) ()
 		else {
-			// Lecture de l'entrée
+			// read input
 			val buffer = new Array[Byte](in_stream.available)
 			in_stream.read(buffer)
 
-			// Conversion en string, affichage et renvoi
+			// convert to string and emit event
 			val line = new String(buffer)
 			publish(Received(id, line))
 		}
 	}
 
 	def send_server (message: String) {
-		out_stream.print(message + "|||")
+		out_stream.print(message + "|||") // "|||" is the message separator
 		out_stream.flush()
 	}
 
+    // query in_stream at regular intervals
     def scheduler: Scheduler = ActorSystem.create("server-timer").scheduler
     var runner: Cancellable = scheduler.schedule(
         FiniteDuration(0,TimeUnit.SECONDS),
@@ -53,15 +57,18 @@ class Connection(val id: Int, socket: Socket) extends Publisher {
 
 case class Notification (i: Int, j: Int) extends Event
 
+// Inforamtion about the game
 sealed trait RemoteToLocal
 case class MsgRoomInfo(pos: LocalPos) extends RemoteToLocal
 case class MsgWinCondition(completion: Int) extends RemoteToLocal
 case class MsgClearLogs() extends RemoteToLocal
 case class MsgLogText(msg: String) extends RemoteToLocal
 
+// Information about the player
 sealed trait LocalToRemote
 case class AnsCommandRequest(cmd: String) extends LocalToRemote
 
+// String convertions for the above
 object ServerTranslator {
     def download_toString (msg: RemoteToLocal): String = {
         msg match {
@@ -89,7 +96,8 @@ object ServerTranslator {
     }
 
     def upload_fromString (str: String): LocalToRemote = {
-        val split = str.split("///")
+        val split = str.split("///") // not ";" because it needs to be absent
+        // from user-provided commands
         split(0) match {
             case "CMD" => AnsCommandRequest(split(1))
         }
