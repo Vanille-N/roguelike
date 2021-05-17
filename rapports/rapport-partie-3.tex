@@ -40,7 +40,9 @@ Nous avons par ailleurs profit\'e de cette s\'eparation pour extraire une partie
 Nous avons fait attention \`a ce que toutes ces modifications rendent \ttt{BodyPart}
 agnostique au nombre de \ttt{Game} qui existent, et donc en particulier qu'une fois la
 partie r\'eseau mise en place il soit facile de rendre le jeu multijoueur.
-\`A part une chute de performance, rien n'emp\^eche de jouer \`a 3 joueurs voire plus.\\
+\`A part la performance, rien ne limite le nombre de joueurs \`a condition de mettre \`a
+jour les fichiers d'initialisation de niveaux.\\
+Le jeu a \'et\'e test\'e \`a 1,2 et 3 joueurs.\\
 
 Cette s\'eparation a pris la majeure partie du temps allou\'e \`a la troisi\`eme partie,
 nous aurions aim\'e avoir un peu plus de temps pour d'autres am\'eliorations mineures.
@@ -83,9 +85,9 @@ L'exemple ci-dessous d\'ecrit comment lancer une partie \`a deux joueurs, il s'\
 \begin{lstlisting}
 $ cp -r player{-example,1}
 $ cp -r player{-example,2}
-$ echo "localhost 8888 20000" > player1/client.cfg
-$ echo "localhost 8889 20000" > player2/client.cfg
-$ echo "8888\n8889" > server/server.cfg
+$ echo "localhost 8001 20000" > player1/client.cfg
+$ echo "localhost 8002 20000" > player2/client.cfg
+$ echo "8001\n8002" > server/server.cfg
 \end{lstlisting}~\\
 
 
@@ -119,8 +121,8 @@ En particulier cela permet sans aucune duplication de code que \ttt{client} et \
     \item certaines commandes pourraient \^etre d\'eplac\'ees c\^ot\'e client : il pourrait ne pas y avoir besoin de faire
         appel au serveur pour utiliser \ttt{help}
     \item les commandes \ttt{load}, \ttt{save} et \ttt{level} sont interdites si il y a deux joueurs ou plus, on pourrait les
-        autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre \`a jour le
-        format de fichier pour accomoder plusieurs joueurs.
+        autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre \`a jour le format de fichier de sauvegarde 
+        pour accomoder plusieurs joueurs.
 \end{itemize}
 
 
