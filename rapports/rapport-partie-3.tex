@@ -7,25 +7,25 @@
 
 \newcommand{\ttt}[1]{\texttt{#1}}
 
-\title{Projet Programmation 2 -- Rapport de la partie 3\\Multijoueur et r\'eseau}
+\title{Projet Programmation 2 -- Rapport de la partie 3\\Multijoueur et réseau}
 \author{\textsc{Daby-Seesaram} Arnaud, \textsc{Villani} Neven}
 \date{}
 
 \begin{document}
 \maketitle
 
-\section{Probl\`emes préliminaires rencontr\'es}
+\section{Problèmes préliminaires rencontrés}
 
-Bien que nous ayons beaucoup s\'epar\'e notre code en fichiers pour chaque aspect du jeu,
-nous avons d\'ecouvert en d\'ebutant cette partie que certains aspects \'etaient trop
-m\'elang\'es.
+Bien que nous ayons beaucoup séparé notre code en fichiers pour chaque aspect du jeu,
+nous avons découvert en débutant cette partie que certains aspects étaient trop
+mélangés.
 
-Par exemple notre classe \ttt{Pos} s'occupait \`a la fois d'aspects UI (r\'eactions aux
+Par exemple notre classe \ttt{Pos} s'occupait à la fois d'aspects UI (réactions aux
 clics, affichage graphique) et logiques (ensemble d'organismes par case, items, combats).
-Plus difficile encore, \ttt{BodyPart} s'occupait \`a la fois d'\'el\'ements relatifs au
-jeu (items actifs, organismes vivants) et au joueur (progr\`es de l'objectif, position).\\
+Plus difficile encore, \ttt{BodyPart} s'occupait à la fois d'éléments relatifs au
+jeu (items actifs, organismes vivants) et au joueur (progrès de l'objectif, position).\\
 
-Il nous a donc fallu commencer par d\'ecoupler ces r\^oles:
+Il nous a donc fallu commencer par découpler ces rôles:
 \begin{itemize}
     \item \ttt{Room}, \ttt{BodyPart}, \ttt{Game}, \ttt{Pos}: logique du jeu
     \item \ttt{DisplayGrid}, \ttt{DisplayPos}: affichage graphique
@@ -33,55 +33,68 @@ Il nous a donc fallu commencer par d\'ecoupler ces r\^oles:
 \end{itemize}
 
 \ttt{Local*} contiennent les informations absolument minimales pour l'affichage graphique, \ttt{Display*} en sont
-juste des versions locales mises \`a jour r\'eguli\`erement.
+juste des versions locales mises à jour régulièrement.
 
-Nous avons par ailleurs profit\'e de cette s\'eparation pour extraire une partie de
-\ttt{BodyPart} dans \ttt{Game}, contenant tout ce qui est relatif \`a un seul joueur.
-Nous avons fait attention \`a ce que toutes ces modifications rendent \ttt{BodyPart}
+Nous avons par ailleurs profité de cette séparation pour extraire une partie de
+\ttt{BodyPart} dans \ttt{Game}, contenant tout ce qui est relatif à un seul joueur.
+Nous avons fait attention à ce que toutes ces modifications rendent \ttt{BodyPart}
 agnostique au nombre de \ttt{Game} qui existent, et donc en particulier qu'une fois la
-partie r\'eseau mise en place il soit facile de rendre le jeu multijoueur.
-\`A part la performance, rien ne limite le nombre de joueurs \`a condition de mettre \`a
+partie réseau mise en place il soit facile de rendre le jeu multijoueur.
+\`A part la performance, rien ne limite le nombre de joueurs à condition de mettre à
 jour les fichiers d'initialisation de niveaux.\\
-Le jeu a \'et\'e test\'e \`a 1,2 et 3 joueurs.\\
+Le jeu a été testé à 1,2 et 3 joueurs.\\
 
-Cette s\'eparation a pris la majeure partie du temps allou\'e \`a la troisi\`eme partie,
-nous aurions aim\'e avoir un peu plus de temps pour d'autres am\'eliorations mineures.
+Cette séparation a pris la majeure partie du temps alloué à la troisième partie,
+nous aurions aimé avoir un peu plus de temps pour d'autres améliorations mineures.
+Par exemple, une partie du temps imparti a été utilisée pour essayer de séparer les commandes à effectuer côté serveur et celles
+à effectuer côté client. L'idée était la suivante : les commandes n'interagissant pas avec le jeu (comme
+(\texttt{help}) devraient être effectuées par le client et toute commande interactive devrait :
+\begin{itemize}
+	\item effectuer les jeux de questions / réponses en local
+	\item envoyer la commande finale au serveur
+	\item recevoir la réponse du serveur
+\end{itemize}
 
 
 
-\section{R\'ealisation et ajouts}
+\section{Réalisation et ajouts}
 
-C\^ot\'e client, un thread est responsable de dialoguer avec le serveur, parser les donn\'ees re\,cues, et
-s\'erialiser les donn\'ees \`a envoyer, un autre met \`a jour l'affichage graphique et enregistre les
-\'ev\`enements (clics, mouvements, commandes).\\
+Côté client, un thread est responsable de dialoguer avec le serveur, parser les données re\,cues, et
+sérialiser les données à envoyer, un autre met à jour l'affichage graphique et enregistre les
+évènements (clics, mouvements, commandes).\\
 
-C\^ot\'e serveur il se passe le m\^eme processus de s\'erialisation et d\'es\'erialisation, et apr\`es chaque
-\'etape du jeu la grille est lue et envoy\'ee \`a chaque client, puis une courte pause est faite jusqu'\`a-ce que
-tous les clients aient confirm\'e la bonne r\'eception et \'eventuellement envoy\'e des commandes \`a ex\'ecuter.\\
+Côté serveur il se passe le même processus de sérialisation et désérialisation, et après chaque
+étape du jeu la grille est lue et envoyée à chaque client, puis une courte pause est faite jusqu'à-ce que
+tous les clients aient confirmé la bonne réception et éventuellement envoyé des commandes à exécuter.\\
 
-L'affichage graphique distingue les virus du joueur de ceux des autres joueurs, mais ne distingue pas les 
+L'affichage graphique distingue les virus du joueur de ceux des autres joueurs, mais ne distingue pas les
 adversaires les uns des autres dans le cas de trois joueurs ou plus.
 
-Le syst\`eme de niveaux et d'objectifs a \'et\'e conserv\'e : chaque joueur doit compl\'eter les missions,
+Le système de niveaux et d'objectifs a été conservé : chaque joueur doit compléter les missions,
 et une fois que l'un d'eux a atteint 100\% chaque joueur gagne autant de points que le pourcentage d'avancement
-de sa mission. Une fois le dernier niveau termin\'e le joueur avec le plus de points gagne.
+de sa mission. Une fois le dernier niveau terminé le joueur avec le plus de points gagne.
 
-Heureusement les objectifs ainsi que la cr\'eation de niveaux ont \'et\'e tr\`es faciles \`a rendre multijoueurs.\\
+Heureusement les objectifs ainsi que la création de niveaux ont été très faciles à rendre multijoueurs.\\
 
-Au bout d'un certain temps, si un joueur est inactif il est d\'eclar\'e forfaitaire : le jeu reprend sans lui.\\
-Ses virus sont toujours g\'en\'er\'es, mais son curseur ne bouge plus.\\
+Au bout d'un certain temps, si un joueur est inactif il est déclaré forfaitaire : le jeu reprend sans lui.\\
+Ses virus sont toujours générés, mais son curseur ne bouge plus.\\
+
+\`A l'initialisation du jeu, une fenêtre s'ouvre, affichant les options de connexion par défaut (ip de l'hôte, port et
+timeout de connexion). Cette fenêtre permet d'éditer les options de connexion du client. Si la connexion ne peut pas se
+faire, une nouvelle fenêtre s'ouvre pour en informer l'utilisateur, qui peut soit changer les valeurs sus-décrites, soit
+quitter l'application.
 
 
 \section{Installation}
 
-La proc\'edure de lancement du jeu (et la structure du projet) ont \'et\'e un peu compliqu\'ees par l'ajout d'un serveur,
-mais elles sont \'egalement des preuves que la s\'eparation serveur/client a \'et\'e bien r\'ealis\'ee.
+La procédure de lancement du jeu (et la structure du projet) ont été un peu compliquées par l'ajout d'un serveur,
+mais elles sont également des preuves que la séparation serveur/client a été bien réalisée.
 
-\ttt{server/} contient le code qui ex\'ecute le jeu, \ttt{client/} contient la partie graphique.\\
+\ttt{server/} contient le code qui exécute le jeu, \ttt{client/} contient la partie graphique.\\
 
-L'exemple ci-dessous d\'ecrit comment lancer une partie \`a deux joueurs, il s'\'etend facilement \`a 1 ou 3 joueurs.\\
+L'exemple ci-dessous décrit comment lancer une partie à deux joueurs, il s'étend facilement à 1 ou 3 joueurs.\\
 
-\`A ex\'ecuter une seule fois:
+\`A exécuter une seule fois:
 \begin{lstlisting}
 $ cp -r player{-example,1}
 $ cp -r player{-example,2}
@@ -91,37 +104,37 @@ $ echo "8001\n8002" > server/server.cfg
 \end{lstlisting}~\\
 
 
-\`A ex\'ecuter \`a chaque nouvelle partie, dans trois shells diff\'erents:
+\`A exécuter à chaque nouvelle partie, dans trois shells différents:
 \begin{lstlisting}
 $ cd server && sbt run
 $ cd player1 && sbt run
 $ cd player2 && sbt run
 \end{lstlisting}~\\
 
-Le dossier \ttt{src} de \ttt{player-example} est un symlink vers \ttt{client/src}, de m\^eme que nous avons choisi
+Le dossier \ttt{src} de \ttt{player-example} est un symlink vers \ttt{client/src}, de même que nous avons choisi
 que \ttt{client/**/communication.scala} soit un symlink vers \ttt{server/**/communication.scala} pour que la partie
-dialogue entre le serveur et le client n'ait \`a \^etre modifi\'ee qu'\`a un seul endroit.\\
-En particulier cela permet sans aucune duplication de code que \ttt{client} et \ttt{server} partagent la m\^eme classe
-\ttt{Connection}, et que les s\'erialisations et d\'es\'erialisations de messages soient group\'ees ensemble.
+dialogue entre le serveur et le client n'ait à être modifiée qu'à un seul endroit.\\
+En particulier cela permet sans aucune duplication de code que \ttt{client} et \ttt{server} partagent la même classe
+\ttt{Connection}, et que les sérialisations et désérialisations de messages soient groupées ensemble.
 
 
-\section{Limitations et am\'eliorations envisag\'ees}
+\section{Limitations et améliorations envisagées}
 
 \begin{itemize}
-    \item nous avons envisag\'e de r\'etablir un syst\`eme de \ttt{play}/\ttt{pause} pour pouvoir interrompre le jeu,
-        possiblement lui ajouter des restrictions pour emp\^echer un utilisateur de g\^ener les autres en mettant le
-        jeu en pause \`a r\'ep\'etition
-    \item les items qui sont envoy\'es entre le serveur et le client sont des cha\^ines de caract\`eres avec s\'eparateurs
-        fix\'es comme \ttt{"///"} et \ttt{"|||"}. Cela n'est pas dangereux car l'utilisateur ne peut envoyer
-        que des commandes qui sont valid\'ees par \ttt{Command} et les messages sont encapsul\'es dans un block \ttt{try},
-        mais si un ajout d'une autre fonctionnalit\'e permettait au client d'envoyer au serveur autre chose que des commandes
-        il faudrait ajouter d'autres m\'ecanismes de validation pour \'eviter des injections sous la forme de l'envoi
-        d'une commande \ttt{"|||<commande malicieuse>"} qui serait d\'ecoup\'ee sur le \ttt{"|||"} et interpr\'et\'ee
+    \item nous avons envisagé de rétablir un système de \ttt{play}/\ttt{pause} pour pouvoir interrompre le jeu,
+        possiblement lui ajouter des restrictions pour empêcher un utilisateur de gêner les autres en mettant le
+        jeu en pause à répétition
+    \item les items qui sont envoyés entre le serveur et le client sont des cha\^ines de caractères avec séparateurs
+        fixés comme \ttt{"///"} et \ttt{"|||"}. Cela n'est pas dangereux car l'utilisateur ne peut envoyer
+        que des commandes qui sont validées par \ttt{Command} et les messages sont encapsulés dans un block \ttt{try},
+        mais si un ajout d'une autre fonctionnalité permettait au client d'envoyer au serveur autre chose que des commandes
+        il faudrait ajouter d'autres mécanismes de validation pour éviter des injections sous la forme de l'envoi
+        d'une commande \ttt{"|||<commande malicieuse>"} qui serait découpée sur le \ttt{"|||"} et interprétée
         comme une commande vide provenant de l'utilisateur suivie d'un message provenant du client.
-    \item certaines commandes pourraient \^etre d\'eplac\'ees c\^ot\'e client : il pourrait ne pas y avoir besoin de faire
-        appel au serveur pour utiliser \ttt{help}
+    \item certaines commandes pourraient être déplacées côté client : il pourrait ne pas y avoir besoin de faire
+        appel au serveur pour utiliser \ttt{help}.
     \item les commandes \ttt{load}, \ttt{save} et \ttt{level} sont interdites si il y a deux joueurs ou plus, on pourrait les
-        autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre \`a jour le format de fichier de sauvegarde 
+        autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre à jour le format de fichier de sauvegarde
         pour accomoder plusieurs joueurs.
 \end{itemize}
 
