@@ -8,6 +8,7 @@ import akka.actor._
 import scala.util.matching.Regex
 
 import java.net.{ InetSocketAddress, SocketException }
+import java.io.{ File, PrintWriter }
 
 import swing._
 import event._
@@ -252,12 +253,59 @@ object main extends SimpleSwingApplication with Publisher {
 		socket
 	}
 
+	def startGame (defHost: String, defPort: Int, defTimeout: Int): Tuple3[String, Int, Int] = {
+		val hostBox = new TextField(defHost, 19)
+		val portBox = new TextField(s"$defPort", 5)
+		val timeoutBox = new TextField(s"$defTimeout", 5)
+		var host: String = defHost
+		var port: Int = defPort
+		var timeout: Int = defTimeout
+		val hostRegexp = new Regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")
+		val portRegexp = new Regex("^[0-9]{3,5}$")
+		val timeoutRegexp = new Regex("^[0-9]{1,10}$")
+		val dialog = new Dialog {
+			visible = true
+			title = "Roguelike: Startup dialog"
+			contents = {
+				val dialog = this
+				new BoxPanel(Orientation.Vertical) {
+					contents += new Label (s"Default server: $defHost:$defPort")
+					contents += hostBox
+					contents += portBox
+					contents += timeoutBox
+					contents += Button("Start the game") { dialog.close() }
+					contents += Button("Save preferrences") {
+						val file = new File("client.cfg")
+						val writer = new PrintWriter(file)
+						writer.write(s"$host $port $timeout")
+						writer.close()
+						println(s"'$host $port $timeout' written")
+					}
+					contents += Button("Quit")      { Runtime.getRuntime().halt(0) }
+					border = Swing.EmptyBorder(10, 10, 10, 10)
+				}
+			}
+			centerOnScreen()
+			}
+		while (dialog != null && dialog.visible) {
+			Thread.sleep(100)
+			if (hostRegexp.findAllIn(hostBox.text).toList.length == 1)
+				host = hostBox.text
+			if (portRegexp.findAllIn(portBox.text).toList.length == 1)
+				port = portBox.text.toInt
+			if (timeoutRegexp.findAllIn(timeoutBox.text).toList.length == 1)
+				timeout = timeoutBox.text.toInt
+		}
+		(host, port, timeout)
+	}
+
     val socket = try {
         val src = Source.fromFile("client.cfg")
         val line = src.getLines.next.split(" ")
-        val host = line(0)
-        val port = line(1).toInt
-        val timeout = line(2).toInt
+		val server_spec: Tuple3[String, Int, Int] = startGame(line(0), line(1).toInt, line(2).toInt)
+        val host = server_spec._1
+        val port = server_spec._2
+        val timeout = server_spec._3
         val socket = getSocket(host, port, timeout)
         println(s"Listening on $host:$port")
         socket
