@@ -82,8 +82,7 @@ object Config {
 					val hostRegexp = new Regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")
 					val portRegexp = new Regex("^[0-9]{3,5}$")
 					val dialog = new Dialog {
-						visible = true
-						title = "Roguelike -- Config: Fix connection issues"
+                        title = "Roguelike -- Config: Fix connection issues"
 						contents = {
 							val dialog = this
 							new BoxPanel(Orientation.Vertical) {
@@ -106,7 +105,8 @@ object Config {
 							}
 						}
                         minimumSize = new Dimension(500, 150)
-						centerOnScreen()
+						centerOnScreen
+                        visible = true
 					}
 					while (dialog != null && dialog.visible) {
 						Thread.sleep(100)
@@ -133,8 +133,7 @@ object Config {
 		val portRegexp = new Regex("^[0-9]{3,5}$")
 		val timeoutRegexp = new Regex("^[0-9]{1,10}$")
 		val dialog = new Dialog {
-			visible = true
-			title = "Roguelike -- Config: Choose connection settings"
+            title = "Roguelike -- Config: Choose connection settings"
 			contents = {
 				val dialog = this
 				new BoxPanel(Orientation.Vertical) {
@@ -155,7 +154,8 @@ object Config {
 				}
 			}
             minimumSize = new Dimension(500, 200)
-			centerOnScreen()
+			centerOnScreen
+            visible = true
 		}
 		while (dialog != null && dialog.visible) {
 			Thread.sleep(100)
