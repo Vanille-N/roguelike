@@ -5,6 +5,8 @@ import ArtefactType._
 // The following class deals with the artefacts management
 class ArtefactsCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("artefact", "artefact-add", "artefact-rm", "artefact-list")
     help_menus = "artefact" :: Nil
 
@@ -28,6 +30,10 @@ extends ClientCommandManager (body, game) {
         )
 
         def artefacts_artefact: String = {
+			/* This function is used as a redirection hub for artefacts commands
+			** it makes it simplier to call such commands: `artefact add` is
+			** more natural than `artefact-add`
+			*/
             splited_command.length match {
                 case 1 => { publish(PrintInLogs("Wrong usage of command `artefact`\n\t-> check `help artefact` to find out :)")); return "" }
                 case _ => {
@@ -49,6 +55,8 @@ extends ClientCommandManager (body, game) {
         }
 
         def artefacts_add: String = {
+			// First, check the syntax of the command entered in the command
+			// line
             if(!command_syntax_check (
                 splited_command,
                 Array(
@@ -63,12 +71,14 @@ extends ClientCommandManager (body, game) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
+			// The command line respects the command syntax: check the command
+			// length means check the interaction state
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'artefact-add'
                     publish(PrintInLogs(s"Which type of artefact would you like to add ?(l to list)"))
                     return unSplitCommand(splited_command)
                 }
-                case 2 => {
+                case 2 => {// command is: 'artefact-add <l | type>'
                     splited_command(1) match {
                         case "l" => {
                             var liste: String = ""
@@ -82,7 +92,7 @@ extends ClientCommandManager (body, game) {
                         }
                     }
                 }
-                case 3 => {
+                case 3 => {// command is 'artefact-add <type> <l | sub-type>'
                     splited_command(2) match {
                         case "l" => {
                             var liste: String = ""
@@ -98,11 +108,11 @@ extends ClientCommandManager (body, game) {
                         }
                     }
                 }
-                case 4 => {
+					case 4 => {// command is: 'artefact-add <type> <sub-type> <level>'
                     publish(PrintInLogs("Where do you want to spawn the artefact ?(`i j ` or click"))
                     return unSplitCommand(splited_command)
                 }
-                case 6 => {
+                case 6 => {// command is: 'artefact-add <type> <sub-type> <level> <coord_i> <coord_j>'
                     val i: Int = splited_command(4).toInt
                     val j: Int = splited_command(5).toInt
                     val target_level: Int = splited_command(3).toInt
@@ -127,6 +137,7 @@ extends ClientCommandManager (body, game) {
         }
 
         def artefacts_rm: String = {
+			// This function destroys an artefact. It begins by loading the artefacts and their indexes
             val artefacts: Map[Int, Artefact] = Map()
             var i: Int = 0
             body.room.locs.map(_.artefacts.foreach(
@@ -135,6 +146,7 @@ extends ClientCommandManager (body, game) {
                     i += 1
                     }
                 ))
+			// Secondly, check the command syntax
             if(!command_syntax_check(
                 splited_command,
                 Array (
@@ -145,11 +157,13 @@ extends ClientCommandManager (body, game) {
                 publish(PrintInLogs("The command does not fit its syntax :/\n\tAborting."))
                 return ""
             }
+			// Then, check the interactivity status
             splited_command.length match {
-                case 1 =>
+                case 1 => {// command is: 'artefact-rm'
                         publish(PrintInLogs("Which artefact would you like to destroy ?(l to list)"))
                         return "artefact-rm"
-                case 2 => {
+				}
+                case 2 => {// command is: 'artefact-rm <l | artefact_index>'
                     if(splited_command(1) == "l") {
                         artefacts_list
                         publish(PrintInLogs("Which artefact would you like to destroy ?(l to list)"))
@@ -177,6 +191,7 @@ extends ClientCommandManager (body, game) {
             publish(PrintInLogs(s"   ---------   End of the printing of ${artefacts.size} elements   ---------"))
         }
 
+		// The following match decides which function is to use for the given command.
         splited_command(0) match {// main switch to defines the function which corresponds to the command at hand.
             case "artefact"      => { return artefacts_artefact }
             case "artefact-add"  => { return artefacts_add }

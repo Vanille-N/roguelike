@@ -5,6 +5,8 @@ import java.lang.NumberFormatException
 // - save/load
 class LevelCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("level", "load", "save")
     help_menus = "level" :: Nil
 

@@ -1,6 +1,8 @@
 // The following class deals with the items management
 class ItemsCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("item-add", "item", "item-rm", "item-pickup", "item-level", "item-list", "item-give", "item-use")
     help_menus = "item" :: Nil
 
@@ -8,9 +10,16 @@ extends ClientCommandManager (body, game) {
         publish(PrintInLogs(prompt + unSplitCommand(splited_command_arg)))
         var splited_command: Array[String] = splited_command_arg// necessary as the arguments of a function are non mutable
         def items_item: String = {// main redirection command to defines equivalence in the call of a specific function (eg.: item list <-> item_list)
+			// This function is used as a redirection hub for items commands
+			// it makes it simplier to call such commands: `item add` is
+			// more natural than `item-add`
             splited_command.length match {
                 case 1 => { publish(PrintInLogs("Wrong usage of command `item`\n\t`-> check `help item` to find out :)")); return "" }
                 case _ => {
+					/* The command has arguments. The first one explicits the real wanted command.
+					** The first element of the array is forgotten, the second turned into the right
+					** command name and the command line string array is passed to the right function
+					*/
                     splited_command(1) match {
                         case "add"    => {
                             splited_command = splited_command.tail
@@ -82,11 +91,15 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => { publish(PrintInLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcohol\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane")); return "item-add" }
-                case 2 => { publish(PrintInLogs("Where do you want to spawn the new item? (click or respond by `i j` in the cmdline).")); return "item-add " + splited_command(1) }
-                case 4 => {
+                case 1 => {// command is: 'item-add'
+					publish(PrintInLogs("What kind of item do you want to add ?\n\t1 -> Knife\n\t2-> Alcohol\n\t3 -> Move\n\t4 -> Javel\n\t5-> heat\n\t6-> spike\n\t7-> leak\n\t8-> membrane")); return "item-add"
+					}
+                case 2 => {// command is: 'item-add <1 -> 8>'
+					publish(PrintInLogs("Where do you want to spawn the new item? (click or respond by `i j` in the cmdline).")); return "item-add " + splited_command(1)
+				}
+                case 4 => {// command is: 'item-add <1 -> 8> <coord_i> <coord_j>'
                     val i: Int = splited_command(2).toInt
                     val j: Int = splited_command(3).toInt
                     val owner = PosOwned(body.room.locs(i,j))
@@ -121,10 +134,12 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => { publish(PrintInLogs("What item do you want to remove from the game? (l to list them)")); "item-rm" }
-                case _ => {
+                case 1 => {// command is: 'item-rm'
+					publish(PrintInLogs("What item do you want to remove from the game? (l to list them)")); "item-rm"
+				}
+                case _ => {// command is: 'item-rm <l | item_index>'
                     if (splited_command(1) == "l") {
                         items_list
                         return "item-rm"
@@ -138,13 +153,16 @@ extends ClientCommandManager (body, game) {
 
         def items_pickUp: String = {// Force each organism to pick up an item from the board
             splited_command.length match {
-                case 1 => { publish(PrintInLogs("Which cell is this about? (any one-word answer for all)")); return "item-pickup" }
-                case 2 => {
+                case 1 => {// command is: 'item-pickup'
+					publish(PrintInLogs("Which cell is this about? (any one-word answer for all)"))
+					return "item-pickup"
+				}
+                case 2 => {// comman is: 'item-pickup <selection>'
                     for(i <- 0 to body.room.cols - 1) {
                         for(j<- 0 to body.room.rows - 1) {
                             body.room.locs(i, j).organisms(0).foreach ( o =>
-                                if (body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
-                                    val it = body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
+                                if (body.room.locs(i, j).items.size > 0) {
+                                    val it = body.room.locs(i, j).items.head
                                     if (it.pickUp(o)) {
                                         o.items += it
                                         publish(PrintInLogs(s"\nI $o pick up the item, yay !"))
@@ -154,7 +172,7 @@ extends ClientCommandManager (body, game) {
                         }
                     }
                 }
-                case 3 => {
+                case 3 => {// command is: 'item-pickup <coord_i> <coord_j>'
                     body.room.locs(splited_command(1).toInt, splited_command(2).toInt).organisms(0).foreach ( o =>
                         if (body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.size > 0) {
                             val it = body.room.locs(splited_command(1).toInt, splited_command(2).toInt).items.head
@@ -230,9 +248,9 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'item-give' (the give may be replaced by use in every following command
                     publish(PrintInLogs("Which item of the inventory would you like to give? (`l` to list the items)"))
                     if (forceUse) {
                         return "item-use"
@@ -240,7 +258,7 @@ extends ClientCommandManager (body, game) {
                         return "item-give"
                     }
                 }
-                case 2 => {
+                case 2 => {// command is: 'item-give <l | item_id>'
                     if ( splited_command(1) == "l") {
                         list_inventory
                         publish(PrintInLogs("Which item of the inventory would you like to give? (`l` to list the items)"))
@@ -254,7 +272,7 @@ extends ClientCommandManager (body, game) {
                         return unSplitCommand(splited_command)
                     }
                 }
-                case 3 => {
+                case 3 => {// command is: 'item-give <l | item_id> <l | organism_id>'
                     if(splited_command(2) == "l") {
                         organisms_list
                         publish(PrintInLogs("What organism should receive the item? (`l` to list the organisms)"))
@@ -292,13 +310,13 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
-            splited_command.length match {
+            // The syntax is correct. Check the interaction state.
+            splited_command.length match {// command is: 'item-level'
                 case 1 => {
                     publish(PrintInLogs("Of whose item do you want to whange the level ? (l to list)"))
                     return "item-level"
                 }
-                case 2 => {
+                case 2 => {// command is: 'item-level <l | item_id>'
                     if(splited_command(1) == "l") {
                         items_list
                         return "item-level"
@@ -307,7 +325,7 @@ extends ClientCommandManager (body, game) {
                         return unSplitCommand(splited_command)
                     }
                 }
-                case 3 => {
+                case 3 => {// command is: 'item-level <l | item_id> <level>'
                     val target_item : Item = getItemById(splited_command(1).toInt)
                     val target_level : Int = splited_command(2).toInt
                     publish(PrintInLogs(s"The item ${splited_command(1)} is now level ${splited_command(2)}"))
