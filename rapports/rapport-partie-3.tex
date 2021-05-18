@@ -14,6 +14,18 @@
 \begin{document}
 \maketitle
 
+\section{Prise en compte des remarques des parties précédentes}
+
+Afin de prendre en compte les remarques effectuées dans les précédents retour
+que l'on a eu sur les parties 1 et 2 du projet, nous avons pris soin de mieux
+commenter le code et de corriger des bugs connus (par exemple celui indiqué dans
+\texttt{items\_item} du fichier de commandes).
+
+À présent, dans les \texttt{match} effectuées sur la longueur de la commande, un
+commentaire est ajouté pour chaque cas explicitant l'état de la commande à
+l'exécution du bloc en question.
+
+
 \section{Problèmes préliminaires rencontrés}
 
 Bien que nous ayons beaucoup séparé notre code en fichiers pour chaque aspect du jeu,
@@ -54,8 +66,8 @@ Par exemple, une partie du temps imparti a été utilisée pour essayer de sépa
 	\item envoyer la commande finale au serveur
 	\item recevoir la réponse du serveur
 \end{itemize}
-Cette tentative n'a pas abouti et pour terminer \`a temps nous avons mis toutes les commandes
-c\^ot\'e serveur.
+Cette tentative n'a pas abouti et pour terminer à temps nous avons mis toutes les commandes
+côté serveur.
 
 
 
@@ -68,7 +80,7 @@ sérialiser les données à envoyer, un autre met à jour l'affichage graphique 
 Côté serveur il se passe le même processus de sérialisation et désérialisation, et après chaque
 étape du jeu la grille est lue et envoyée à chaque client, puis une courte pause est faite jusqu'à-ce que
 tous les clients aient confirmé la bonne réception et éventuellement envoyé des commandes à exécuter.\\
-(Il y a des s\'ecurit\'es contre des clients qui mettraient trop longtemps \`a répondre)\\
+(Il y a des sécurités contre des clients qui mettraient trop longtemps à répondre)\\
 
 L'affichage graphique distingue les virus du joueur de ceux des autres joueurs, mais ne distingue pas les
 adversaires les uns des autres dans le cas de trois joueurs ou plus.
@@ -106,7 +118,7 @@ $ echo "8001\n8002" > server/server.cfg
 \end{lstlisting}
 Au lancement une fenêtre de dialogue s'ouvrira, il faudra renseigner \ttt{host=127.0.0.1} (ou autre),
 \ttt{port=8001} pour le joueur 1, \ttt{port=8002} pour le joueur 2, \ttt{timeout=20000} (ou autre),
-puis \'eventuellement enregistrer les pr\'ef\'erences.\\
+puis éventuellement enregistrer les préférences.\\
 
 
 \`A exécuter à chaque nouvelle partie, dans trois shells différents:
@@ -141,7 +153,7 @@ En particulier cela permet sans aucune duplication de code que \ttt{client} et \
     \item les commandes \ttt{load}, \ttt{save} et \ttt{level} sont interdites si il y a deux joueurs ou plus, on pourrait les
         autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre à jour le format de fichier de sauvegarde
         pour accomoder plusieurs joueurs.
-    \item pour l'instant si un message est perdu en route ou corrompu il est ignor\'e, on pourrait faire en sorte
+    \item pour l'instant si un message est perdu en route ou corrompu il est ignoré, on pourrait faire en sorte
         que le receveur envoie une demande d'obtenir un second message pour remplacer celui corrompu.
 \end{itemize}
 
