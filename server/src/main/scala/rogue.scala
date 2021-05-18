@@ -161,12 +161,15 @@ object main extends App with Reactor {
 	// read server configuration and accept connections
 	val src = Source.fromFile("server.cfg")
 	val line = src.getLines.toArray 
+    var allConnected = false
 
     val timer_disconnect = new Timer
     timer_disconnect.schedule(new TimerTask() {
         def run {
-            println("Players failed to connect")
-            sys.exit(1)
+            if (!allConnected) {
+                println("Players failed to connect")
+                sys.exit(1)
+            }
         }
     }, 1000*60*5)
 
@@ -179,6 +182,7 @@ object main extends App with Reactor {
 		new Connection(id, socket)
 	})
 	println(s"${servers.size} players connected")
+    allConnected = true
 	src.close
 
 	// initialize players and games from connections
