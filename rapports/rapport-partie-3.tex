@@ -33,16 +33,16 @@ Il nous a donc fallu commencer par découpler ces rôles:
 \end{itemize}
 
 \ttt{Local*} contiennent les informations absolument minimales pour l'affichage graphique, \ttt{Display*} en sont
-juste des versions locales mises à jour régulièrement.
+juste des versions statiques mises à jour régulièrement.\\
 
 Nous avons par ailleurs profité de cette séparation pour extraire une partie de
 \ttt{BodyPart} dans \ttt{Game}, contenant tout ce qui est relatif à un seul joueur.
 Nous avons fait attention à ce que toutes ces modifications rendent \ttt{BodyPart}
 agnostique au nombre de \ttt{Game} qui existent, et donc en particulier qu'une fois la
 partie réseau mise en place il soit facile de rendre le jeu multijoueur.
+
 \`A part la performance, rien ne limite le nombre de joueurs à condition de mettre à
-jour les fichiers d'initialisation de niveaux.\\
-Le jeu a été testé à 1,2 et 3 joueurs.\\
+jour les fichiers d'initialisation de niveaux. Le jeu a été testé à 1, 2 et 3 joueurs.\\
 
 Cette séparation a pris la majeure partie du temps alloué à la troisième partie,
 nous aurions aimé avoir un peu plus de temps pour d'autres améliorations mineures.
@@ -54,6 +54,8 @@ Par exemple, une partie du temps imparti a été utilisée pour essayer de sépa
 	\item envoyer la commande finale au serveur
 	\item recevoir la réponse du serveur
 \end{itemize}
+Cette tentative n'a pas abouti et pour terminer \`a temps nous avons mis toutes les commandes
+c\^ot\'e serveur.
 
 
 
@@ -66,6 +68,7 @@ sérialiser les données à envoyer, un autre met à jour l'affichage graphique 
 Côté serveur il se passe le même processus de sérialisation et désérialisation, et après chaque
 étape du jeu la grille est lue et envoyée à chaque client, puis une courte pause est faite jusqu'à-ce que
 tous les clients aient confirmé la bonne réception et éventuellement envoyé des commandes à exécuter.\\
+(Il y a des s\'ecurit\'es contre des clients qui mettraient trop longtemps \`a répondre)\\
 
 L'affichage graphique distingue les virus du joueur de ceux des autres joueurs, mais ne distingue pas les
 adversaires les uns des autres dans le cas de trois joueurs ou plus.
@@ -90,7 +93,8 @@ quitter l'application.
 La procédure de lancement du jeu (et la structure du projet) ont été un peu compliquées par l'ajout d'un serveur,
 mais elles sont également des preuves que la séparation serveur/client a été bien réalisée.
 
-\ttt{server/} contient le code qui exécute le jeu, \ttt{client/} contient la partie graphique.\\
+\ttt{server/} contient le code qui exécute le jeu, \ttt{client/} contient la partie graphique. Ils partagent
+un fichier de code par un lien symbolique.\\
 
 L'exemple ci-dessous décrit comment lancer une partie à deux joueurs, il s'étend facilement à 1 ou 3 joueurs.\\
 
@@ -98,10 +102,11 @@ L'exemple ci-dessous décrit comment lancer une partie à deux joueurs, il s'ét
 \begin{lstlisting}
 $ cp -r player{-example,1}
 $ cp -r player{-example,2}
-$ echo "localhost 8001 20000" > player1/client.cfg
-$ echo "localhost 8002 20000" > player2/client.cfg
 $ echo "8001\n8002" > server/server.cfg
-\end{lstlisting}~\\
+\end{lstlisting}
+Au lancement une fenêtre de dialogue s'ouvrira, il faudra renseigner \ttt{host=127.0.0.1} (ou autre),
+\ttt{port=8001} pour le joueur 1, \ttt{port=8002} pour le joueur 2, \ttt{timeout=20000} (ou autre),
+puis \'eventuellement enregistrer les pr\'ef\'erences.\\
 
 
 \`A exécuter à chaque nouvelle partie, dans trois shells différents:
@@ -136,6 +141,8 @@ En particulier cela permet sans aucune duplication de code que \ttt{client} et \
     \item les commandes \ttt{load}, \ttt{save} et \ttt{level} sont interdites si il y a deux joueurs ou plus, on pourrait les
         autoriser si tous les joueurs sont en faveur. Cela supposerait de mettre à jour le format de fichier de sauvegarde
         pour accomoder plusieurs joueurs.
+    \item pour l'instant si un message est perdu en route ou corrompu il est ignor\'e, on pourrait faire en sorte
+        que le receveur envoie une demande d'obtenir un second message pour remplacer celui corrompu.
 \end{itemize}
 
 
