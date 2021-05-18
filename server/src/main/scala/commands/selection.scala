@@ -3,6 +3,8 @@ import collection.mutable.Set
 // The following class is required to select organisms.
 class SelectionCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("select", "take", "filter", "flush", "selection-print", "selection")
     help_menus = "selection" :: Nil
 
@@ -12,6 +14,7 @@ extends ClientCommandManager (body, game) {
         publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
 
         val selection_possibilities: String = {
+			// This string is useful for commands which require real selection names
             var result = s"N:1->;${game.selection_names.length}"
             for (i <- 0 to game.selection_names.length - 1)
                 result += s"|${game.selection_names(i)}"
@@ -60,6 +63,7 @@ extends ClientCommandManager (body, game) {
             ** If the selection already exists, replace its content by the new
             ** content, if not, create a whole new selection.
             */
+			// Check the command syntax
             if(!command_syntax_check(
                 splited_command,
                 Array (// The syntax of this Array is described in
@@ -132,6 +136,7 @@ extends ClientCommandManager (body, game) {
         }
 
         def selection_switch: String = {
+			// Check the command syntax
             if(!command_syntax_check(splited_command,
                 Array (// The syntax of this Array is described in
                        // `commands.scala`
@@ -139,6 +144,7 @@ extends ClientCommandManager (body, game) {
                     (false, "switch"),
                     (true, "any")
                 ))) return ""
+			// The command is well formed => execute
             if (game.selection_names.indexOf(splited_command(2)) < 0) {
                 game.selection_names.:+(splited_command(2))
                 game.selection_organisms.:+(Tuple2(Set(), Set()))
@@ -148,6 +154,7 @@ extends ClientCommandManager (body, game) {
         }
 
         def selection_destroy: String = {
+			// Check the command syntax
             if (!command_syntax_check(splited_command,
                 Array (// The syntax of this Array is described in
                        // `commands.scala`
@@ -155,7 +162,9 @@ extends ClientCommandManager (body, game) {
                     (false, "destroy"),
                     (true, selection_possibilities)
                 ))) return ""
+			// The command is well formed => execution
             if (game.selection_names.indexOf(splited_command(2)) >= 0) {
+				// The selection to switch to exists
                 val ind: Int = game.selection_names.indexOf(splited_command(2))
                 var new_selection_names: Array[String] = Array()
                 var new_selection_organisms: Array[Set[Organism]] = Array()
@@ -202,6 +211,7 @@ extends ClientCommandManager (body, game) {
             ""
         }
 
+		// The following match decides which function is to use for the given command.
         splited_command(0) match {// main switch to know what function corresponds to the command at hand.
             case "selection"        => {
                 if (splited_command.length == 1) return ""

@@ -1,8 +1,11 @@
+import Behavior._
+
 class BehaviorCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("behavior", "behavior-cursor", "behavior-target", "behavior-give", "behavior-keep")
     help_menus = "behavior" :: Nil
-    import Behavior._
 
     def realExecuteCommand (splited_command: Array[String]): String = {
         publish(PrintInLogs(prompt + unSplitCommand(splited_command)))
@@ -19,13 +22,13 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'behavior'
                     publish(PrintInLogs("To control movement: 1 -> cursor, 2 -> click target\nTo control items: 3 -> give, 4 -> keep"))
                     return "behavior"
                 }
-                case 2 => {
+                case 2 => {// command is 'behavior <cursor | 1 | target | 2 | give | 3 | keep | 4 >'
                     val newCmd = splited_command(1) match {
                         case "cursor" | "1" => "behavior-cursor"
                         case "target" | "2" | "click" => "behavior-target"
@@ -45,6 +48,7 @@ extends ClientCommandManager (body, game) {
         }
 
         def behavior_cursor: String = {
+			// This function is executed if the selected cells are to follow the cursor
             game.selection_organisms(game.selection_names.indexOf(game.selection_current)).foreach(o => {
                 o.behavior = { () => (game.player.position, SEEK) }
             })
@@ -63,6 +67,8 @@ extends ClientCommandManager (body, game) {
         }
 
         def behavior_target: String = {
+			// This function is executed if the selected cells must get to a certain location
+
             // Check if the command syntax is correct or not:
             if(!command_syntax_check (
                 splited_command,
@@ -76,17 +82,13 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'behavior-target'
                     publish(PrintInLogs("Which tile ?"))
                     return "behavior-target"
                 }
-                case 2 => {
-                    publish(PrintInLogs("Illegal number of parameters (plausible error: coordinates must be passed as `i j`, not `i`, `j`.)\n\tAborting."))
-                    return ""
-                }
-                case 3 => {
+                case 3 => {// command is: 'behavior-target <coord_i> <coord_j>'
                     val i = splited_command(1).toInt
                     val j = splited_command(2).toInt
                     game.selection_organisms(game.selection_names.indexOf(game.selection_current)).foreach(o => {
@@ -101,6 +103,7 @@ extends ClientCommandManager (body, game) {
         }
         println(splited_command(0))
 
+		// The following match decides which function is to use for the given command.
         splited_command(0) match {
             case "behavior" => { return behavior }
             case "behavior-cursor" => { return behavior_cursor }

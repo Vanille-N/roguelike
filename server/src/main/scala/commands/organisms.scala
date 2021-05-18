@@ -1,6 +1,8 @@
 // The following class deals with the management of the organisms
 class OrganismsCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("list", "set", "show")
     var last_checked_arg: Int = 0
     help_menus = "list" :: "set" :: "show" :: Nil
@@ -45,13 +47,13 @@ extends ClientCommandManager (body, game) {
                 return ""
             }
 
-            // The syntax is correct. Continue.
+            // The syntax is correct. Check the interaction state.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'set'
                     publish(PrintInLogs("Which organism would you like to consider? (l to list available organisms)"))
                     return "set"
                 }
-                case 2 => {
+                case 2 => {// command is: 'set <l | organism_id>'
                     if(splited_command(1) == "l") {
                         organisms_list
                         publish(PrintInLogs("Which organism would you like to consider? (l to list available organisms)"))
@@ -61,11 +63,11 @@ extends ClientCommandManager (body, game) {
                         return (unSplitCommand(splited_command))
                     }
                 }
-                case 3 => {
+                case 3 => {// command is: 'set <l | organism_id> <field>'
                     publish(PrintInLogs("What is the target value ? (integer)"))
                     return (unSplitCommand(splited_command))
                 }
-                case 4 => {
+                case 4 => {// command is: 'set <l | organism_id> <field> <new_value>'
                     val target_organism = getOrganismById(splited_command(1).toInt)
                     val target_field    = splited_command(2)
                     val target_value    = splited_command(3).toInt
@@ -103,21 +105,18 @@ extends ClientCommandManager (body, game) {
 
             // The syntax is correct. Continue.
             splited_command.length match {
-                case 1 => {
+                case 1 => {// command is: 'show'
                     publish(PrintInLogs("Which organism would you like to see ?"))
                     return "show"
                 }
-                case 2 => {
+                case 2 => {// command is: 'show <organism_id>'
                     publish(PrintInLogs("" + getOrganismById(splited_command(1).toInt)))
-                    return ""
-                }
-                case _ => {
-                    publish(PrintInLogs("Too many arguments, see `list` to list several organisms"))
                     return ""
                 }
             }
         }
 
+		// The following match decides which function is to use for the given command.
         splited_command(0) match {// main switch to defines the function that corresponds to the command at hand.
             case "list"     => { organisms_list; return ""}
             case "set"      => { return organisms_set     }

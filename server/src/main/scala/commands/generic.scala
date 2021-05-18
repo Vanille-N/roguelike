@@ -10,6 +10,8 @@ import Direction._
 // The following  class deals with the movements of the player
 class DirectionsCommand(body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("Up", "Down", "Left", "Right")
     help_menus = "directions" :: Nil
 
@@ -30,6 +32,8 @@ extends ClientCommandManager (body, game) {
 // The following class deals withe the repeat variable (allowing to advance by `repeat` steps the state of the game).
 class DigitsCommand(body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", "repeat-reset")
     help_menus = "repeat" :: Nil
 
@@ -53,6 +57,8 @@ extends ClientCommandManager (body, game) {
 
 class OtherCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List("contents", "clear", "sacrifice")
     help_menus = Nil
 
@@ -89,6 +95,8 @@ extends ClientCommandManager (body, game) {
 // accept every command and do nothing.
 class NullCommand (body: BodyPart, game: Game)
 extends ClientCommandManager (body, game) {
+	// Definition of the first words of a command that are acceptes as artefact
+	// commands and help commands that may be usefull
     val acceptedCommands: List[String] = List()
     override def acceptCommand (str: String): Boolean = { true }
     help_menus = Nil

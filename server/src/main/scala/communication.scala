@@ -42,8 +42,9 @@ class Connection(val id: Int, socket: Socket) extends Publisher {
 		}
 	}
 
-	def send_server (message: String) {
-		out_stream.print(message + "|||") // "|||" is the message separator
+def send_server (message: String) {
+		// Sends the server the message (append the '|||' separator prefix)
+		out_stream.print(message + "|||")
 		out_stream.flush()
 	}
 
