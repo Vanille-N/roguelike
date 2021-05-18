@@ -31,7 +31,7 @@ object main extends SimpleSwingApplication with Publisher {
 
     val top = new MainFrame {
         title = "BodyPart"
-        contents = { new GridBagPanel }
+        contents = { new Label("Please wait for all players to be connected") }
         centerOnScreen()
     }
 
