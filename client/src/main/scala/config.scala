@@ -83,7 +83,7 @@ object Config {
 					val portRegexp = new Regex("^[0-9]{3,5}$")
 					val dialog = new Dialog {
 						visible = true
-						title = "Server connection error"
+						title = "Roguelike -- Config: Fix connection issues"
 						contents = {
 							val dialog = this
 							new BoxPanel(Orientation.Vertical) {
@@ -105,6 +105,7 @@ object Config {
 								border = Swing.EmptyBorder(10, 10, 10, 10)
 							}
 						}
+                        minimumSize = new Dimension(500, 150)
 						centerOnScreen()
 					}
 					while (dialog != null && dialog.visible) {
@@ -133,7 +134,7 @@ object Config {
 		val timeoutRegexp = new Regex("^[0-9]{1,10}$")
 		val dialog = new Dialog {
 			visible = true
-			title = "Roguelike: Startup dialog"
+			title = "Roguelike -- Config: Choose connection settings"
 			contents = {
 				val dialog = this
 				new BoxPanel(Orientation.Vertical) {
@@ -153,8 +154,9 @@ object Config {
 					border = Swing.EmptyBorder(10, 10, 10, 10)
 				}
 			}
+            minimumSize = new Dimension(500, 200)
 			centerOnScreen()
-			}
+		}
 		while (dialog != null && dialog.visible) {
 			Thread.sleep(100)
 			if (hostRegexp.findAllIn(hostBox.text).toList.length == 1)
