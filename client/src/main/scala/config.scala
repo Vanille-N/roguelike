@@ -21,9 +21,9 @@ object Config {
         try {
             val src = Source.fromFile("client.cfg")
             val line = src.getLines.next.split(" ")
-            spec = startGame(line(0), line(1).toInt, line(2).toInt)
+            spec = checkServerConfig(line(0), line(1).toInt, line(2).toInt, "Roguelike -- Config: Choose connection settings")
         } catch {
-            case e: Throwable => spec = startGame("127.0.0.1", 8000, 20000)
+            case e: Throwable => spec = checkServerConfig("127.0.0.1", 8000, 20000, "Config file not found")
         }
         val host = spec._1
         val port = spec._2
@@ -36,15 +36,18 @@ object Config {
 	def validateSocket(
         defaultHost: String,
         defaultPort: Int,
-        timeout: Int
+        defaultTimeout: Int
     ): Socket = {
+		// Data
 		var port = defaultPort
 		var host = defaultHost
+		var timeout: Int = defaultTimeout
+
+		// Keep track of whether the connexion is extablished or not.
 		var connected = false
+
+		// Create a socket
 		var socket = new Socket ()
-		val hostRegexp = raw"([0-9]{4}\.){3}[0-9]{4}".r
-		val portRegexp = "[0-9]{3,5}".r
-		var error = ""
 
 		while (!connected) {
 			try {
@@ -54,40 +57,10 @@ object Config {
 				connected = true
 			} catch {
 				case _: Throwable => {
-					val hostBox = new TextField(host, 19)
-					val portBox = new TextField(s"$port", 5)
-					val hostRegexp = new Regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")
-					val portRegexp = new Regex("^[0-9]{3,5}$")
-					val dialog = new Dialog {
-                        title = "Roguelike -- Config: Fix connection issues"
-						contents = {
-							val dialog = this
-							new BoxPanel(Orientation.Vertical) {
-								contents += new Label (s"Unable to connect to the server $host:$port ($error)")
-								contents += hostBox
-								contents += portBox
-								contents += Button("Try again") {
-									if (hostRegexp.findAllIn(hostBox.text).toList.length == 1) {
-										host = hostBox.text
-										println(s"${host} is a valid host")
-									} else error = s"${hostBox.text} is not an IP address"
-									if (portRegexp.findAllIn(portBox.text).toList.length == 1) {
-										port = portBox.text.toInt
-										println(s"${port} is a valid port")
-									} else error = s"${portBox.text} is not a port number"
-									dialog.close()
-								}
-								contents += Button("Quit") { sys.exit(0) }
-								border = Swing.EmptyBorder(10, 10, 10, 10)
-							}
-						}
-                        minimumSize = new Dimension(500, 150)
-						centerOnScreen
-                        visible = true
-					}
-					while (dialog != null && dialog.visible) {
-						Thread.sleep(100)
-					}
+					val conf = checkServerConfig(host, port, timeout, "Error: unable to connect")
+					host = conf._1
+					port = conf._2
+					timeout = conf._3
 				}
 			}
 		}
@@ -95,25 +68,33 @@ object Config {
 		socket
 	}
 
-	def startGame (
+	def checkServerConfig (
         defHost: String,
         defPort: Int,
-        defTimeout: Int
+        defTimeout: Int,
+		message: String
     ): Tuple3[String, Int, Int] = {
+		// Graphical elements
 		val hostBox = new TextField(defHost, 19)
 		val portBox = new TextField(s"$defPort", 5)
-		val timeoutBox = new TextField(s"$defTimeout", 5)
+		val timeoutBox = new TextField(s"$defTimeout", 10)
+
+		// Global variables
 		var host: String = defHost
 		var port: Int = defPort
 		var timeout: Int = defTimeout
+
+		// Regex to recognize numbers & ip addr
 		val hostRegexp = new Regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$")
 		val portRegexp = new Regex("^[0-9]{3,5}$")
 		val timeoutRegexp = new Regex("^[0-9]{1,10}$")
+		// Actual dialog
 		val dialog = new Dialog {
-            title = "Roguelike -- Config: Choose connection settings"
+            title = message
 			contents = {
 				val dialog = this
 				new BoxPanel(Orientation.Vertical) {
+					contents += new Label (s"$message")
 					contents += new Label (s"Default server: $defHost:$defPort")
 					contents += hostBox
 					contents += portBox
@@ -136,6 +117,7 @@ object Config {
 		}
 		while (dialog != null && dialog.visible) {
 			Thread.sleep(100)
+			// If the expressions fit the expected answers, change the values
 			if (hostRegexp.findAllIn(hostBox.text).toList.length == 1)
 				host = hostBox.text
 			if (portRegexp.findAllIn(portBox.text).toList.length == 1)
