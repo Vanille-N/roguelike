@@ -161,6 +161,15 @@ object main extends App with Reactor {
 	// read server configuration and accept connections
 	val src = Source.fromFile("server.cfg")
 	val line = src.getLines.toArray 
+
+    val timer_disconnect = new Timer
+    timer_disconnect.schedule(new TimerTask() {
+        def run {
+            println("Players failed to connect")
+            sys.exit(1)
+        }
+    }, 1000*60*5)
+
 	val servers: Array[Connection] = line.zipWithIndex.map(x => {
 		val id = x._2 + 1
 		val port = x._1.toInt

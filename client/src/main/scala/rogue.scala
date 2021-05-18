@@ -70,7 +70,7 @@ object main extends SimpleSwingApplication with Publisher {
                         local.globalPanel.requestFocusInWindow
                         running = true
                     }
-                }, 1)
+                }, 1000)
                 info = ArrayBuffer()
             } else if (msg != "") {
                 // normal message, translate then add to queue
